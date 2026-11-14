@@ -1,0 +1,39 @@
+[
+  {
+    "key": "compiler-build-variants",
+    "stage": "21 · Tools, libraries and the compiler",
+    "title": "Build variants: flambda, fuzzing and ThreadSanitizer",
+    "body": [
+      "An OCaml compiler can be built in several variants, chosen when the compiler is installed and visible in `ocamlopt -config`. *Flambda* is an optimising middle end: with it, `-O2` and `-O3` enable aggressive inlining and specialisation, and attributes such as `[@inline always]`, `[@inlined always]`, `[@specialise]` and `[@unrolled n]` become instructions the compiler follows. Without flambda the same flags and attributes are accepted and the classic inliner is used, so portable code can carry them safely. Flambda changes speed, never meaning.",
+      "*Fuzzing* with `afl-fuzz` feeds a program thousands of mutated inputs and watches which code paths they reach. A program built with `-afl-instrument` reports its coverage to the fuzzer, which steers the inputs toward new paths and records the ones that crash it. It finds parser and decoder bugs that hand-written tests miss. *ThreadSanitizer* (TSan) is a runtime that detects data races in OCaml 5 programs that use domains or threads: it reports the two conflicting accesses with their stacks, at the cost of a large slowdown.",
+      "These variants are installed as separate opam switches, for example with the `ocaml-option-flambda`, `ocaml-option-afl` and `ocaml-option-tsan` packages, and the build you are using tells you what it has. The switch used to validate this guide reports `flambda: false`, `afl_instrument: false` and `tsan: false`, so this lesson describes the variants and exercises only what behaves identically everywhere: the attributes, and the `Sys` functions that report the runtime in use."
+    ],
+    "code": "let[@inline always] twice f x = f (f x)\n\nlet sum_to n =\n  let rec go acc i = if i > n then acc else go (acc + i) (i + 1) in\n  go 0 1\n\nlet () =\n  (* Attributes understood by flambda are accepted, and harmless, without it. *)\n  Printf.printf \"%d\\n\" ((twice [@inlined always]) (fun x -> x + 1) 5);\n  Printf.printf \"%d\\n\" (sum_to 10);\n  Printf.printf \"%b\\n\" (Sys.int_size >= 31);\n  (* The default runtime has an empty variant name; a debug runtime reports \"d\". *)\n  Printf.printf \"%S\\n\" (Sys.runtime_variant ());\n  Printf.printf \"%b\\n\" (String.length Sys.ocaml_version > 0)\n",
+    "expectedStdout": "7\n55\ntrue\n\"\"\ntrue\n",
+    "challenge": "Mark a small helper `let[@inline] square x = x * x` and a call `(square [@inlined]) 12`, print the result, and say in a comment why the program prints the same thing with or without flambda.",
+    "solution": "let[@inline] square x = x * x\n\n(* Inlining changes how fast the code runs, never what it computes, so the\n   output is identical with and without flambda. *)\nlet () = Printf.printf \"%d\\n\" ((square [@inlined]) 12)\n",
+    "solutionStdout": "144\n",
+    "question": "What does the flambda optimiser change about a program?",
+    "correct": "How fast it runs, through inlining and specialisation, but never its meaning",
+    "wrong": [
+      "Which values it computes",
+      "The syntax it accepts"
+    ],
+    "reasoning": "Optimisation must preserve behaviour, so flambda only affects performance and code size.",
+    "sourceURL": "https://ocaml.org/manual/5.5/flambda.html",
+    "additionalReadings": [
+      {
+        "title": "OCaml manual: Fuzzing with afl-fuzz",
+        "url": "https://ocaml.org/manual/5.5/afl-fuzz.html",
+        "section": "afl-fuzz"
+      },
+      {
+        "title": "OCaml manual: Detecting data races with ThreadSanitizer",
+        "url": "https://ocaml.org/manual/5.5/tsan.html",
+        "section": "ThreadSanitizer"
+      }
+    ],
+    "project": null,
+    "n": 13
+  }
+]

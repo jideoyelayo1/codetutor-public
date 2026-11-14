@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="src/TextSearch/TextSearch.csproj" />
+  <Project Path="src/TextSearch.Cli/TextSearch.Cli.csproj" />
+  <Project Path="tests/TextSearch.Tests/TextSearch.Tests.csproj" />
+</Solution>

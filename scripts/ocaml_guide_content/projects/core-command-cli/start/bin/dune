@@ -1,0 +1,5 @@
+(executable
+ (name main)
+ (libraries core core_unix.command_unix wordfreq)
+ (preprocess
+  (pps ppx_jane)))

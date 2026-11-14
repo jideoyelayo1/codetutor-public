@@ -1,0 +1,87 @@
+{
+  "key": "ppx-shout",
+  "stage": "14 · Metaprogramming and capstones",
+  "n": 1,
+  "title": "Writing a PPX with ppxlib",
+  "minutes": 45,
+  "body": [
+    "A PPX is an OCaml program that receives the parsed syntax tree of your file, rewrites it, and hands the result back to the compiler. `ppxlib` provides the shared driver and a stable copy of the AST types, so one rewriter works across compiler versions. Extension points such as `[%shout \"hello\"]` are the simplest hook: the tree contains an `Pexp_extension` node and your rewriter replaces it.",
+    "You declare an extension with `Extension.V3.declare name context pattern expander`. The *pattern* (from `Ast_pattern`) describes the payload you accept, here a single string literal, and the *expander* receives the extracted string and returns a new expression built with `Ast_builder.Default`. Registering it with `Driver.register_transformation` makes it run when a project lists the rewriter in `(preprocess (pps ppx_shout))`.",
+    "Compile-time code is part of your trust boundary: it runs on every build. Keep rewriters small and deterministic, reject payloads you do not understand with a located error rather than a crash, and test them with expect tests that show the generated output."
+  ],
+  "challenge": "The extension `[%shout \"text\"]` currently returns its string unchanged. Make the expander return the string in upper case so `[%shout \"hello\"]` becomes the literal \"HELLO\" at compile time.",
+  "projectInstructions": "Run `dune test --root .`. The rewriter lives in ppx/ppx_shout.ml and the tests in test/shout_tests.ml use it through `(preprocess (pps ppx_shout ppx_expect))`. Edit only ppx/ppx_shout.ml.",
+  "question": "When does the code inside a PPX rewriter run?",
+  "correct": "At compile time, on the syntax tree, before the program is type checked",
+  "wrong": [
+    "When the final program starts",
+    "Only when the program raises an exception"
+  ],
+  "reasoning": "A PPX is a syntax-tree transformer run by the compiler driver, so its output is ordinary code that the type checker then sees.",
+  "sourceURL": "https://ocaml-ppx.github.io/ppxlib/ppxlib/",
+  "projectChecks": [
+    {
+      "name": "starter compiles",
+      "command": [
+        "dune",
+        "build",
+        "--root",
+        "."
+      ],
+      "exit": 0
+    },
+    {
+      "name": "starter tests fail",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "HELLO"
+    },
+    {
+      "name": "solution tests pass",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 0,
+      "useSolution": true
+    },
+    {
+      "name": "wrong case is caught",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "hello",
+      "useSolution": true,
+      "mutations": [
+        {
+          "path": "ppx/ppx_shout.ml",
+          "find": "String.uppercase_ascii",
+          "replace": "String.lowercase_ascii"
+        }
+      ]
+    }
+  ],
+  "additionalReadings": [
+    {
+      "title": "ppxlib manual",
+      "url": "https://ocaml-ppx.github.io/ppxlib/ppxlib/",
+      "section": "Writing a ppx"
+    },
+    {
+      "title": "ppxlib: extension points",
+      "url": "https://ocaml-ppx.github.io/ppxlib/ppxlib/writing-ppxs.html",
+      "section": "Extension points"
+    }
+  ]
+}

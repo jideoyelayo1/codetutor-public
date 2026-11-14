@@ -1,0 +1,139 @@
+[
+  {
+    "key": "first-program",
+    "stage": "01 · Start from zero",
+    "title": "Your first OCaml program",
+    "body": [
+      "An OCaml source file is a sequence of definitions. The line `let () = print_endline \"Hello, OCaml\"` defines a value whose pattern is `()`, the single value of type `unit`, so evaluating the right-hand side runs the print as a side effect when the program starts.",
+      "You can try expressions interactively in `ocaml` (or `utop`) and you can compile a file with `ocamlfind ocamlopt main.ml -o main`. The toplevel prints each result with its type, such as `- : int = 4`; a compiled program prints only what you tell it to print.",
+      "Check that the file compiles before you reason about its output. Type errors are reported at compile time, with a line and column, and OCaml refuses to produce a program until every expression has a consistent type."
+    ],
+    "code": "let () = print_endline \"Hello, OCaml\"\nlet () = print_endline (\"2 + 2 = \" ^ string_of_int (2 + 2))\n",
+    "expectedStdout": "Hello, OCaml\n2 + 2 = 4\n",
+    "challenge": "Add a third line that prints your own greeting followed by the length of that greeting, using String.length.",
+    "solution": "let greeting = \"Hello, OCaml\"\nlet () = print_endline greeting\nlet () = print_endline (\"length = \" ^ string_of_int (String.length greeting))\n",
+    "solutionStdout": "Hello, OCaml\nlength = 12\n",
+    "question": "What does `let () = print_endline \"x\"` define?",
+    "correct": "A unit-valued binding that runs the print when the module is evaluated",
+    "wrong": [
+      "A function named print that you can call later",
+      "A constant string named x"
+    ],
+    "reasoning": "The pattern () matches the unit value, so the definition exists only to evaluate its right-hand side for its effect.",
+    "sourceURL": "https://ocaml.org/docs/your-first-program",
+    "project": null,
+    "additionalReadings": [
+      {
+        "title": "2.1. The OCaml Toplevel",
+        "url": "https://cs3110.github.io/textbook/chapters/basics/toplevel.html",
+        "section": "2.1. The OCaml Toplevel"
+      },
+      {
+        "title": "2.2. Compiling OCaml Programs",
+        "url": "https://cs3110.github.io/textbook/chapters/basics/compiling.html",
+        "section": "2.2. Compiling OCaml Programs"
+      },
+      {
+        "title": "1. The core language",
+        "url": "https://ocaml.org/manual/5.5/coreexamples.html",
+        "section": "1. The core language"
+      }
+    ]
+  },
+  {
+    "key": "let-bindings-and-shadowing",
+    "stage": "01 · Start from zero",
+    "title": "Names are immutable: let and shadowing",
+    "body": [
+      "`let x = 5` gives the name `x` to a value. It does not create a variable that can be assigned later. Reusing the same name with `let x = x + 1` creates a new, different binding that hides the old one from then on; the old value is unchanged.",
+      "`let ... in ...` limits a binding to one expression. In `let y = 2 in y * y` the name `y` exists only to the right of `in`, which keeps helper values from leaking into the rest of the file.",
+      "When a result surprises you, ask which binding a name refers to at that point. Shadowing is legal and common, but a closure created earlier still sees the value that was in scope when it was written."
+    ],
+    "code": "let x = 5\nlet add_x n = n + x\nlet x = 100\nlet () = Printf.printf \"%d %d\\n\" x (add_x 1)\nlet area = let side = 4 in side * side\nlet () = Printf.printf \"%d\\n\" area\n",
+    "expectedStdout": "100 6\n16\n",
+    "challenge": "Define `base = 10`, a function `scale n = n * base`, then shadow `base` with 1000 and print `scale 2`. Predict the number before you run it.",
+    "solution": "let base = 10\nlet scale n = n * base\nlet base = 1000\nlet () = Printf.printf \"%d %d\\n\" base (scale 2)\n",
+    "solutionStdout": "1000 20\n",
+    "question": "After `let x = 5`, `let f n = n + x`, `let x = 100`, what is `f 1`?",
+    "correct": "6, because f captured the first x",
+    "wrong": [
+      "101, because x was reassigned",
+      "A type error, because x is defined twice"
+    ],
+    "reasoning": "Shadowing adds a new binding; it never mutates the earlier one, so closures keep the value they captured.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/basics/expressions.html",
+    "project": null
+  },
+  {
+    "key": "basic-types-and-operators",
+    "stage": "01 · Start from zero",
+    "title": "Basic types and separate operators",
+    "body": [
+      "The core types are `int`, `float`, `bool`, `char`, `string` and `unit`. OCaml never converts between them silently: `1 + 2.0` is a type error. Convert explicitly with `float_of_int`, `int_of_float` and `string_of_int`.",
+      "Arithmetic operators are typed. `+ - * /` work on `int`, while `+. -. *. /.` work on `float`. Strings join with `^`. Integer division truncates toward zero and `mod` gives the remainder, so `7 / 2` is `3` and `(-7) mod 2` is `-1`.",
+      "Comparisons such as `=` and `<` are polymorphic structural comparisons and require both sides to have the same type. Use `==` only when you really mean physical identity, which is rare."
+    ],
+    "code": "let () =\n  Printf.printf \"%d %d %d\\n\" (7 / 2) (7 mod 2) ((-7) mod 2);\n  Printf.printf \"%.2f\\n\" (float_of_int 7 /. 2.0);\n  print_endline (\"ab\" ^ \"cd\");\n  Printf.printf \"%b %b\\n\" (3 < 4) (\"a\" = \"b\")\n",
+    "expectedStdout": "3 1 -1\n3.50\nabcd\ntrue false\n",
+    "challenge": "Compute the average of the integers 3, 4 and 8 as a float printed with two decimals, converting before dividing.",
+    "solution": "let () =\n  let total = 3 + 4 + 8 in\n  Printf.printf \"%.2f\\n\" (float_of_int total /. 3.0)\n",
+    "solutionStdout": "5.00\n",
+    "question": "Why does `1 + 2.5` fail to compile?",
+    "correct": "`+` works on int only and OCaml does not convert automatically; use `+.` with floats",
+    "wrong": [
+      "OCaml needs a semicolon between the operands",
+      "Floats cannot be added to anything"
+    ],
+    "reasoning": "Operators are typed per number kind, and implicit conversion would hide precision loss, so the compiler asks you to be explicit.",
+    "sourceURL": "https://dev.realworldocaml.org/guided-tour.html",
+    "project": null
+  },
+  {
+    "key": "functions-and-application",
+    "stage": "01 · Start from zero",
+    "title": "Functions: definition, application and fun",
+    "body": [
+      "A function is a value. `let square x = x * x` is shorthand for `let square = fun x -> x * x`. You apply it by writing the argument after the name with no parentheses: `square 5`. Parentheses only group, as in `square (2 + 3)`.",
+      "Application binds tighter than any operator, so `square 2 + 3` means `(square 2) + 3`. A function with several parameters is written `let add x y = x + y` and called `add 1 2`; the next stage explains why that is really a chain of one-argument functions.",
+      "Functions that do not have a name are written with `fun`. They are used as arguments, for example `List.map (fun n -> n * 2) [1; 2; 3]`. Prefer a named function when the body is longer than one line."
+    ],
+    "code": "let square x = x * x\nlet add x y = x + y\nlet () =\n  Printf.printf \"%d %d %d\\n\" (square 5) (square 2 + 3) (add 1 2);\n  List.iter (fun n -> Printf.printf \"%d \" (n * 2)) [1; 2; 3];\n  print_newline ()\n",
+    "expectedStdout": "25 7 3\n2 4 6 \n",
+    "challenge": "Write `cube` and print `cube 3`, then print `cube (1 + 1)` to see how parentheses change the argument.",
+    "solution": "let cube x = x * x * x\nlet () = Printf.printf \"%d %d\\n\" (cube 3) (cube (1 + 1))\n",
+    "solutionStdout": "27 8\n",
+    "question": "How does OCaml read `square 2 + 3`?",
+    "correct": "As `(square 2) + 3`, because application binds tighter than `+`",
+    "wrong": [
+      "As `square (2 + 3)`",
+      "As a syntax error without parentheses"
+    ],
+    "reasoning": "Function application is the tightest-binding construct, so only explicit parentheses extend the argument.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/basics/functions.html",
+    "project": null
+  },
+  {
+    "key": "conditionals-and-printf",
+    "stage": "01 · Start from zero",
+    "title": "if as an expression and Printf formats",
+    "body": [
+      "`if` is an expression: both branches must have the same type and the whole `if` has that type. There is no statement form, so `let sign = if n < 0 then \"negative\" else \"non-negative\"` is the normal way to choose a value.",
+      "`Printf.printf` takes a format string whose conversions are checked against the arguments at compile time. `%d` is an int, `%s` a string, `%f` a float, `%c` a char and `%b` a bool; writing `%d` for a string is a type error, not a runtime crash.",
+      "An `if` without `else` must produce `unit`. When you see a type error about `unit`, check that you did not leave out the `else` branch of an expression that should return a value."
+    ],
+    "code": "let sign n = if n < 0 then \"negative\" else if n = 0 then \"zero\" else \"positive\"\nlet () =\n  List.iter (fun n -> Printf.printf \"%d is %s\\n\" n (sign n)) [-2; 0; 5];\n  Printf.printf \"%s has %d chars, ratio %.1f\\n\" \"ocaml\" 5 0.5\n",
+    "expectedStdout": "-2 is negative\n0 is zero\n5 is positive\nocaml has 5 chars, ratio 0.5\n",
+    "challenge": "Write `fizz n` that returns \"fizz\" when n is divisible by 3 and the number as a string otherwise, then print it for 1 to 6 on one line.",
+    "solution": "let fizz n = if n mod 3 = 0 then \"fizz\" else string_of_int n\nlet () =\n  List.iter (fun n -> Printf.printf \"%s \" (fizz n)) [1; 2; 3; 4; 5; 6];\n  print_newline ()\n",
+    "solutionStdout": "1 2 fizz 4 5 fizz \n",
+    "question": "What must be true of the two branches of `if c then a else b`?",
+    "correct": "`a` and `b` must have the same type, which is the type of the whole expression",
+    "wrong": [
+      "They must both be unit",
+      "Only the then-branch is type checked"
+    ],
+    "reasoning": "An if expression produces one value, so the compiler needs a single type for it regardless of which branch runs.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/basics/expressions.html",
+    "project": null
+  }
+]

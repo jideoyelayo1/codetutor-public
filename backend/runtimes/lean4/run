@@ -1,0 +1,8 @@
+#!/bin/bash
+set -euo pipefail
+# Piston supplies one fixed filename. Check definitions/#eval without requiring main.
+if [ "$#" -ne 1 ]; then
+    echo "Expected one Lean source file" >&2
+    exit 2
+fi
+exec lean -DwarningAsError=true "$1"

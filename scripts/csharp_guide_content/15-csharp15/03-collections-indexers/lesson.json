@@ -1,0 +1,30 @@
+{
+ "key": "collection-arguments-and-extension-indexers",
+ "title": "Collection expression arguments and extension indexers",
+ "sdk": "11",
+ "body": [
+  "C# 15 ships with .NET 11, whose release candidates carry a go-live licence; general availability is expected in November 2026. These examples are checked with SDK 11.0.100-rc.2. Details can still change before release, so re-check the What's new page after GA.",
+  "Collection expressions (stage 6) could not pass constructor arguments, so specifying a capacity or a comparer meant falling back to `new`. C# 15 allows a `with(...)` element first: `List<string> names = [with(capacity: 32), ..source];` or `HashSet<string> set = [with(StringComparer.OrdinalIgnoreCase), \"a\", \"A\"];`. The arguments go to the collection's constructor or factory method.",
+  "This matters for correctness, not just speed: a dictionary or set built with the wrong comparer behaves differently. `Dictionary<string, int> d = [with(StringComparer.OrdinalIgnoreCase), ...]` keeps the concise syntax while stating the equality rule.",
+  "C# 15 also allows indexers in extension blocks (stage 13): `extension(IEnumerable<int> sequence) { public int this[int index] => sequence.ElementAt(index); }` lets callers write `numbers[2]` on a type that has no indexer. An extension block that declares an indexer must name its receiver.",
+  "Extension indexers are resolved statically like other extensions, and an instance indexer on the type always wins: an extension indexer on `string` is never chosen for `text[1]`, because `string` already has one. Check the cost hidden behind the brackets: indexing an `IEnumerable<T>` by position is O(n), unlike an array or list."
+ ],
+ "expectedStdout": "3 items, capacity 6\n1\n36\n3\nsecond\n",
+ "challenge": "Create a SortedSet<string> with a descending comparer using a collection expression argument, add apple, cherry and banana, and print the set in order.",
+ "solutionStdout": "cherry,banana,apple\n",
+ "question": "In `HashSet<string> s = [with(StringComparer.OrdinalIgnoreCase), \"a\", \"A\"];`, what does with(...) do?",
+ "correct": "Passes the comparer to the HashSet constructor before the elements are added",
+ "wrong": [
+  "Adds the comparer as an element",
+  "Applies the comparer only when printing"
+ ],
+ "reasoning": "with(...) must come first and supplies constructor or factory arguments, so the set holds one element.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/collection-expressions#collection-expression-arguments",
+ "additionalReadings": [
+  {
+   "title": "Extension indexers",
+   "url": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/extension#extension-indexers",
+   "section": "Extension indexers"
+  }
+ ]
+}

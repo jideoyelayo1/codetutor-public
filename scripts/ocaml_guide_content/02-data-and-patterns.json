@@ -1,0 +1,146 @@
+[
+  {
+    "key": "tuples-and-lists",
+    "stage": "02 · Data and patterns",
+    "title": "Tuples and immutable lists",
+    "body": [
+      "A tuple groups a fixed number of values that may have different types: `(1, \"one\", true)` has type `int * string * bool`. A list holds any number of values of one type: `[1; 2; 3]` has type `int list`. Elements of a list are separated by semicolons, not commas, because `[1, 2, 3]` is a list holding one three-element tuple.",
+      "A list is either empty, written `[]`, or a head joined to a tail with `::`. So `[1; 2; 3]` is `1 :: 2 :: 3 :: []`. Building a longer list with `::` shares the old list as its tail instead of copying it, which is why prepending is cheap and appending with `@` walks the whole left list.",
+      "Lists are immutable. A function such as `List.map` returns a new list and leaves the argument alone. When a list result looks wrong, check whether you used `,` where you meant `;`, since the type checker will accept it and give you a list of tuples."
+    ],
+    "code": "let pair = (1, \"one\")\nlet nums = [1; 2; 3]\nlet more = 0 :: nums\nlet () =\n  let (n, s) = pair in\n  Printf.printf \"%d %s\\n\" n s;\n  Printf.printf \"%d %d\\n\" (List.length nums) (List.length more);\n  Printf.printf \"%d\\n\" (List.length [1, 2, 3]);\n  List.iter (Printf.printf \"%d \") (nums @ [4]);\n  print_newline ()\n",
+    "expectedStdout": "1 one\n3 4\n1\n1 2 3 4 \n",
+    "challenge": "Build the list `[10; 20; 30]` using only `::` and `[]`, then print its length and the doubled elements using List.map.",
+    "solution": "let xs = 10 :: 20 :: 30 :: []\nlet () =\n  Printf.printf \"%d\\n\" (List.length xs);\n  List.iter (Printf.printf \"%d \") (List.map (fun n -> n * 2) xs);\n  print_newline ()\n",
+    "solutionStdout": "3\n20 40 60 \n",
+    "question": "What is the type of `[1, 2, 3]`?",
+    "correct": "(int * int * int) list, a list holding one triple",
+    "wrong": [
+      "int list, the same as [1; 2; 3]",
+      "A syntax error because commas are not allowed"
+    ],
+    "reasoning": "Commas build tuples and semicolons separate list elements, so the comma form has exactly one element.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/data/lists.html",
+    "project": null
+  },
+  {
+    "key": "pattern-matching",
+    "stage": "02 · Data and patterns",
+    "title": "Pattern matching on lists",
+    "body": [
+      "`match e with` compares the value of `e` with patterns from top to bottom and evaluates the arm of the first one that fits. A pattern can name pieces of the value: `x :: rest` binds the head to `x` and the tail to `rest`, and `[]` matches only the empty list.",
+      "Because a list is either empty or a head with a tail, two patterns cover every list. The compiler checks this and warns when a case is missing, which turns forgotten cases into compile-time feedback instead of runtime surprises. Treat the non-exhaustive-match warning as an error in your own projects.",
+      "Match arms are tried in order, so put specific patterns before general ones. The wildcard `_` matches anything without binding it. A pattern that can never be reached triggers an unused-case warning, which usually means two arms overlap."
+    ],
+    "code": "let rec sum = function\n  | [] -> 0\n  | x :: rest -> x + sum rest\n\nlet describe = function\n  | [] -> \"empty\"\n  | [_] -> \"one element\"\n  | _ :: _ :: _ -> \"several\"\n\nlet () =\n  Printf.printf \"%d\\n\" (sum [1; 2; 3; 4]);\n  List.iter (fun l -> print_endline (describe l)) [[]; [7]; [7; 8]]\n",
+    "expectedStdout": "10\nempty\none element\nseveral\n",
+    "challenge": "Write `last` that returns the last element of an int list or -1 for the empty list, using pattern matching, and print `last [4; 5; 6]`.",
+    "solution": "let rec last = function\n  | [] -> -1\n  | [x] -> x\n  | _ :: rest -> last rest\n\nlet () = Printf.printf \"%d\\n\" (last [4; 5; 6])\n",
+    "solutionStdout": "6\n",
+    "question": "Why does a missing `[]` case in a list match matter at compile time?",
+    "correct": "The compiler reports the non-exhaustive match so the uncovered case is found before running",
+    "wrong": [
+      "It silently returns 0 for the empty list",
+      "It only fails when the program is optimised"
+    ],
+    "reasoning": "Exhaustiveness checking is a static analysis over the patterns, so every value shape must be covered by some arm.",
+    "sourceURL": "https://dev.realworldocaml.org/lists-and-patterns.html",
+    "project": null
+  },
+  {
+    "key": "options-for-absence",
+    "stage": "02 · Data and patterns",
+    "title": "option: absence in the type",
+    "body": [
+      "OCaml has no null. A value that might be missing has type `'a option`, which is either `None` or `Some v`. Because the possibility is in the type, the compiler forces every caller to decide what to do when the value is absent.",
+      "Pattern match on an option to handle both cases. The standard library offers `Option.map`, `Option.value ~default` and `Option.bind` for the common shapes, so you rarely need to write the match by hand for simple defaults.",
+      "Prefer options for ordinary, expected absence such as a lookup that finds nothing. Use `result` when the caller needs to know why it failed, and an exception only for truly exceptional conditions. The functions `List.find_opt` and `List.assoc_opt` return options for exactly this reason."
+    ],
+    "code": "let first_even xs = List.find_opt (fun n -> n mod 2 = 0) xs\nlet show = function None -> \"none\" | Some n -> \"some \" ^ string_of_int n\nlet () =\n  print_endline (show (first_even [1; 3; 4; 6]));\n  print_endline (show (first_even [1; 3]));\n  Printf.printf \"%d\\n\" (Option.value (first_even [1; 3]) ~default:0);\n  Option.iter (Printf.printf \"%d\\n\") (Option.map (fun n -> n * 10) (first_even [2]))\n",
+    "expectedStdout": "some 4\nnone\n0\n20\n",
+    "challenge": "Write `safe_div a b` returning `None` when b is zero and `Some (a / b)` otherwise, and print both cases with `show`.",
+    "solution": "let safe_div a b = if b = 0 then None else Some (a / b)\nlet show = function None -> \"none\" | Some n -> \"some \" ^ string_of_int n\nlet () =\n  print_endline (show (safe_div 7 2));\n  print_endline (show (safe_div 7 0))\n",
+    "solutionStdout": "some 3\nnone\n",
+    "question": "What does representing absence with `option` buy you over a null value?",
+    "correct": "The type shows the value may be missing, so the compiler forces callers to handle None",
+    "wrong": [
+      "Option values are faster to compare than integers",
+      "It lets you ignore the missing case at runtime"
+    ],
+    "reasoning": "The possibility of absence is part of the type, so unhandled cases are compile-time errors rather than runtime null failures.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/data/options.html",
+    "project": null
+  },
+  {
+    "key": "variants-model-alternatives",
+    "stage": "02 · Data and patterns",
+    "title": "Variants model alternatives",
+    "body": [
+      "A variant type lists the ways a value can be built, each with a constructor that may carry data: `type shape = Circle of float | Rect of float * float | Point`. A value of that type is exactly one of those cases, and matching on it is how you take it apart.",
+      "Because the cases are closed and known, the compiler can tell you when you forgot one after adding a constructor. This is the main reason to model states and message kinds as variants instead of integers or strings: adding a case turns every incomplete match into a warning at once.",
+      "Constructors start with a capital letter and are not functions in the usual sense, although `Circle 2.0` looks like an application. Use `List.map (fun r -> Circle r)` when you need a function. Keep payloads small and named by type so the match arms stay readable."
+    ],
+    "code": "type shape = Circle of float | Rect of float * float | Point\n\nlet area = function\n  | Circle r -> 3.0 *. r *. r\n  | Rect (w, h) -> w *. h\n  | Point -> 0.0\n\nlet () =\n  List.iter (fun s -> Printf.printf \"%.1f\\n\" (area s))\n    [Circle 2.0; Rect (2.0, 3.5); Point]\n",
+    "expectedStdout": "12.0\n7.0\n0.0\n",
+    "challenge": "Add a `Square of float` case to the type and extend `area`. Notice which compiler message tells you where the match is now incomplete.",
+    "solution": "type shape = Circle of float | Rect of float * float | Square of float | Point\n\nlet area = function\n  | Circle r -> 3.0 *. r *. r\n  | Rect (w, h) -> w *. h\n  | Square s -> s *. s\n  | Point -> 0.0\n\nlet () = Printf.printf \"%.1f\\n\" (area (Square 3.0))\n",
+    "solutionStdout": "9.0\n",
+    "question": "What happens to existing matches when you add a constructor to a variant?",
+    "correct": "The compiler warns about each match that no longer covers every case",
+    "wrong": [
+      "Nothing, because unmatched cases fall through",
+      "They raise Not_found at runtime only"
+    ],
+    "reasoning": "Variants are closed sums, so exhaustiveness checking can find every place that needs a new arm.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/data/variants.html",
+    "project": null
+  },
+  {
+    "key": "records-and-update",
+    "stage": "02 · Data and patterns",
+    "title": "Records and functional update",
+    "body": [
+      "A record groups named fields: `type user = { name : string; age : int }`. Build one with `{ name = \"Ada\"; age = 36 }` and read a field with `u.age`. Names make records clearer than tuples once there are more than two or three components.",
+      "Records are immutable by default. To change one field you create a new record with `{ u with age = u.age + 1 }`, which copies the other fields. Mark a field `mutable` only when you truly need in-place state; most programs do not.",
+      "Field names belong to the nearest type definition in scope, so two records with the same field name can confuse inference. Annotate the type of a function parameter, or qualify the first field, when the compiler picks the wrong record."
+    ],
+    "code": "type user = { name : string; age : int }\n\nlet birthday u = { u with age = u.age + 1 }\nlet describe { name; age } = Printf.sprintf \"%s is %d\" name age\n\nlet () =\n  let ada = { name = \"Ada\"; age = 36 } in\n  let older = birthday ada in\n  print_endline (describe ada);\n  print_endline (describe older)\n",
+    "expectedStdout": "Ada is 36\nAda is 37\n",
+    "challenge": "Add an `email : string` field and write `with_email u e` that returns a copy of the user with that email, leaving the original unchanged.",
+    "solution": "type user = { name : string; age : int; email : string }\n\nlet with_email u email = { u with email }\n\nlet () =\n  let a = { name = \"Ada\"; age = 36; email = \"\" } in\n  let b = with_email a \"ada@example.org\" in\n  Printf.printf \"[%s] [%s]\\n\" a.email b.email\n",
+    "solutionStdout": "[] [ada@example.org]\n",
+    "question": "What does `{ u with age = 40 }` do?",
+    "correct": "It builds a new record that copies u and replaces age, leaving u unchanged",
+    "wrong": [
+      "It assigns 40 to u.age in place",
+      "It is a syntax error unless age is mutable"
+    ],
+    "reasoning": "Functional update is how immutable records change: you build a new value that shares the untouched fields.",
+    "sourceURL": "https://dev.realworldocaml.org/records.html",
+    "project": null
+  },
+  {
+    "key": "guards-or-patterns-as",
+    "stage": "02 · Data and patterns",
+    "title": "Guards, or-patterns and as-patterns",
+    "body": [
+      "A guard adds a boolean condition to an arm: `| x when x < 0 -> ...`. The arm only applies when the pattern fits and the condition is true. Guards are opaque to the exhaustiveness checker, so a match that ends on a guarded arm still needs an unguarded fallback.",
+      "An or-pattern combines alternatives that bind the same names: `| Sat | Sun -> \"weekend\"`. An as-pattern names the whole value while also taking it apart: `| (x :: _) as whole -> ...`. These two tools remove duplicated arms and repeated reconstruction.",
+      "When a match grows long, ask whether the cases really belong to one function. Prefer more specific types over deep nesting, and keep guards simple, because the compiler cannot prove anything about them."
+    ],
+    "code": "type day = Mon | Tue | Wed | Thu | Fri | Sat | Sun\n\nlet kind = function Sat | Sun -> \"weekend\" | _ -> \"weekday\"\n\nlet classify n =\n  match n with\n  | 0 -> \"zero\"\n  | n when n < 0 -> \"negative\"\n  | n when n mod 2 = 0 -> \"even\"\n  | _ -> \"odd\"\n\nlet dup_head = function (x :: _) as whole -> x :: whole | [] -> []\n\nlet () =\n  List.iter (fun d -> print_endline (kind d)) [Mon; Sat];\n  List.iter (fun n -> print_endline (classify n)) [0; -3; 4; 7];\n  List.iter (Printf.printf \"%d \") (dup_head [9; 8]);\n  print_newline ()\n",
+    "expectedStdout": "weekday\nweekend\nzero\nnegative\neven\nodd\n9 9 8 \n",
+    "challenge": "Write `bucket n` that returns \"small\" for 0 to 9, \"medium\" for 10 to 99 and \"large\" otherwise, using guards, and print it for 5, 50 and 500.",
+    "solution": "let bucket n =\n  match n with\n  | n when n < 10 -> \"small\"\n  | n when n < 100 -> \"medium\"\n  | _ -> \"large\"\n\nlet () = List.iter (fun n -> print_endline (bucket n)) [5; 50; 500]\n",
+    "solutionStdout": "small\nmedium\nlarge\n",
+    "question": "Why should a match with guards still end with an unguarded arm?",
+    "correct": "The compiler cannot prove a guard is always true, so it needs an unguarded case to be exhaustive",
+    "wrong": [
+      "Guards are evaluated after all other arms",
+      "An unguarded arm makes the guards faster"
+    ],
+    "reasoning": "Exhaustiveness is checked on patterns alone; a guard may be false for any value, so only an unguarded arm guarantees coverage.",
+    "sourceURL": "https://dev.realworldocaml.org/lists-and-patterns.html",
+    "project": null
+  }
+]

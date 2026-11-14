@@ -1,0 +1,29 @@
+{
+ "key": "linq-aggregation",
+ "title": "Aggregation and the newer LINQ operators",
+ "body": [
+  "Aggregates reduce a sequence to one value: `Count`, `Sum`, `Average`, `Min`, `Max` and the general `Aggregate(seed, (acc, x) => ...)`. `Min`/`Max`/`Average` on an empty sequence of non-nullable numbers throw `InvalidOperationException`; check `Any()` first, or use `DefaultIfEmpty` or a nullable projection.",
+  "Element operators pick one item: `First`/`Last`/`Single` throw when nothing (or, for `Single`, more than one item) matches; the `OrDefault` variants return default, and since .NET 6 accept the default value to use. `MaxBy`/`MinBy` return the element with the largest or smallest key rather than the key itself.",
+  "Set-like and shaping operators: `Distinct`, `DistinctBy(key)`, `Union`, `Intersect`, `Except` (with `...By` variants), `Chunk(size)` for batches, `Zip` for pairing sequences, `Take`/`Skip` and their `While` forms, plus `Take(range)` such as `Take(^3..)`.",
+  "Newer operators replace common GroupBy patterns: `CountBy(key)` and `AggregateBy(key, seed, func)` (.NET 9) return key/value pairs without building groups, and `Index()` (.NET 9) pairs each element with its position. They are cheaper and clearer for frequency counts and per-key totals.",
+  "Before calling an aggregate, check what happens on an empty input and whether duplicates should count. Prefer `Any()` to `Count() > 0`, which may enumerate everything."
+ ],
+ "expectedStdout": "3\ncherry\n6\nabcabca\napple,bob,cherry\na3 b2 c2 \na13 b6 c9 \n0:apple 2:cherry 6:apple \n[1,2,3][4,5,6][7]\n8,9,10\n2=two\n-1\nAverage of empty sequence throws\nTrue\n",
+ "challenge": "Given exam scores as (string Student, int Score) tuples with repeated students, print each student's best score using AggregateBy, sorted by student, and the overall top student using MaxBy.",
+ "solutionStdout": "ada 92\nbob 85\ncy 60\nada\n",
+ "question": "What does `Average()` do on an empty int[]?",
+ "correct": "Throws InvalidOperationException",
+ "wrong": [
+  "Returns 0",
+  "Returns double.NaN"
+ ],
+ "reasoning": "Non-nullable Min/Max/Average have no meaningful empty result; project to a nullable type or check Any() first.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/linq/standard-query-operators/",
+ "additionalReadings": [
+  {
+   "title": "What's new in .NET 9 libraries: LINQ",
+   "url": "https://learn.microsoft.com/en-us/dotnet/core/whats-new/dotnet-9/libraries#linq",
+   "section": "CountBy, AggregateBy, Index"
+  }
+ ]
+}

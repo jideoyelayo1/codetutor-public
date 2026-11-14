@@ -1,0 +1,87 @@
+{
+  "key": "core-or-error",
+  "stage": "11 · Jane Street stack",
+  "n": 1,
+  "title": "Core idioms: Or_error, labelled iteration and Map",
+  "minutes": 40,
+  "body": [
+    "Jane Street's `Base` and `Core` replace parts of the standard library with a consistent, labelled, monomorphic style. `open Core` shadows `List`, `String`, `Map` and others, so higher-order functions take their function as a labelled `~f` argument: `List.map xs ~f:square`. The labels let you pipe with `|>` and partially apply without caring about argument order.",
+    "Polymorphic comparison is deliberately hidden. `=` works on `int` only, and `String.equal`, `Int.compare` and friends are explicit. Containers take the comparison in as a first-class module: `Map.of_alist_reduce (module String) pairs ~f:( + )` states the key type once, which is the idiom that replaces functor application at the call site.",
+    "`Or_error.t` is `('a, Error.t) result`, where `Error.t` is a lazily built message that can carry s-expressions and context. Build errors with `Or_error.errorf`, combine a list with `Or_error.all`, and sequence steps with the `Or_error.Let_syntax` operators (`let%map`, `let%bind`). It is the default error type in Jane Street code because callers rarely need to match on the reason."
+  ],
+  "challenge": "src/scores.ml has stubs. Implement `parse_entry` so \"ada=3\" gives `Ok (\"ada\", 3)` and malformed input gives an error, and `totals` so it sums values with the same key and returns the pairs sorted by name, stopping with the first parse error.",
+  "projectInstructions": "Run `dune test --root .`. The tests print results with `print_s [%sexp ...]`. Edit only src/scores.ml; the library already depends on core and ppx_jane.",
+  "question": "How does `Map.of_alist_reduce (module String) pairs ~f` know how to compare keys?",
+  "correct": "The first-class module argument supplies the comparison for the key type",
+  "wrong": [
+    "It uses the polymorphic compare function",
+    "It converts every key to an int first"
+  ],
+  "reasoning": "Core containers take a first-class module carrying compare (and sexp) for the key type instead of relying on polymorphic comparison.",
+  "sourceURL": "https://dev.realworldocaml.org/error-handling.html",
+  "projectChecks": [
+    {
+      "name": "starter compiles",
+      "command": [
+        "dune",
+        "build",
+        "--root",
+        "."
+      ],
+      "exit": 0
+    },
+    {
+      "name": "starter tests fail",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "todo"
+    },
+    {
+      "name": "solution tests pass",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 0,
+      "useSolution": true
+    },
+    {
+      "name": "wrong reduction is caught",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "(b 10)",
+      "useSolution": true,
+      "mutations": [
+        {
+          "path": "src/scores.ml",
+          "find": "~f:( + )",
+          "replace": "~f:( * )"
+        }
+      ]
+    }
+  ],
+  "additionalReadings": [
+    {
+      "title": "Real World OCaml: Error Handling",
+      "url": "https://dev.realworldocaml.org/error-handling.html",
+      "section": "Or_error"
+    },
+    {
+      "title": "Real World OCaml: Maps and Hash Tables",
+      "url": "https://dev.realworldocaml.org/maps-and-hashtables.html",
+      "section": "Maps"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+ "key": "switch-expressions-and-patterns",
+ "title": "Switch expressions and patterns",
+ "body": [
+  "Pattern matching tests a value's shape and extracts parts of it. Patterns appear after `is` and in `switch` expressions: `shape switch { Circle c => ..., Rect { Width: 0 } => ..., _ => ... }`. A switch expression yields a value; arms are tried top to bottom and the first match wins.",
+  "Common patterns: type patterns (`Circle c`), constant patterns (`0`, `null`, `\"admin\"`), relational patterns (`< 0`, `>= 90`), logical combinators (`and`, `or`, `not`), property patterns (`{ Status: \"open\", Total: > 100 }`), positional patterns for deconstructable types (`Point(0, var y)`) and the discard `_`.",
+  "`var` patterns always match and capture the value. Parenthesized and nested patterns compose: `{ Address.City: \"Paris\" }` uses an extended property pattern. `is not null` is the idiomatic null check because it cannot be changed by an overloaded `==`.",
+  "The compiler checks switch expressions for exhaustiveness and warns (CS8509) when some input could match no arm; at runtime such an input throws `SwitchExpressionException`. It also rejects arms that can never be reached because an earlier arm subsumes them (CS8510).",
+  "Order arms from most to least specific and avoid `_` when you want the compiler to tell you about a new case. Check for null explicitly: a type pattern never matches null."
+ ],
+ "expectedStdout": "int 42\nnegative int -3\nstring of 2\nnull\non the y axis at 5\non the diagonal\nsomething else: Double\nACF\nrush\nnormal\n",
+ "challenge": "Write a switch expression that classifies a (int Hour, bool Weekend) tuple as \"sleep\" (hour < 7), \"brunch\" (weekend and 7-11), \"work\" (weekday 9-16) or \"free\".",
+ "solutionStdout": "sleep\nbrunch\nwork\nfree\n",
+ "question": "What happens at runtime when no arm of a switch expression matches?",
+ "correct": "A SwitchExpressionException is thrown",
+ "wrong": [
+  "The expression returns default",
+  "The first arm is used"
+ ],
+ "reasoning": "The compiler warns about non-exhaustive switches (CS8509); add arms or a discard to handle every input.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/patterns",
+ "additionalReadings": [
+  {
+   "title": "switch expression",
+   "url": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/switch-expression",
+   "section": "Exhaustiveness"
+  }
+ ],
+ "rejected": [
+  {
+   "file": "rejected.cs",
+   "diagnostic": "CS8510"
+  }
+ ]
+}

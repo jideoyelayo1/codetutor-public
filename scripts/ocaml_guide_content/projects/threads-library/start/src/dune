@@ -1,0 +1,3 @@
+(library
+ (name bq)
+ (libraries threads.posix))

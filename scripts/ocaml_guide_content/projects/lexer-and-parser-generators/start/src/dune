@@ -1,0 +1,7 @@
+(library
+ (name calc_gen))
+
+(ocamllex lexer)
+
+(menhir
+ (modules parser))

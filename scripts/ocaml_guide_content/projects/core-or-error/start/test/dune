@@ -1,0 +1,6 @@
+(library
+ (name scores_tests)
+ (libraries core scores)
+ (inline_tests)
+ (preprocess
+  (pps ppx_jane)))

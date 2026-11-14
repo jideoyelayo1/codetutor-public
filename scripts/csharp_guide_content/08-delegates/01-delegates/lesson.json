@@ -1,0 +1,35 @@
+{
+ "key": "delegates",
+ "title": "Delegates, Func and Action",
+ "body": [
+  "A delegate is a type-safe reference to a method: a value you can store, pass and invoke. `Func<int, int> square = x => x * x;` holds a function from int to int. `Func<..., TResult>` returns a value; `Action<...>` returns void; `Predicate<T>` is `Func<T, bool>` with an older name. Custom delegate types (`delegate bool Validator(string s);`) add a meaningful name.",
+  "A delegate can refer to a static method, an instance method (it then also holds the target object) or a lambda. Passing behaviour as a parameter is how `List.Sort(comparison)`, LINQ's `Where(predicate)` and callbacks work.",
+  "Delegates are multicast: `+=` combines several methods into an invocation list called in order. For a `Func`, only the last return value is kept, so multicast is mainly useful for `Action` and events. `-=` removes the last matching entry and can leave the variable null once nothing remains, so its type should be nullable (`Action?`). Invoking a null delegate throws `NullReferenceException`; use `handler?.Invoke(...)`.",
+  "Method group conversion lets you pass a method name directly: `numbers.Select(int.Parse)` or `Run(Log)`. Since C# 10, lambdas and method groups have a 'natural type', so `var twice = Twice;` infers `Func<int, int>`. That inference needs exactly one candidate: `var parse = int.Parse;` is rejected (CS8917) because `int.Parse` has several overloads, although passing it where a `Func<string, int>` is expected works.",
+  "Delegates hold strong references to their targets. Before storing a delegate in a long-lived place (a static field, a cache, an event on a long-lived object), check what object it keeps alive."
+ ],
+ "expectedStdout": "39\nDELEGATES\nFalse True\n25\n10\n2\na b done a b \n6\nnull-safe invoke\n",
+ "challenge": "Write Compose(Func<int,int> f, Func<int,int> g) that returns a function computing g(f(x)). Compose add-one with double and print the result for 3, then compose them in the other order.",
+ "solutionStdout": "8\n7\n",
+ "question": "What does a multicast Func<int> return when invoked?",
+ "correct": "The return value of the last method in its invocation list",
+ "wrong": [
+  "An array of every method's result",
+  "The sum of all results"
+ ],
+ "reasoning": "All methods run in order, but only the final result is returned; multicast suits Action and events.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/delegates/",
+ "additionalReadings": [
+  {
+   "title": "Delegates and lambdas",
+   "url": "https://learn.microsoft.com/en-us/dotnet/standard/delegates-lambdas",
+   "section": "Func and Action"
+  }
+ ],
+ "rejected": [
+  {
+   "file": "rejected.cs",
+   "diagnostic": "CS8917"
+  }
+ ]
+}

@@ -1,0 +1,40 @@
+{
+ "key": "csharp-14-features",
+ "title": "Null-conditional assignment, nameof and partial members",
+ "body": [
+  "C# 14 allows `?.` and `?[]` on the left of assignments: `customer?.Order = GetOrder();` assigns only when `customer` is not null, and the right-hand side is not evaluated at all when it is null. Compound assignments such as `counter?.Value += 1` work too; `++` and `--` do not (CS1059). Using `?.` on an expression also tells nullable analysis that it might be null, so a later plain dereference of the same expression warns.",
+  "`nameof` now accepts unbound generic types: `nameof(List<>)` is `\"List\"` and `nameof(Dictionary<,>)` is `\"Dictionary\"`. Previously you had to write a closed type such as `List<int>` purely to satisfy the compiler.",
+  "Partial members let one part of a type declare a member and another part implement it, which is how source generators fill in code. C# 13 added partial properties and indexers; C# 14 adds partial instance constructors and partial events. Each needs exactly one defining declaration and one implementing declaration; only the implementing constructor may have a `this()`/`base()` initializer, and the implementing event must declare `add` and `remove`.",
+  "Other C# 14 refinements covered elsewhere in this guide: the `field` keyword (stage 3), implicit span conversions (stage 10), modifiers on simple lambda parameters (stage 8) and user-defined compound assignment (stage 3). File-based apps gained `#:package`, `#:sdk` and `#:property` directives so a single `.cs` file can reference NuGet packages.",
+  "When adopting `?.=`, check that skipping the right-hand side is intended: side effects there (logging, increments) no longer happen when the target is null."
+ ],
+ "expectedStdout": "order-1 after 1 call(s)\n5\nList Dictionary\nchanged to 3\nPROBE\n",
+ "challenge": "Given a Node class with a Node? Next and an int Visits property, use null-conditional assignment to increment head.Next?.Visits by 1 for a two-node list and a one-node list, printing the visits of the second node when it exists.",
+ "solutionStdout": "1\nTrue\n",
+ "question": "In `customer?.Order = Compute();`, when is Compute() called?",
+ "correct": "Only when customer is not null",
+ "wrong": [
+  "Always, before the null check",
+  "Never; the statement is a compile error"
+ ],
+ "reasoning": "Null-conditional assignment evaluates the right side only after the receiver passes the null check.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/member-access-operators#null-conditional-operators--and-",
+ "additionalReadings": [
+  {
+   "title": "Partial members",
+   "url": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/partial-member",
+   "section": "Partial constructors and events"
+  },
+  {
+   "title": "File-based apps directives",
+   "url": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/preprocessor-directives#file-based-apps",
+   "section": "#:package"
+  }
+ ],
+ "rejected": [
+  {
+   "file": "rejected.cs",
+   "diagnostic": "CS1059"
+  }
+ ]
+}

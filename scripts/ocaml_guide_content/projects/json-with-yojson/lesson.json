@@ -1,0 +1,82 @@
+{
+  "key": "json-with-yojson",
+  "stage": "21 · Tools, libraries and the compiler",
+  "n": 1,
+  "title": "JSON with Yojson: parsing, validating and printing",
+  "minutes": 35,
+  "body": [
+    "JSON is the common format for configuration and web APIs, and Yojson is the usual OCaml library for it. `Yojson.Safe.from_string` parses text into a variant tree: `` `Assoc `` for objects, `` `List `` for arrays, `` `String ``, `` `Int ``, `` `Float ``, `` `Bool `` and `` `Null ``. Malformed text raises `Yojson.Json_error`, so a parser for untrusted input must catch it.",
+    "The `Yojson.Safe.Util` module reads values out of the tree: `member \"port\" json` returns the field, or `` `Null `` when it is missing, and `to_int`, `to_string` and `to_list` convert a value or raise `Type_error` when it has the wrong shape. Wrapping the whole conversion in one `try` turns every kind of bad input into a single `Error` message, which is the right boundary between untrusted text and your own typed record.",
+    "Printing goes the other way: build the variant tree from your record and call `Yojson.Safe.to_string`. Keep the conversion in both directions next to the type and test the round trip. For large schemas, `ppx_deriving_yojson` generates both functions from the type, in the same way `ppx_jane` derives s-expressions."
+  ],
+  "challenge": "Implement `Appconfig.parse` so it turns a JSON object with `name` (string), `port` (int) and `tags` (list of strings) into the record, and returns `Error` with a message for invalid JSON or a missing or wrongly typed field. `to_json` is already written.",
+  "projectInstructions": "Run `dune test --root .`. Edit only src/appconfig.ml. Remember that a missing field reads as `Null`, and that both `Yojson.Json_error` and `Yojson.Safe.Util.Type_error` can be raised.",
+  "question": "What does `Yojson.Safe.Util.member \"port\" json` return when the field is missing?",
+  "correct": "`Null, which a later to_int then rejects with a Type_error",
+  "wrong": [
+    "It raises Not_found immediately",
+    "It returns the integer 0"
+  ],
+  "reasoning": "member is total, so absence shows up as Null, and the failure appears when the conversion function cannot accept it.",
+  "sourceURL": "https://dev.realworldocaml.org/json.html",
+  "projectChecks": [
+    {
+      "name": "starter compiles",
+      "command": [
+        "dune",
+        "build",
+        "--root",
+        "."
+      ],
+      "exit": 0
+    },
+    {
+      "name": "starter tests fail",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "todo"
+    },
+    {
+      "name": "solution tests pass",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 0,
+      "useSolution": true
+    },
+    {
+      "name": "wrong key is caught",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "Expected int",
+      "useSolution": true,
+      "mutations": [
+        {
+          "path": "src/appconfig.ml",
+          "find": "member \"port\" json",
+          "replace": "member \"prot\" json"
+        }
+      ]
+    }
+  ],
+  "additionalReadings": [
+    {
+      "title": "Yojson documentation",
+      "url": "https://ocaml.org/p/yojson/latest/doc/yojson/Yojson/index.html",
+      "section": "Yojson"
+    }
+  ]
+}

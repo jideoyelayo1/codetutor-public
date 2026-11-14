@@ -1,0 +1,102 @@
+[
+  {
+    "key": "gc-and-allocation",
+    "stage": "13 · Runtime and performance",
+    "n": 1,
+    "title": "The garbage collector and the minor heap",
+    "body": [
+      "OCaml allocates almost everything on a small, fast *minor heap* by bumping a pointer. When it fills, a minor collection copies the few live values to the *major heap* and discards the rest in one step. Most values die young, so allocation is cheap and short-lived garbage costs almost nothing.",
+      "Objects larger than 256 words, such as a big array, skip the minor heap and are allocated directly in the major heap. The major heap is collected incrementally and concurrently with the program, and `Gc.stat` and `Gc.quick_stat` report how many collections have run and how many words are live.",
+      "Reduce pressure by avoiding needless intermediate lists, not by calling `Gc.full_major` in a loop. Tune only after measuring: `OCAMLRUNPARAM=s=4M` enlarges the minor heap, and `Gc.set` changes it at runtime. The default settings are good for most programs."
+    ],
+    "code": "let words f =\n  let before = Gc.minor_words () in\n  ignore (Sys.opaque_identity (f ()));\n  Gc.minor_words () -. before\n\nlet () =\n  let list_words = words (fun () -> List.init 1000 (fun i -> i)) in\n  let array_words = words (fun () -> Array.make 1000 0) in\n  Printf.printf \"list in minor heap: %b\\n\" (list_words >= 3000.);\n  Printf.printf \"big array bypasses it: %b\\n\" (array_words < 100.);\n  Printf.printf \"minor heap configured: %b\\n\" ((Gc.get ()).Gc.minor_heap_size > 0)\n",
+    "expectedStdout": "list in minor heap: true\nbig array bypasses it: true\nminor heap configured: true\n",
+    "challenge": "Measure the minor words allocated by `Array.make 10 0` (small, so it does go to the minor heap) and print whether it is at least 10.",
+    "solution": "let () =\n  let before = Gc.minor_words () in\n  ignore (Sys.opaque_identity (Array.make 10 0));\n  Printf.printf \"%b\\n\" (Gc.minor_words () -. before >= 10.)\n",
+    "solutionStdout": "true\n",
+    "question": "Why is allocating short-lived values cheap in OCaml?",
+    "correct": "They go on the minor heap by pointer bump, and a minor collection only copies the few survivors",
+    "wrong": [
+      "Short-lived values are never allocated",
+      "The major heap is cleared after every function call"
+    ],
+    "reasoning": "A generational collector makes allocation a pointer increment and makes dead young values free to reclaim.",
+    "sourceURL": "https://dev.realworldocaml.org/garbage-collector.html",
+    "project": null
+  },
+  {
+    "key": "tail-modulo-cons",
+    "stage": "13 · Runtime and performance",
+    "n": 2,
+    "title": "Tail-modulo-cons: stack-safe list building",
+    "body": [
+      "`let rec map f = function [] -> [] | x :: xs -> f x :: map f xs` is not tail recursive, because the cons happens after the recursive call returns. The usual fix reverses an accumulator, which allocates the list twice and reads awkwardly.",
+      "Marking the function `let[@tail_mod_cons] rec map ...` asks the compiler to rewrite the recursion so the constructor is allocated first with a hole, and the recursive call then fills the hole. The code stays in direct style, runs in constant stack space and is checked: the compiler reports an error if the call is not in a position it can transform.",
+      "It works when the recursive call is the last argument of a constructor, as in `y :: map f xs`. Use it for your own list-producing functions; the standard library already applies it to functions such as `List.map` in recent releases."
+    ],
+    "code": "let[@tail_mod_cons] rec map f = function\n  | [] -> []\n  | x :: xs ->\n    let y = f x in\n    y :: map f xs\n\nlet[@tail_mod_cons] rec filter p = function\n  | [] -> []\n  | x :: xs -> if p x then x :: filter p xs else filter p xs\n\nlet () =\n  let big = List.init 1_000_000 Fun.id in\n  let doubled = map (fun n -> n * 2) big in\n  let evens = filter (fun n -> n mod 4 = 0) doubled in\n  Printf.printf \"%d %d\\n\" (List.length doubled) (List.length evens);\n  Printf.printf \"%d\\n\" (List.fold_left ( + ) 0 doubled)\n",
+    "expectedStdout": "1000000 500000\n999999000000\n",
+    "challenge": "Write `append_all xs ys` with `[@tail_mod_cons]` that copies xs and then continues with ys, and print the length of appending two 500,000-element lists.",
+    "solution": "let[@tail_mod_cons] rec append_all xs ys =\n  match xs with\n  | [] -> ys\n  | x :: rest -> x :: append_all rest ys\n\nlet () =\n  let a = List.init 500_000 Fun.id in\n  Printf.printf \"%d\\n\" (List.length (append_all a a))\n",
+    "solutionStdout": "1000000\n",
+    "question": "What does `[@tail_mod_cons]` let you do?",
+    "correct": "Write a list-building function in direct style that runs in constant stack space",
+    "wrong": [
+      "Make any recursive function tail recursive",
+      "Avoid allocating the result list"
+    ],
+    "reasoning": "The compiler allocates the cons cell first with a hole and fills it from the recursive call, so no frame waits for the result.",
+    "sourceURL": "https://ocaml.org/manual/5.5/tail_mod_cons.html",
+    "project": null
+  },
+  {
+    "key": "bigarray-and-unboxed-floats",
+    "stage": "13 · Runtime and performance",
+    "n": 3,
+    "title": "Bigarray and float arrays for numeric data",
+    "body": [
+      "An ordinary `float array` already stores unboxed doubles, and `Float.Array` is a specialised version with no boxing even when the compiler cannot see the element type. For large numeric data you want contiguous, predictably laid-out memory, and `Bigarray` provides that.",
+      "A `Bigarray.Array1` has an element kind such as `float64` and a layout such as `c_layout`. Its storage lives outside the OCaml heap, so the collector never scans it, and it can be shared with C code or memory-mapped from a file. Index it with `a.{i}`, and `Array1.sub` gives a view of a range that shares storage rather than copying.",
+      "Use these when profiling shows boxing or GC scanning dominates, or when you exchange buffers with native libraries. Keep ordinary arrays and lists for everything else, because bounds checks and layout tags make Bigarray code more verbose."
+    ],
+    "code": "let () =\n  let open Bigarray in\n  let a = Array1.create float64 c_layout 5 in\n  Array1.fill a 1.5;\n  a.{2} <- 4.0;\n  let total = ref 0.0 in\n  for i = 0 to Array1.dim a - 1 do total := !total +. a.{i} done;\n  Printf.printf \"%.1f\\n\" !total;\n  Printf.printf \"%d %d\\n\" (Array1.dim a) (Array1.size_in_bytes a);\n  let view = Array1.sub a 1 3 in\n  view.{0} <- 9.0;\n  Printf.printf \"%b\\n\" (a.{1} = 9.0);\n  let fa = Float.Array.make 3 2.0 in\n  Float.Array.set fa 1 5.0;\n  Printf.printf \"%.1f\\n\" (Float.Array.fold_left ( +. ) 0.0 fa)\n",
+    "expectedStdout": "10.0\n5 40\ntrue\n9.0\n",
+    "challenge": "Create an int Bigarray of length 4 (use int and c_layout), fill it with 3, set the last element to 10 and print the sum.",
+    "solution": "let () =\n  let open Bigarray in\n  let a = Array1.create int c_layout 4 in\n  Array1.fill a 3;\n  a.{3} <- 10;\n  let total = ref 0 in\n  for i = 0 to 3 do total := !total + a.{i} done;\n  Printf.printf \"%d\\n\" !total\n",
+    "solutionStdout": "19\n",
+    "question": "What does `Array1.sub a 1 3` return?",
+    "correct": "A view onto the same storage, so writes through it are visible in the original",
+    "wrong": [
+      "A fresh copy of three elements",
+      "A list of three elements"
+    ],
+    "reasoning": "Bigarray sub-arrays share the underlying memory, which makes slicing cheap but means aliasing applies.",
+    "sourceURL": "https://ocaml.org/manual/5.5/api/Bigarray.html",
+    "project": null
+  },
+  {
+    "key": "measure-before-optimising",
+    "stage": "13 · Runtime and performance",
+    "n": 4,
+    "title": "Measure before optimising: allocation counters",
+    "body": [
+      "Performance work starts with a measurement, not a guess. Timers are noisy, so for allocation-heavy code compare *counts*: `Gc.minor_words ()` before and after a function gives the words it allocated, and the count is the same on every run for deterministic code.",
+      "Common causes of surprising cost are quadratic appends (`acc @ [x]` in a loop), repeated string concatenation, polymorphic comparison on large values, and intermediate lists. A counter shows the shape of the problem, such as one algorithm allocating a hundred times more than another, long before you reach for a profiler.",
+      "When counts are not enough, use `perf` with `perf report` on a native build, or a benchmarking library. Always keep a test that checks the result is unchanged, so a faster version is not a wrong one."
+    ],
+    "code": "let words f =\n  let before = Gc.minor_words () in\n  let result = f () in\n  (result, Gc.minor_words () -. before)\n\nlet slow n =\n  let acc = ref [] in\n  for i = 1 to n do acc := !acc @ [ i ] done;\n  !acc\n\nlet fast n =\n  let acc = ref [] in\n  for i = 1 to n do acc := i :: !acc done;\n  List.rev !acc\n\nlet () =\n  let a, slow_words = words (fun () -> slow 2000) in\n  let b, fast_words = words (fun () -> fast 2000) in\n  Printf.printf \"same result: %b\\n\" (a = b);\n  Printf.printf \"quadratic append allocates over 100x more: %b\\n\" (slow_words > 100. *. fast_words)\n",
+    "expectedStdout": "same result: true\nquadratic append allocates over 100x more: true\n",
+    "challenge": "Compare `List.length (List.init n Fun.id)` against building the list with a for loop and reverse for n = 1000, and print whether the two results have the same length.",
+    "solution": "let () =\n  let n = 1000 in\n  let acc = ref [] in\n  for i = 0 to n - 1 do acc := i :: !acc done;\n  Printf.printf \"%b\\n\" (List.length (List.rev !acc) = List.length (List.init n Fun.id))\n",
+    "solutionStdout": "true\n",
+    "question": "Why compare allocation counts instead of wall-clock time in a lesson test?",
+    "correct": "Counts are deterministic for deterministic code, while timings vary between runs and machines",
+    "wrong": [
+      "Allocation counts are always zero",
+      "Wall-clock time cannot be measured in OCaml"
+    ],
+    "reasoning": "A count depends only on the code path, so it can be asserted exactly, whereas elapsed time depends on load.",
+    "sourceURL": "https://dev.realworldocaml.org/garbage-collector.html",
+    "project": null
+  }
+]

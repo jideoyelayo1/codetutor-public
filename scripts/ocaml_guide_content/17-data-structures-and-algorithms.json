@@ -1,0 +1,170 @@
+[
+  {
+    "key": "hash-tables-from-scratch",
+    "stage": "17 · Data structures and algorithms",
+    "title": "A hash table from scratch",
+    "body": [
+      "A hash table stores each key in a bucket chosen by a hash function. Looking a key up means hashing it, picking the bucket and searching the few entries there, which is constant time when buckets stay short. This version keeps an array of association lists (separate chaining), so a collision just means two entries share a bucket.",
+      "The *load factor* is the number of entries divided by the number of buckets. When it exceeds a threshold the table doubles its bucket array and re-inserts everything, which keeps buckets short. Because every doubling touches all entries but happens after the number of entries has doubled, the cost per insertion is constant on average (amortised).",
+      "State the representation invariant and check it: every entry lives in the bucket its key hashes to, the stored size equals the number of entries, and no key appears twice. The mutable table is easy to corrupt with a missed update, so a `rep_ok` function that verifies these facts is cheap insurance in tests."
+    ],
+    "code": "module Table = struct\n  type ('k, 'v) t = { mutable buckets : ('k * 'v) list array; mutable size : int }\n\n  let create () = { buckets = Array.make 4 []; size = 0 }\n  let index t k = Hashtbl.hash k mod Array.length t.buckets\n\n  let resize t =\n    let old = t.buckets in\n    t.buckets <- Array.make (2 * Array.length old) [];\n    Array.iter\n      (List.iter (fun (k, v) ->\n           let i = index t k in\n           t.buckets.(i) <- (k, v) :: t.buckets.(i)))\n      old\n\n  let replace t k v =\n    let i = index t k in\n    let rest = List.remove_assoc k t.buckets.(i) in\n    if List.length rest = List.length t.buckets.(i) then t.size <- t.size + 1;\n    t.buckets.(i) <- (k, v) :: rest;\n    if t.size > 2 * Array.length t.buckets then resize t\n\n  let find_opt t k = List.assoc_opt k t.buckets.(index t k)\n  let length t = t.size\n  let bucket_count t = Array.length t.buckets\n\n  (* RI: size is the number of entries, each lives in the bucket its key hashes to. *)\n  let rep_ok t =\n    let total = ref 0 in\n    Array.iteri\n      (fun i bucket ->\n        List.iter (fun (k, _) -> incr total; assert (index t k = i)) bucket)\n      t.buckets;\n    !total = t.size\nend\n\nlet () =\n  let t = Table.create () in\n  for k = 1 to 100 do Table.replace t k (k * k) done;\n  Printf.printf \"%d %d\\n\" (Table.length t) (Table.bucket_count t);\n  Printf.printf \"%s %s\\n\"\n    (match Table.find_opt t 42 with Some v -> string_of_int v | None -> \"missing\")\n    (match Table.find_opt t 500 with Some v -> string_of_int v | None -> \"missing\");\n  Table.replace t 42 0;\n  Printf.printf \"%d %s\\n\" (Table.length t) (match Table.find_opt t 42 with Some v -> string_of_int v | None -> \"missing\");\n  Printf.printf \"invariant holds: %b\\n\" (Table.rep_ok t)\n",
+    "expectedStdout": "100 64\n1764 missing\n100 0\ninvariant holds: true\n",
+    "challenge": "Add `remove t k` to the table that deletes a key if present and keeps `size` correct, then remove key 42 and print the length and whether `find_opt` still finds it.",
+    "solution": "module Table = struct\n  type ('k, 'v) t = { mutable buckets : ('k * 'v) list array; mutable size : int }\n\n  let create () = { buckets = Array.make 4 []; size = 0 }\n  let index t k = Hashtbl.hash k mod Array.length t.buckets\n\n  let replace t k v =\n    let i = index t k in\n    let rest = List.remove_assoc k t.buckets.(i) in\n    if List.length rest = List.length t.buckets.(i) then t.size <- t.size + 1;\n    t.buckets.(i) <- (k, v) :: rest\n\n  let remove t k =\n    let i = index t k in\n    let rest = List.remove_assoc k t.buckets.(i) in\n    if List.length rest < List.length t.buckets.(i) then t.size <- t.size - 1;\n    t.buckets.(i) <- rest\n\n  let find_opt t k = List.assoc_opt k t.buckets.(index t k)\n  let length t = t.size\nend\n\nlet () =\n  let t = Table.create () in\n  for k = 1 to 50 do Table.replace t k k done;\n  Table.remove t 42;\n  Table.remove t 42;\n  Printf.printf \"%d %b\\n\" (Table.length t) (Table.find_opt t 42 <> None)\n",
+    "solutionStdout": "49 false\n",
+    "question": "Why does doubling the bucket array keep insertion constant time on average?",
+    "correct": "Each doubling costs time proportional to the entries, but it only happens after the entry count has doubled",
+    "wrong": [
+      "Doubling makes hash collisions impossible",
+      "Because the array is copied without looking at entries"
+    ],
+    "reasoning": "The expensive resizes are rare enough that their total cost, spread over all insertions, is a constant per insertion.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/ds/hash_tables.html",
+    "project": null
+  },
+  {
+    "key": "amortized-analysis-queues",
+    "stage": "17 · Data structures and algorithms",
+    "title": "Amortised analysis with a two-list queue",
+    "body": [
+      "A single operation can be slow while a long sequence of them is cheap. The two-list queue pushes onto a back list in constant time and pops from a front list; when the front is empty it reverses the back, which costs the length of the back. One pop can cost a lot, but each element is moved from back to front at most once in its lifetime.",
+      "The *banker's method* makes this precise: charge each push a few units, spend one to pay for the push and save the rest to pay in advance for the single reversal move that element will need later. The total cost of any sequence of n operations is then at most a constant times n, so the *amortised* cost per operation is constant. The code counts real units so you can watch the bound hold.",
+      "Amortised bounds assume each version of the structure is used once. If you keep an old version and pop from it repeatedly, every pop pays the full reversal again, and the bound collapses. Persistent data structures need laziness to restore amortisation, which is why the next lessons on streams and memoisation matter."
+    ],
+    "code": "let cost = ref 0\n\ntype 'a q = { front : 'a list; back : 'a list }\n\nlet empty = { front = []; back = [] }\nlet push x q = incr cost; { q with back = x :: q.back }\n\nlet pop q =\n  incr cost;\n  match q.front with\n  | x :: front -> Some (x, { q with front })\n  | [] -> (\n      match List.rev q.back with\n      | [] -> None\n      | x :: front ->\n          cost := !cost + List.length q.back;\n          Some (x, { front; back = [] }))\n\nlet drain q =\n  let rec go q n = match pop q with None -> n | Some (_, q') -> go q' (n + 1) in\n  go q 0\n\nlet () =\n  let n = 1000 in\n  cost := 0;\n  let q = ref empty in\n  for i = 1 to n do q := push i !q done;\n  let popped = drain !q in\n  let ops = (2 * n) + 1 in\n  Printf.printf \"popped %d, total cost %d for %d operations\\n\" popped !cost ops;\n  Printf.printf \"amortised cost at most 3 per operation: %b\\n\" (!cost <= 3 * ops);\n  (* Reusing one old version defeats the bound: every pop repeats the reversal. *)\n  let full = ref empty in\n  for i = 1 to n do full := push i !full done;\n  cost := 0;\n  for _ = 1 to n do ignore (pop !full) done;\n  Printf.printf \"reusing one version costs %d for %d pops\\n\" !cost n\n",
+    "expectedStdout": "popped 1000, total cost 3001 for 2001 operations\namortised cost at most 3 per operation: true\nreusing one version costs 1001000 for 1000 pops\n",
+    "challenge": "Run 10 pushes followed by 10 pops with the counting queue and print the total cost, which should be 30 (10 pushes, 10 pops and 10 moved elements).",
+    "solution": "let cost = ref 0\n\ntype 'a q = { front : 'a list; back : 'a list }\n\nlet push x q = incr cost; { q with back = x :: q.back }\n\nlet pop q =\n  incr cost;\n  match q.front with\n  | x :: front -> Some (x, { q with front })\n  | [] -> (\n      match List.rev q.back with\n      | [] -> None\n      | x :: front ->\n          cost := !cost + List.length q.back;\n          Some (x, { front; back = [] }))\n\nlet () =\n  let q = ref { front = []; back = [] } in\n  for i = 1 to 10 do q := push i !q done;\n  let rec go q = match pop q with None -> () | Some (_, q') -> go q' in\n  go !q;\n  (* the final pop of the empty queue also counts as one operation *)\n  Printf.printf \"%d\\n\" (!cost - 1)\n",
+    "solutionStdout": "30\n",
+    "question": "What does the amortised bound assume about how the queue is used?",
+    "correct": "Each version is used once; reusing an old version repeats the expensive reversal",
+    "wrong": [
+      "That the queue never holds more than ten elements",
+      "That pops always happen before pushes"
+    ],
+    "reasoning": "The saved credit from each push is spent exactly once, so reusing a version lets the same credit be spent again and the accounting fails.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/ds/amortized.html",
+    "project": null
+  },
+  {
+    "key": "red-black-trees",
+    "stage": "17 · Data structures and algorithms",
+    "title": "Red-black trees: balance by colour",
+    "body": [
+      "A red-black tree is a binary search tree whose nodes are coloured so the tree stays roughly balanced. Two invariants do the work: no red node has a red child, and every path from the root to a leaf passes through the same number of black nodes. Together they bound the height by about twice the logarithm of the size, so lookup and insertion are logarithmic even for sorted input.",
+      "Okasaki's insertion is short. Insert as in an ordinary tree, colouring the new node red, then rebalance on the way back up. Whenever a black node has a red child with a red child (four possible shapes), one `balance` rewrite turns that shape into a red parent with two black children. The root is finally made black, which restores the invariant.",
+      "The four shapes share one result, which an or-pattern expresses directly. Because the invariants are easy to state, write a checker for them and run it after every insertion in a test: a missed shape in `balance` shows up as a violated invariant long before it shows up as a slow tree."
+    ],
+    "code": "type color = R | B\ntype 'a t = E | T of color * 'a t * 'a * 'a t\n\nlet balance = function\n  | B, T (R, T (R, a, x, b), y, c), z, d\n  | B, T (R, a, x, T (R, b, y, c)), z, d\n  | B, a, x, T (R, T (R, b, y, c), z, d)\n  | B, a, x, T (R, b, y, T (R, c, z, d)) ->\n      T (R, T (B, a, x, b), y, T (B, c, z, d))\n  | color, a, x, b -> T (color, a, x, b)\n\nlet insert x s =\n  let rec ins = function\n    | E -> T (R, E, x, E)\n    | T (color, a, y, b) as t ->\n        if x < y then balance (color, ins a, y, b)\n        else if x > y then balance (color, a, y, ins b)\n        else t\n  in\n  match ins s with T (_, a, y, b) -> T (B, a, y, b) | E -> assert false\n\nlet rec size = function E -> 0 | T (_, a, _, b) -> size a + 1 + size b\nlet rec height = function E -> 0 | T (_, a, _, b) -> 1 + max (height a) (height b)\nlet rec to_list = function E -> [] | T (_, a, x, b) -> to_list a @ [ x ] @ to_list b\n\n(* Black height of a tree, or None if the invariants are violated. *)\nlet rec black_height = function\n  | E -> Some 1\n  | T (color, a, _, b) -> (\n      let bad_red = function T (R, _, _, _) -> color = R | _ -> false in\n      if bad_red a || bad_red b then None\n      else\n        match (black_height a, black_height b) with\n        | Some x, Some y when x = y -> Some (if color = B then x + 1 else x)\n        | _ -> None)\n\nlet () =\n  let t = List.fold_left (fun t x -> insert x t) E (List.init 1000 (fun i -> i + 1)) in\n  Printf.printf \"size %d\\n\" (size t);\n  Printf.printf \"sorted: %b\\n\" (to_list t = List.init 1000 (fun i -> i + 1));\n  Printf.printf \"invariants hold: %b\\n\" (black_height t <> None);\n  Printf.printf \"height at most 20 for 1000 sorted keys: %b\\n\" (height t <= 20)\n",
+    "expectedStdout": "size 1000\nsorted: true\ninvariants hold: true\nheight at most 20 for 1000 sorted keys: true\n",
+    "challenge": "Write `mem x t` for the red-black tree and print whether it finds 500 and 1001 in a tree built from the keys 1 to 1000.",
+    "solution": "type color = R | B\ntype 'a t = E | T of color * 'a t * 'a * 'a t\n\nlet balance = function\n  | B, T (R, T (R, a, x, b), y, c), z, d\n  | B, T (R, a, x, T (R, b, y, c)), z, d\n  | B, a, x, T (R, T (R, b, y, c), z, d)\n  | B, a, x, T (R, b, y, T (R, c, z, d)) ->\n      T (R, T (B, a, x, b), y, T (B, c, z, d))\n  | color, a, x, b -> T (color, a, x, b)\n\nlet insert x s =\n  let rec ins = function\n    | E -> T (R, E, x, E)\n    | T (color, a, y, b) as t ->\n        if x < y then balance (color, ins a, y, b)\n        else if x > y then balance (color, a, y, ins b)\n        else t\n  in\n  match ins s with T (_, a, y, b) -> T (B, a, y, b) | E -> assert false\n\nlet rec mem x = function\n  | E -> false\n  | T (_, a, y, b) -> if x < y then mem x a else if x > y then mem x b else true\n\nlet () =\n  let t = List.fold_left (fun t x -> insert x t) E (List.init 1000 (fun i -> i + 1)) in\n  Printf.printf \"%b %b\\n\" (mem 500 t) (mem 1001 t)\n",
+    "solutionStdout": "true false\n",
+    "question": "Which two invariants keep a red-black tree balanced?",
+    "correct": "No red node has a red child, and every root-to-leaf path has the same number of black nodes",
+    "wrong": [
+      "Every node has exactly two children, and keys are unique",
+      "Red nodes are always on the left, and black nodes on the right"
+    ],
+    "reasoning": "Equal black height fixes the shortest path length and the no-red-red rule limits how much longer any path can be, so the height is at most about twice the minimum.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/ds/rb.html",
+    "project": null
+  },
+  {
+    "key": "lazy-streams-and-sequences",
+    "stage": "17 · Data structures and algorithms",
+    "title": "Lazy streams and the sieve of Eratosthenes",
+    "body": [
+      "A stream is a list whose tail is computed on demand, so it can be infinite. `type 'a stream = Cons of 'a * 'a stream Lazy.t` pairs a head with a lazy tail. Nothing past the head exists until someone forces it, and forcing happens at most once because `Lazy` caches the result.",
+      "Streams make some algorithms read like their mathematical definitions. The sieve of Eratosthenes is 'take the first number, keep only the numbers not divisible by it, and sieve the rest', and Fibonacci numbers are 'two numbers and then the stream that follows'. You take as many elements as you need with a `take` function and leave the infinite remainder unevaluated.",
+      "The standard library provides the same idea as `Seq`, whose tails are functions rather than cached lazy values, so a `Seq` recomputes work each time it is traversed. Prefer `Seq` for one-pass pipelines and a memoising stream when the same elements are demanded many times, and remember that a stream holding onto its head keeps every forced element alive."
+    ],
+    "code": "type 'a stream = Cons of 'a * 'a stream Lazy.t\n\nlet rec from n = Cons (n, lazy (from (n + 1)))\nlet rec take n (Cons (x, rest)) = if n = 0 then [] else x :: take (n - 1) (Lazy.force rest)\n\nlet rec filter p (Cons (x, rest)) =\n  if p x then Cons (x, lazy (filter p (Lazy.force rest))) else filter p (Lazy.force rest)\n\nlet rec sieve (Cons (p, rest)) =\n  Cons (p, lazy (sieve (filter (fun n -> n mod p <> 0) (Lazy.force rest))))\n\nlet primes = sieve (from 2)\nlet rec fibs a b = Cons (a, lazy (fibs b (a + b)))\n\nlet show l = String.concat \" \" (List.map string_of_int l)\n\nlet () =\n  print_endline (show (take 10 primes));\n  print_endline (show (take 10 (fibs 0 1)));\n  let evaluations = ref 0 in\n  let counted = lazy (incr evaluations; 42) in\n  ignore (Lazy.force counted);\n  ignore (Lazy.force counted);\n  Printf.printf \"forced twice, evaluated %d time\\n\" !evaluations;\n  let from_seq = List.of_seq (Seq.take 5 (Seq.ints 0)) in\n  Printf.printf \"Seq: %s\\n\" (show from_seq)\n",
+    "expectedStdout": "2 3 5 7 11 13 17 19 23 29\n0 1 1 2 3 5 8 13 21 34\nforced twice, evaluated 1 time\nSeq: 0 1 2 3 4\n",
+    "challenge": "Define the stream of powers of two (1, 2, 4, 8, ...) with a function like `fibs`, and print its first eight elements.",
+    "solution": "type 'a stream = Cons of 'a * 'a stream Lazy.t\n\nlet rec take n (Cons (x, rest)) = if n = 0 then [] else x :: take (n - 1) (Lazy.force rest)\nlet rec powers n = Cons (n, lazy (powers (2 * n)))\n\nlet () = print_endline (String.concat \" \" (List.map string_of_int (take 8 (powers 1))))\n",
+    "solutionStdout": "1 2 4 8 16 32 64 128\n",
+    "question": "Why does forcing a lazy value twice evaluate its body only once?",
+    "correct": "Lazy caches the result of the first force",
+    "wrong": [
+      "Because the second force raises an exception",
+      "Because lazy values cannot be forced twice"
+    ],
+    "reasoning": "A lazy value stores its result after the first evaluation, which is what makes streams safe to share.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/ds/sequence.html",
+    "project": null
+  },
+  {
+    "key": "memoization-and-dynamic-programming",
+    "stage": "17 · Data structures and algorithms",
+    "title": "Memoisation and dynamic programming",
+    "body": [
+      "Memoisation remembers the result of a function for each argument it has seen, so repeated calls become lookups. The naive Fibonacci recomputes the same subproblems exponentially many times; with a table the number of real computations is linear. This works whenever the function is *pure*, because returning a stored answer is indistinguishable from recomputing it.",
+      "A recursive function cannot be memoised by wrapping it from outside, because its recursive calls still go to the unmemoised version. Write it in *open recursion* style, taking `self` as a parameter for its recursive calls, and tie the knot with a `memo_rec` that supplies a table-checking `self`. The same trick turns a clear recursive definition into dynamic programming without rewriting it as loops.",
+      "Dynamic programming is memoisation of overlapping subproblems. Edit distance between two strings is the classic example: the distance of two prefixes depends only on the distances of shorter prefixes, so a table indexed by the two lengths holds all the work. Count how many table entries are computed to see the saving."
+    ],
+    "code": "let memo_rec f =\n  let table = Hashtbl.create 16 in\n  let rec self x =\n    match Hashtbl.find_opt table x with\n    | Some v -> v\n    | None ->\n        let v = f self x in\n        Hashtbl.add table x v;\n        v\n  in\n  self\n\nlet naive_calls = ref 0\nlet rec fib_naive n = incr naive_calls; if n < 2 then n else fib_naive (n - 1) + fib_naive (n - 2)\n\nlet memo_calls = ref 0\nlet fib_memo = memo_rec (fun self n -> incr memo_calls; if n < 2 then n else self (n - 1) + self (n - 2))\n\nlet edit_distance s t =\n  let computed = ref 0 in\n  let distance =\n    memo_rec (fun self (i, j) ->\n        incr computed;\n        if i = 0 then j\n        else if j = 0 then i\n        else\n          let cost = if s.[i - 1] = t.[j - 1] then 0 else 1 in\n          min (min (self (i - 1, j) + 1) (self (i, j - 1) + 1)) (self (i - 1, j - 1) + cost))\n  in\n  let d = distance (String.length s, String.length t) in\n  (d, !computed)\n\nlet () =\n  let a = fib_naive 20 in\n  Printf.printf \"%d with %d calls\\n\" a !naive_calls;\n  let b = fib_memo 20 in\n  Printf.printf \"%d with %d calls\\n\" b !memo_calls;\n  let d, entries = edit_distance \"kitten\" \"sitting\" in\n  Printf.printf \"edit distance %d from %d table entries\\n\" d entries\n",
+    "expectedStdout": "6765 with 21891 calls\n6765 with 21 calls\nedit distance 3 from 56 table entries\n",
+    "challenge": "Use `memo_rec` to count the number of ways to climb 30 stairs taking 1 or 2 steps at a time (ways n = ways (n-1) + ways (n-2), with ways 0 = ways 1 = 1) and print it.",
+    "solution": "let memo_rec f =\n  let table = Hashtbl.create 16 in\n  let rec self x =\n    match Hashtbl.find_opt table x with\n    | Some v -> v\n    | None ->\n        let v = f self x in\n        Hashtbl.add table x v;\n        v\n  in\n  self\n\nlet ways = memo_rec (fun self n -> if n <= 1 then 1 else self (n - 1) + self (n - 2))\n\nlet () = Printf.printf \"%d\\n\" (ways 30)\n",
+    "solutionStdout": "1346269\n",
+    "question": "Why must a recursive function be written in open-recursion style to be memoised?",
+    "correct": "Its recursive calls must go through the memoising wrapper, which a plain recursive reference would bypass",
+    "wrong": [
+      "Because Hashtbl cannot store recursive values",
+      "Because open recursion makes the function faster by itself"
+    ],
+    "reasoning": "Passing self lets the memoising wrapper intercept every recursive call, so each distinct argument is computed once.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/ds/memoization.html",
+    "project": null
+  },
+  {
+    "key": "persistent-arrays",
+    "stage": "17 · Data structures and algorithms",
+    "title": "Persistent arrays as balanced trees",
+    "body": [
+      "An ordinary array is mutable: updating it destroys the old version. A persistent array keeps every version usable. The simplest design stores the elements at the leaves of a balanced binary tree; reading index i walks down choosing left or right by comparing i with the midpoint, and writing index i rebuilds only the path from the root to that leaf while sharing every other subtree.",
+      "Both operations take time logarithmic in the length, not constant, and an update allocates a handful of nodes instead of copying the whole array. This is the price of persistence: you pay a log factor to keep old versions, in exchange for undo, backtracking and safe sharing between threads with no locks.",
+      "You can observe the sharing directly. After setting one element, the subtree that did not contain it is the very same block in memory, which physical equality `==` confirms. Use persistent arrays when you need history; if you only ever use the newest version, a plain mutable array is simpler and faster."
+    ],
+    "code": "type 'a tree = Leaf of 'a | Node of 'a tree * 'a tree\ntype 'a t = { size : int; tree : 'a tree }\n\nlet rec build lo hi f =\n  if hi - lo = 1 then Leaf (f lo)\n  else\n    let mid = (lo + hi) / 2 in\n    Node (build lo mid f, build mid hi f)\n\nlet init size f = { size; tree = build 0 size f }\n\nlet get a i =\n  let rec go t lo hi =\n    match t with\n    | Leaf v -> v\n    | Node (l, r) ->\n        let mid = (lo + hi) / 2 in\n        if i < mid then go l lo mid else go r mid hi\n  in\n  go a.tree 0 a.size\n\nlet set a i v =\n  let rec go t lo hi =\n    match t with\n    | Leaf _ -> Leaf v\n    | Node (l, r) ->\n        let mid = (lo + hi) / 2 in\n        if i < mid then Node (go l lo mid, r) else Node (l, go r mid hi)\n  in\n  { a with tree = go a.tree 0 a.size }\n\nlet right a = match a.tree with Node (_, r) -> r | Leaf _ -> invalid_arg \"right\"\n\nlet () =\n  let a0 = init 8 (fun i -> i * i) in\n  let a1 = set a0 3 100 in\n  Printf.printf \"%d %d\\n\" (get a0 3) (get a1 3);\n  Printf.printf \"untouched elements agree: %b\\n\" (get a0 6 = get a1 6);\n  let a2 = set a1 1 (-1) in\n  Printf.printf \"right half shared by all versions: %b\\n\" (right a0 == right a2);\n  Printf.printf \"versions all usable: %d %d %d\\n\" (get a0 1) (get a1 1) (get a2 1)\n",
+    "expectedStdout": "9 100\nuntouched elements agree: true\nright half shared by all versions: true\nversions all usable: 1 1 -1\n",
+    "challenge": "Write `to_list a` that returns the elements of a persistent array in order, and print it for the array of squares of 0 to 5 after setting index 2 to 0.",
+    "solution": "type 'a tree = Leaf of 'a | Node of 'a tree * 'a tree\ntype 'a t = { size : int; tree : 'a tree }\n\nlet rec build lo hi f =\n  if hi - lo = 1 then Leaf (f lo)\n  else\n    let mid = (lo + hi) / 2 in\n    Node (build lo mid f, build mid hi f)\n\nlet init size f = { size; tree = build 0 size f }\n\nlet set a i v =\n  let rec go t lo hi =\n    match t with\n    | Leaf _ -> Leaf v\n    | Node (l, r) ->\n        let mid = (lo + hi) / 2 in\n        if i < mid then Node (go l lo mid, r) else Node (l, go r mid hi)\n  in\n  { a with tree = go a.tree 0 a.size }\n\nlet to_list a =\n  let rec go = function Leaf v -> [ v ] | Node (l, r) -> go l @ go r in\n  go a.tree\n\nlet () =\n  let a = set (init 6 (fun i -> i * i)) 2 0 in\n  print_endline (String.concat \" \" (List.map string_of_int (to_list a)))\n",
+    "solutionStdout": "0 1 0 9 16 25\n",
+    "question": "What does an update of a persistent tree-array allocate?",
+    "correct": "New nodes only along the path to the changed leaf; every other subtree is shared",
+    "wrong": [
+      "A complete copy of the array",
+      "Nothing, because it mutates in place"
+    ],
+    "reasoning": "Path copying rebuilds just the ancestors of the changed leaf, so the old and new versions share everything else.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/ds/parrays.html",
+    "project": null
+  },
+  {
+    "key": "two-three-trees",
+    "stage": "17 · Data structures and algorithms",
+    "title": "2-3 trees: balance without colours",
+    "body": [
+      "A 2-3 tree is a search tree whose nodes hold one key and two children (a 2-node) or two keys and three children (a 3-node), with every leaf at the same depth. Because the leaves are all at the same depth, the tree is perfectly balanced, and lookup follows one path of logarithmic length.",
+      "Insertion goes down to a leaf and comes back up. A 2-node that receives a key becomes a 3-node, and a 3-node that receives a key *splits* into a 2-node on each side and pushes the middle key up to its parent. A split that reaches the root creates a new root, which is the only way the tree grows taller, so all leaves stay at the same depth.",
+      "The recursive insert returns either `Fit` (the subtree absorbed the key) or `Split (left, middle, right)` (the parent must absorb a middle key). Red-black trees encode balanced trees with colours: the *left-leaning* variant encodes 2-3 trees exactly, while the four-case version in the previous lesson corresponds to 2-3-4 trees, whose full nodes hold three keys, which is why it needs four rewrite shapes. The idea of splitting a full node and pushing the middle key up is the same in both. The checker below verifies equal leaf depth and sorted order."
+    ],
+    "code": "type 'a t = E | N2 of 'a t * 'a * 'a t | N3 of 'a t * 'a * 'a t * 'a * 'a t\ntype 'a ins = Fit of 'a t | Split of 'a t * 'a * 'a t\n\nlet rec ins x = function\n  | E -> Split (E, x, E)\n  | N2 (l, y, r) as t ->\n      if x = y then Fit t\n      else if x < y then (\n        match ins x l with\n        | Fit l' -> Fit (N2 (l', y, r))\n        | Split (a, z, b) -> Fit (N3 (a, z, b, y, r)))\n      else (\n        match ins x r with\n        | Fit r' -> Fit (N2 (l, y, r'))\n        | Split (a, z, b) -> Fit (N3 (l, y, a, z, b)))\n  | N3 (l, y, m, w, r) as t ->\n      if x = y || x = w then Fit t\n      else if x < y then (\n        match ins x l with\n        | Fit l' -> Fit (N3 (l', y, m, w, r))\n        | Split (a, z, b) -> Split (N2 (a, z, b), y, N2 (m, w, r)))\n      else if x < w then (\n        match ins x m with\n        | Fit m' -> Fit (N3 (l, y, m', w, r))\n        | Split (a, z, b) -> Split (N2 (l, y, a), z, N2 (b, w, r)))\n      else (\n        match ins x r with\n        | Fit r' -> Fit (N3 (l, y, m, w, r'))\n        | Split (a, z, b) -> Split (N2 (l, y, m), w, N2 (a, z, b)))\n\nlet insert x t = match ins x t with Fit t' -> t' | Split (a, z, b) -> N2 (a, z, b)\n\nlet rec to_list = function\n  | E -> []\n  | N2 (l, x, r) -> to_list l @ [ x ] @ to_list r\n  | N3 (l, x, m, y, r) -> to_list l @ [ x ] @ to_list m @ [ y ] @ to_list r\n\n(* Depth of all leaves, or None if they are not all at the same depth. *)\nlet rec depth = function\n  | E -> Some 0\n  | N2 (l, _, r) -> (match (depth l, depth r) with Some a, Some b when a = b -> Some (a + 1) | _ -> None)\n  | N3 (l, _, m, _, r) ->\n      (match (depth l, depth m, depth r) with Some a, Some b, Some c when a = b && b = c -> Some (a + 1) | _ -> None)\n\nlet () =\n  (* 997 is prime, so multiplying by 389 mod 997 visits 500 distinct keys in a scrambled order *)\n  let keys = List.init 500 (fun i -> (i * 389 + 1) mod 997) in\n  let t = List.fold_left (fun t x -> insert x t) E keys in\n  Printf.printf \"sorted: %b\\n\" (to_list t = List.sort_uniq compare keys);\n  Printf.printf \"all leaves at the same depth: %b\\n\" (depth t <> None);\n  Printf.printf \"keys: %d\\n\" (List.length (to_list t));\n  Printf.printf \"height at most 9: %b\\n\" (match depth t with Some d -> d <= 9 | None -> false)\n",
+    "expectedStdout": "sorted: true\nall leaves at the same depth: true\nkeys: 500\nheight at most 9: true\n",
+    "challenge": "Insert the keys 1 to 7 into an empty tree in order and print the depth of the result.",
+    "solution": "type 'a t = E | N2 of 'a t * 'a * 'a t | N3 of 'a t * 'a * 'a t * 'a * 'a t\ntype 'a ins = Fit of 'a t | Split of 'a t * 'a * 'a t\n\nlet rec ins x = function\n  | E -> Split (E, x, E)\n  | N2 (l, y, r) as t ->\n      if x = y then Fit t\n      else if x < y then (\n        match ins x l with\n        | Fit l' -> Fit (N2 (l', y, r))\n        | Split (a, z, b) -> Fit (N3 (a, z, b, y, r)))\n      else (\n        match ins x r with\n        | Fit r' -> Fit (N2 (l, y, r'))\n        | Split (a, z, b) -> Fit (N3 (l, y, a, z, b)))\n  | N3 (l, y, m, w, r) as t ->\n      if x = y || x = w then Fit t\n      else if x < y then (\n        match ins x l with\n        | Fit l' -> Fit (N3 (l', y, m, w, r))\n        | Split (a, z, b) -> Split (N2 (a, z, b), y, N2 (m, w, r)))\n      else if x < w then (\n        match ins x m with\n        | Fit m' -> Fit (N3 (l, y, m', w, r))\n        | Split (a, z, b) -> Split (N2 (l, y, a), z, N2 (b, w, r)))\n      else (\n        match ins x r with\n        | Fit r' -> Fit (N3 (l, y, m, w, r'))\n        | Split (a, z, b) -> Split (N2 (l, y, m), w, N2 (a, z, b)))\n\nlet insert x t = match ins x t with Fit t' -> t' | Split (a, z, b) -> N2 (a, z, b)\n\nlet rec depth = function\n  | E -> 0\n  | N2 (l, _, _) -> 1 + depth l\n  | N3 (l, _, _, _, _) -> 1 + depth l\n\nlet () = Printf.printf \"%d\\n\" (depth (List.fold_left (fun t x -> insert x t) E [ 1; 2; 3; 4; 5; 6; 7 ]))\n",
+    "solutionStdout": "3\n",
+    "question": "How does a 2-3 tree grow taller?",
+    "correct": "Only when a split reaches the root and a new root is created, so all leaves stay at the same depth",
+    "wrong": [
+      "By adding a new leaf below the deepest existing leaf",
+      "By recolouring nodes until the tree is balanced"
+    ],
+    "reasoning": "Every other insertion is absorbed below the root, so the depth of all leaves increases together or not at all.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/ds/twothree.html",
+    "project": null
+  }
+]

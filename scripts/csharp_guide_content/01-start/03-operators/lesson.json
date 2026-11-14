@@ -1,0 +1,16 @@
+{"key": "operators", "title": "Operators, precedence and evaluation",
+"body": [
+"Arithmetic operators follow the operand types. `7 / 2` divides two ints and truncates toward zero to 3; `7 / 2.0` promotes to double and gives 3.5. `%` is the remainder and keeps the sign of the left operand, so `-7 % 3` is -1. Promote deliberately rather than hoping the result type is what you meant.",
+"Precedence decides grouping: `*`, `/` and `%` bind tighter than `+` and `-`, which bind tighter than comparisons, which bind tighter than `&&`, then `||`. Use parentheses whenever a reader might hesitate. `&&` and `||` short-circuit: the right side is evaluated only if needed, so `s != null && s.Length > 0` is safe.",
+"Increment and decrement have prefix and postfix forms. `i++` yields the old value then increments; `++i` increments then yields the new value. Compound assignments such as `total += x` read, combine and write back. Avoid using the same variable twice in one expression with side effects; it compiles, but readers struggle.",
+"The conditional operator `condition ? a : b` chooses one of two expressions and evaluates only the chosen one. The null-coalescing operator `a ?? b` yields `a` unless it is null, and `x ??= y` assigns only when `x` is null. These are expressions, so they can appear inside other expressions.",
+"Operands are evaluated left to right, then operators apply by precedence and associativity. When an expression mixes side effects (method calls, `++`), check the evaluation order explicitly; when it mixes types, check which conversion C# applies before the operator runs."],
+"expectedStdout": "3\n3.5\n-1\ni++ gives 5, now 6\n++i gives 7, now 7\nshort-circuit kept us safe\nodd\nguest\n",
+"challenge": "Given int a = 17 and int b = 5, print the quotient, the remainder, and the exact quotient as a double rounded to 2 decimals.",
+"solutionStdout": "3\n2\n3.40\n",
+"question": "What does `7 / 2` evaluate to in C#?",
+"correct": "3, because both operands are int",
+"wrong": ["3.5, because division always produces a double", "4, because integer division rounds to nearest"],
+"reasoning": "Integer division truncates toward zero. Make one operand a double (7 / 2.0) to get 3.5.",
+"sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/",
+"additionalReadings": [{"title": "Arithmetic operators", "url": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/arithmetic-operators", "section": "Integer division"}]}

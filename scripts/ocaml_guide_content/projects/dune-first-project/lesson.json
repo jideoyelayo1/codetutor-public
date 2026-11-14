@@ -1,0 +1,32 @@
+{
+  "key": "dune-first-project",
+  "stage": "10 · Tooling",
+  "n": 1,
+  "title": "Your first Dune project: a library and an executable",
+  "minutes": 25,
+  "body": [
+    "Dune is the standard build system for OCaml. A project is a directory with a `dune-project` file naming the Dune language version, and one or more `dune` files that declare what to build. `dune build` compiles everything, `dune exec bin/main.exe` runs a program, and `dune clean` removes the `_build` directory.",
+    "Split code into a library and an executable. A `(library (name greeter))` stanza turns every module in its directory into part of the library `Greeter`, and an `(executable (name main) (libraries greeter))` stanza links against it. Dune works out the dependency order itself, so you never list source files by hand.",
+    "Everything Dune generates lives in `_build`, which you do not edit or commit. When a build fails, read the first error: Dune prints the file, line and the compiler message, and re-running `dune build` only recompiles what changed."
+  ],
+  "challenge": "Open src/greeter.ml and make `greet name` return \"Hello, <name>!\". Then run `dune exec --root . bin/main.exe` and confirm it prints the greeting for \"world\".",
+  "projectInstructions": "Work inside the project directory. Run `dune build --root .` to compile and `dune exec --root . bin/main.exe` to run. Change only src/greeter.ml.",
+  "question": "What does the `(libraries greeter)` field in an executable's dune file do?",
+  "correct": "It links the executable against the library named greeter defined elsewhere in the project",
+  "wrong": [
+    "It installs a package called greeter from opam",
+    "It copies greeter.ml into the executable's directory"
+  ],
+  "reasoning": "A library stanza defines a named unit of code; listing it in libraries lets another stanza use its modules.",
+  "sourceURL": "https://dune.readthedocs.io/en/stable/quick-start.html",
+  "projectChecks": [
+    { "name": "starter builds", "command": ["dune", "build", "--root", "."], "exit": 0 },
+    { "name": "starter prints placeholder", "command": ["dune", "exec", "--root", ".", "bin/main.exe"], "exit": 0, "stdout": "TODO\n" },
+    { "name": "solution prints greeting", "command": ["dune", "exec", "--root", ".", "bin/main.exe"], "exit": 0, "stdout": "Hello, world!\n", "useSolution": true },
+    { "name": "wrong greeting is visible", "command": ["dune", "exec", "--root", ".", "bin/main.exe"], "exit": 0, "stdout": "Hi, world!\n", "useSolution": true,
+      "mutations": [{ "path": "src/greeter.ml", "find": "Hello", "replace": "Hi" }] }
+  ],
+  "additionalReadings": [
+    { "title": "Dune quick start", "url": "https://dune.readthedocs.io/en/stable/quick-start.html", "section": "Building a hello world program" }
+  ]
+}

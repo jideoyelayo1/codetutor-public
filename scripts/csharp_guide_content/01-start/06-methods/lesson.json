@@ -1,0 +1,35 @@
+{
+ "key": "methods",
+ "title": "Methods, parameters and overloading",
+ "body": [
+  "A method packages a computation behind a name, parameters and a return type: `static int Square(int x) => x * x;` The `=>` form is an expression body; a block body uses braces and `return`. A method returning `void` produces no value. In a file with top-level statements, methods declared at the bottom are local functions of the entry point.",
+  "Arguments are passed by value by default. For a value type such as `int` the method receives a copy, so assigning to the parameter does not affect the caller. `ref` passes the variable itself (the caller must initialize it), `out` requires the method to assign it before returning (the caller need not initialize it), and `in` passes a read-only reference, useful for large structs.",
+  "Optional parameters supply defaults (`int retries = 3`) and must come after required ones. Named arguments (`Connect(host: \"db\", retries: 5)`) document intent and allow skipping optional parameters. `params int[] values` accepts any number of trailing arguments; since C# 13 `params` also works with spans and other collection types.",
+  "Overloading lets several methods share a name if their parameter lists differ. The compiler picks the best match at compile time from the static argument types, preferring exact matches and then the most specific implicit conversion. Ambiguous calls are compile errors. A different return type alone does not create a distinct overload. Overloading applies to methods of a type; local functions cannot be overloaded, so a second local `Describe` is rejected with CS0128. Put overloads in a class, as the example does.",
+  "Static local functions (`static int Helper(...)`) cannot capture surrounding variables, which makes their inputs explicit. Before calling a method, check whether each argument is copied or passed by reference, and whether out results are valid only when a Try-style method returns true."
+ ],
+ "expectedStdout": "25\nafter Bump(copy): 1\nafter Bump(ref): 2\nparsed 42\nnot a number: abc\n10\nHello, Ada!\nHi, Bob?\nint overload\ndouble overload\n",
+ "challenge": "Write a method MinMax that takes params int[] values and returns the smallest and largest through two out parameters. Print them for 4, 9, 1, 7.",
+ "solutionStdout": "min 1, max 9\n",
+ "question": "What must a method do with an `out` parameter before it returns normally?",
+ "correct": "Assign it on every normal return path",
+ "wrong": [
+  "Read its incoming value first",
+  "Nothing; out parameters are optional"
+ ],
+ "reasoning": "The compiler enforces definite assignment of out parameters, which is why callers can use them without initializing first.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/method-parameters",
+ "additionalReadings": [
+  {
+   "title": "Methods",
+   "url": "https://learn.microsoft.com/en-us/dotnet/csharp/methods",
+   "section": "Overloading and named arguments"
+  }
+ ],
+ "rejected": [
+  {
+   "file": "rejected.cs",
+   "diagnostic": "CS0128"
+  }
+ ]
+}

@@ -1,0 +1,5 @@
+(executable
+ (name main)
+ (libraries core async core_unix.command_unix timers)
+ (preprocess
+  (pps ppx_jane)))

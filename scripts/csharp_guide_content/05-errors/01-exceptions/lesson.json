@@ -1,0 +1,35 @@
+{
+ "key": "exceptions",
+ "title": "Throwing and catching exceptions",
+ "body": [
+  "An exception reports that an operation could not do what its name promises. `throw new ArgumentOutOfRangeException(nameof(count))` stops the current method; the runtime unwinds the call stack looking for a matching `catch` block. If none is found, the process terminates with the exception's message and stack trace.",
+  "`try { ... } catch (FormatException e) { ... }` handles one exception type and its subclasses. Catch blocks are checked in order, so put specific types before general ones (the compiler rejects an unreachable catch, CS0160). Catch only what you can handle meaningfully; catching `Exception` everywhere hides bugs.",
+  "`finally` runs whether the try block completes, returns or throws, which makes it the place for cleanup. The `using` statement (stage 10) is a `try/finally` that calls `Dispose`. A `return` inside `try` still runs `finally` before the method returns.",
+  "Every exception carries `Message`, `StackTrace` and optionally `InnerException`. Wrapping a low-level exception (`throw new ConfigException(\"bad config\", e)`) adds context while preserving the cause. Exceptions are expensive compared with normal returns, so do not use them for expected control flow such as parsing user input in a loop.",
+  "Common built-in types and their meaning: `ArgumentException`/`ArgumentNullException`/`ArgumentOutOfRangeException` (caller passed bad input), `InvalidOperationException` (object is in the wrong state), `NotSupportedException`, `KeyNotFoundException`, `IOException`. Check that the type you throw tells the caller what they did wrong."
+ ],
+ "expectedStdout": "[finally] 5\n[finally] cannot divide by zero\nage 42\n'old' is not a number\nrejected -5\nwork > cleanup > caught inner\n",
+ "challenge": "Write ReadSetting(Dictionary<string,string> settings, string key) that throws KeyNotFoundException with a helpful message if the key is missing. Call it for an existing and a missing key, catching and printing the message.",
+ "solutionStdout": "fast\nSetting 'level' is missing.\n",
+ "question": "When does a finally block run?",
+ "correct": "After the try (and any matching catch) whether it returned, threw or completed",
+ "wrong": [
+  "Only when an exception was caught",
+  "Only when no exception occurred"
+ ],
+ "reasoning": "finally exists for cleanup that must happen on every exit path.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/exception-handling-statements",
+ "additionalReadings": [
+  {
+   "title": "Exceptions best practices",
+   "url": "https://learn.microsoft.com/en-us/dotnet/standard/exceptions/best-practices-for-exceptions",
+   "section": "Best practices"
+  }
+ ],
+ "rejected": [
+  {
+   "file": "rejected.cs",
+   "diagnostic": "CS0160"
+  }
+ ]
+}

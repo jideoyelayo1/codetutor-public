@@ -1,0 +1,37 @@
+{
+ "key": "memory-safety-preview",
+ "title": "The memory-safety redesign (preview)",
+ "sdk": "11",
+ "langVersion": "preview",
+ "unsafe": true,
+ "body": [
+  "C# 15 ships with .NET 11, whose release candidates carry a go-live licence; general availability is expected in November 2026. These examples are checked with SDK 11.0.100-rc.2. Details can still change before release, so re-check the What's new page after GA. This lesson goes further: it needs `LangVersion` set to `preview` even on the .NET 11 SDK, so treat it as a look at where the language is heading.",
+  "C# 15 begins a multi-release effort to tie `unsafe` to operations that actually access unmanaged memory, rather than to the mere presence of pointer types. With the preview language version, declaring a pointer, taking an address with `&`, `fixed`, converting `stackalloc` to a pointer and `sizeof` on unmanaged types no longer require an unsafe context.",
+  "Dereferencing still does: `*p`, `p->member`, `p[i]` and function-pointer calls need `unsafe`. The new `unsafe(expression)` form creates an unsafe context for one expression, useful in field initializers, constructor initializers and catch filters where an unsafe block cannot appear.",
+  "Opting into the updated rules (the `updated-memory-safety-rules` feature) also makes `unsafe` on a member mean 'requires unsafe': the obligation passes to callers, who must call it from an unsafe context. A `safe` contextual keyword marks `extern` members and certain fields as safe. The compiler records the choice with `MemorySafetyRulesAttribute`.",
+  "The goal is that reviewers can find every memory-accessing operation by searching for `unsafe`. Until the feature ships in a released language version, keep production code on stage 13's rules and check the C# 15/16 notes for the final design."
+ ],
+ "expectedStdout": "42\n8\n30\n4660\n",
+ "challenge": "Without an unsafe block around the declaration, take the address of a local double and print the value doubled using a single unsafe(...) expression for the dereference.",
+ "solutionStdout": "5\n",
+ "question": "Under the C# 15 preview rules, which operation still requires an unsafe context?",
+ "correct": "Dereferencing a pointer with *p",
+ "wrong": [
+  "Declaring a variable of type int*",
+  "Taking an address with &"
+ ],
+ "reasoning": "The redesign keeps unsafe for operations that access memory; creating pointers and pinning are relaxed.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/unsafe-code#the-updated-memory-safety-model-preview",
+ "additionalReadings": [
+  {
+   "title": "Unsafe evolution proposal",
+   "url": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/proposals/unsafe-evolution",
+   "section": "Specification"
+  },
+  {
+   "title": ".NET 11 RC 1",
+   "url": "https://www.infoq.com/news/2026/09/dotnet-11-rc-1-release/",
+   "section": "Go-live release candidate"
+  }
+ ]
+}

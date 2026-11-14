@@ -1,0 +1,35 @@
+{
+ "key": "nullable",
+ "title": "Nullable value types and nullable reference types",
+ "body": [
+  "Value types cannot normally be null. `int?` (short for `Nullable<int>`) adds a null state: `HasValue` tells you whether a value is present and `Value` reads it, throwing `InvalidOperationException` if absent. `GetValueOrDefault()` and `??` supply fallbacks without throwing. Arithmetic on `int?` lifts: `null + 1` is null.",
+  "Reference types could always be null, which caused NullReferenceException. With nullable reference types enabled (the default in new projects via `<Nullable>enable</Nullable>`), `string` means 'should never be null' and `string?` means 'may be null'. This is a compile-time annotation: the runtime type is the same, and the compiler produces warnings, not runtime checks.",
+  "The compiler tracks null-state through your code. After `if (name is null) return;` it knows `name` is not null. Dereferencing a maybe-null value produces warning CS8602; assigning a maybe-null value to a non-nullable variable produces CS8600. This guide's checks treat warnings as errors, which is a good habit for real projects too.",
+  "The null-forgiving operator `name!` tells the compiler 'trust me, this is not null' and suppresses the warning. It changes nothing at runtime, so a wrong `!` still crashes. Prefer a check, a pattern such as `is { } value`, or `?.` and `??`: `name?.Length ?? 0` yields 0 when `name` is null.",
+  "Public methods should still validate arguments at runtime, because callers may have nullable warnings disabled: `ArgumentNullException.ThrowIfNull(arg)`. When you see `?`, check whether the code handles the null path; when you see `!`, check what proves the value is present."
+ ],
+ "expectedStdout": "False\n-1\nTrue\n42\n0\nnot found\nADA\n(null)\n",
+ "challenge": "Write a method Initials(string? first, string? last) that returns the upper-case initials of whichever names are present (e.g. \"A.L.\"), or \"?\" if neither is. Print it for (\"ada\", \"lovelace\"), (null, \"turing\") and (null, null).",
+ "solutionStdout": "A.L.\nT.\n?\n",
+ "question": "What does the null-forgiving operator `x!` do at runtime?",
+ "correct": "Nothing; it only silences the compiler's nullable warning",
+ "wrong": [
+  "Throws ArgumentNullException if x is null",
+  "Converts null to a default value"
+ ],
+ "reasoning": "Nullable reference types are compile-time analysis. `!` removes a warning but adds no check.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/nullable-references",
+ "additionalReadings": [
+  {
+   "title": "Nullable value types",
+   "url": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/nullable-value-types",
+   "section": "int?"
+  }
+ ],
+ "rejected": [
+  {
+   "file": "rejected.cs",
+   "diagnostic": "CS8602"
+  }
+ ]
+}

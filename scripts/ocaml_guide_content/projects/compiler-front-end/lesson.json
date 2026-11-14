@@ -1,0 +1,132 @@
+{
+  "key": "compiler-front-end",
+  "stage": "21 · Tools, libraries and the compiler",
+  "n": 3,
+  "title": "The compiler front end: parsetree, typedtree and compiler-libs",
+  "minutes": 40,
+  "body": [
+    "The compiler is a pipeline. The *front end* turns text into a typed tree: the lexer and parser produce a `Parsetree`, which is plain syntax with no meaning attached; type checking then produces a `Typedtree` in which every name is resolved and every expression is annotated with its type. The *back end* turns that tree into lower-level forms and finally into machine code, which the next lesson examines.",
+    "You can look at each stage with a flag. `-dparsetree` prints the parsetree (`Pstr_value`, `Ppat_var`, `Pexp_apply` and so on), `-dtypedtree` prints the typedtree (`Tstr_value`, `Texp_apply`), and `-dsource` prints the program again from the parsetree, which is the quickest way to see how the parser grouped an expression or what a PPX produced. A type error is raised between those two stages, so a file with an error shows a parsetree but no typedtree.",
+    "The compiler's own libraries are available as `compiler-libs.common`. Calling `Parse.implementation (Lexing.from_string source)` gives you the parsetree of a string, which is the foundation of PPX rewriters, linters and code-analysis tools. The AST types change between compiler versions, so a tool built on them is tied to one release unless it goes through `ppxlib`, which provides a stable copy."
+  ],
+  "challenge": "First fix example/hello.ml so it compiles (`x * 2.0` mixes int and float arithmetic). Then implement `Count.count_lets` in src/count.ml: parse a string with `Parse.implementation` and return how many top-level items are value bindings (`Pstr_value`).",
+  "projectInstructions": "Compile with `ocamlfind ocamlc -c example/hello.ml` and read the error. Inspect your fixed file with `-dparsetree`, `-dtypedtree` and `-dsource`. Run `dune test --root .` for the library. Edit example/hello.ml and src/count.ml.",
+  "question": "Why does a file with a type error show a parsetree but no typedtree?",
+  "correct": "Parsing succeeds because the syntax is valid; type checking, which builds the typedtree, then fails",
+  "wrong": [
+    "The typedtree is only printed for files with no comments",
+    "-dparsetree prints errors instead of the tree"
+  ],
+  "reasoning": "The stages run in order, so an error in type checking happens after the parsetree exists and before the typedtree can be completed.",
+  "sourceURL": "https://dev.realworldocaml.org/compiler-frontend.html",
+  "projectChecks": [
+    {
+      "name": "starter: the type error is reported",
+      "command": [
+        "ocamlfind",
+        "ocamlc",
+        "-c",
+        "example/hello.ml"
+      ],
+      "exit": 2,
+      "stderrContains": "float"
+    },
+    {
+      "name": "starter compiles",
+      "command": [
+        "dune",
+        "build",
+        "--root",
+        "."
+      ],
+      "exit": 0
+    },
+    {
+      "name": "starter: count_lets is a stub",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "test_count.ml"
+    },
+    {
+      "name": "solution: the parsetree dump shows value bindings",
+      "command": [
+        "ocamlfind",
+        "ocamlc",
+        "-dparsetree",
+        "-c",
+        "example/hello.ml"
+      ],
+      "exit": 0,
+      "stderrContains": "Pstr_value",
+      "useSolution": true
+    },
+    {
+      "name": "solution: the typedtree dump shows value bindings",
+      "command": [
+        "ocamlfind",
+        "ocamlc",
+        "-dtypedtree",
+        "-c",
+        "example/hello.ml"
+      ],
+      "exit": 0,
+      "stderrContains": "Tstr_value",
+      "useSolution": true
+    },
+    {
+      "name": "solution: -dsource reprints the program",
+      "command": [
+        "ocamlfind",
+        "ocamlc",
+        "-dsource",
+        "-c",
+        "example/hello.ml"
+      ],
+      "exit": 0,
+      "stderrContains": "double",
+      "useSolution": true
+    },
+    {
+      "name": "solution: count_lets passes",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 0,
+      "useSolution": true
+    },
+    {
+      "name": "counting the wrong item kind is caught",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "test_count.ml",
+      "useSolution": true,
+      "mutations": [
+        {
+          "path": "src/count.ml",
+          "find": "Pstr_value _",
+          "replace": "Pstr_type _"
+        }
+      ]
+    }
+  ],
+  "additionalReadings": [
+    {
+      "title": "OCaml manual: The compiler front-end",
+      "url": "https://ocaml.org/manual/5.5/parsing.html",
+      "section": "Parsing"
+    }
+  ]
+}

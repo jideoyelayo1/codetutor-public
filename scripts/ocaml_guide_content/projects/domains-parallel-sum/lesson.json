@@ -1,0 +1,87 @@
+{
+  "key": "domains-parallel-sum",
+  "stage": "12 · Concurrency and parallelism",
+  "n": 1,
+  "title": "Domains: true parallelism in OCaml 5",
+  "minutes": 35,
+  "body": [
+    "Before OCaml 5 a single runtime lock meant only one thread could run OCaml code at a time. A *domain* is a unit of real parallelism: `Domain.spawn f` starts `f` on another core, and `Domain.join d` waits for it and returns its result (re-raising its exception). Each domain has its own minor heap, so allocation does not contend.",
+    "Divide work so domains share nothing mutable. Splitting an array into disjoint ranges, letting each domain return a partial sum, and combining the results on the main domain needs no locks at all. Spawning is not free, so create about `Domain.recommended_domain_count ()` domains at most and give each a substantial chunk.",
+    "Check the edges. An empty array, fewer elements than domains and a length that does not divide evenly are where chunking code breaks. Write the range arithmetic carefully with `min n (d * size)` so the last chunk is short rather than out of bounds."
+  ],
+  "challenge": "src/psum.ml returns 0. Implement `sum ~domains a` by splitting `a` into `domains` contiguous chunks (the last may be short or empty), summing each chunk in its own domain, joining them and adding the partial sums. Reject `domains < 1` with `Invalid_argument`.",
+  "projectInstructions": "Run `dune test --root .`. The test checks uneven chunking, an empty array and more domains than elements. Edit only src/psum.ml.",
+  "question": "Why can domains sum disjoint array ranges without a lock?",
+  "correct": "They only read shared immutable data and each returns its own partial result, so nothing is written concurrently",
+  "wrong": [
+    "OCaml locks every array access automatically",
+    "Domains run one at a time"
+  ],
+  "reasoning": "Data races need concurrent access with at least one write to the same location; disjoint reads and private results have none.",
+  "sourceURL": "https://ocaml.org/manual/5.5/parallelism.html",
+  "projectChecks": [
+    {
+      "name": "starter compiles",
+      "command": [
+        "dune",
+        "build",
+        "--root",
+        "."
+      ],
+      "exit": 0
+    },
+    {
+      "name": "starter test fails",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "Assert_failure"
+    },
+    {
+      "name": "solution test passes",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 0,
+      "useSolution": true
+    },
+    {
+      "name": "dropped remainder is caught",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "Assert_failure",
+      "useSolution": true,
+      "mutations": [
+        {
+          "path": "src/psum.ml",
+          "find": "(n + domains - 1) / domains",
+          "replace": "n / domains"
+        }
+      ]
+    }
+  ],
+  "additionalReadings": [
+    {
+      "title": "OCaml manual: Parallel programming",
+      "url": "https://ocaml.org/manual/5.5/parallelism.html",
+      "section": "Domains"
+    },
+    {
+      "title": "OCaml manual: The memory model",
+      "url": "https://ocaml.org/manual/5.5/memorymodel.html",
+      "section": "Data races"
+    }
+  ]
+}

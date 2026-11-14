@@ -1,0 +1,103 @@
+[
+  {
+    "key": "promises-from-scratch",
+    "stage": "19 · Concurrency from first principles",
+    "title": "Promises from scratch: state, callbacks and bind",
+    "body": [
+      "Concurrency means a program can make progress on several tasks whose results arrive at unpredictable times, even on one thread. A *promise* is a placeholder for a result that is not ready yet. It is in one of three states: pending, resolved with a value, or rejected with an exception. Once it leaves pending it never changes again, and that single-assignment rule is what makes promises easy to reason about.",
+      "Code that depends on a result registers a *callback* with the promise. If the promise is already complete the callback runs at once; otherwise it is stored and run, in registration order, when the promise completes. `bind p f` is the central operation: it returns a new promise that completes when `f` has run on the value of `p` and the promise `f` returned has also completed. A rejection skips `f` and rejects the new promise, so errors propagate like exceptions do.",
+      "This is the design of Lwt and Async, and of promises in other languages. Their `let%bind` and `let*` are just `bind` written as syntax. Building one yourself shows there is no magic: a mutable state field, a list of callbacks, and the rule that completing a promise runs every stored callback exactly once."
+    ],
+    "code": "type 'a state = Pending | Resolved of 'a | Rejected of exn\ntype 'a promise = { mutable state : 'a state; mutable callbacks : ('a state -> unit) list }\n\nlet make () = { state = Pending; callbacks = [] }\nlet return v = { state = Resolved v; callbacks = [] }\n\nlet complete p st =\n  match p.state with\n  | Pending ->\n      p.state <- st;\n      let cbs = List.rev p.callbacks in\n      p.callbacks <- [];\n      List.iter (fun cb -> cb st) cbs\n  | _ -> invalid_arg \"promise already completed\"\n\nlet resolve p v = complete p (Resolved v)\nlet reject p e = complete p (Rejected e)\n\nlet on_complete p cb =\n  match p.state with Pending -> p.callbacks <- cb :: p.callbacks | st -> cb st\n\nlet bind p f =\n  let q = make () in\n  on_complete p (function\n    | Resolved v -> (\n        match f v with\n        | p2 -> on_complete p2 (fun st -> complete q st)\n        | exception e -> reject q e)\n    | Rejected e -> reject q e\n    | Pending -> assert false);\n  q\n\nlet map f p = bind p (fun v -> return (f v))\nlet both a b = bind a (fun x -> map (fun y -> (x, y)) b)\n\nlet describe show p =\n  match p.state with\n  | Pending -> \"pending\"\n  | Resolved v -> \"resolved \" ^ show v\n  | Rejected e -> \"rejected \" ^ Printexc.to_string e\n\nlet () =\n  let p = make () in\n  let q = bind p (fun x -> return (x + 1)) in\n  print_endline (describe string_of_int q);\n  resolve p 41;\n  print_endline (describe string_of_int q);\n  let r = make () in\n  let s = bind r (fun x -> return (x * 2)) in\n  reject r (Failure \"boom\");\n  print_endline (describe string_of_int s);\n  let order = Buffer.create 16 in\n  let t = make () in\n  on_complete t (fun _ -> Buffer.add_string order \"first \");\n  on_complete t (fun _ -> Buffer.add_string order \"second\");\n  resolve t ();\n  print_endline (Buffer.contents order);\n  let a = make () and b = make () in\n  let ab = both a b in\n  resolve b \"z\";\n  print_endline (describe (fun (x, y) -> Printf.sprintf \"(%d, %s)\" x y) ab);\n  resolve a 1;\n  print_endline (describe (fun (x, y) -> Printf.sprintf \"(%d, %s)\" x y) ab)\n",
+    "expectedStdout": "pending\nresolved 42\nrejected Failure(\"boom\")\nfirst second\npending\nresolved (1, z)\n",
+    "challenge": "Write `all ps` that takes a list of promises and returns a promise of the list of their values (in order), using `bind` and `return`, then resolve the three promises in reverse order and print the combined result, which still comes back in input order.",
+    "solution": "type 'a state = Pending | Resolved of 'a | Rejected of exn\ntype 'a promise = { mutable state : 'a state; mutable callbacks : ('a state -> unit) list }\n\nlet make () = { state = Pending; callbacks = [] }\nlet return v = { state = Resolved v; callbacks = [] }\n\nlet complete p st =\n  match p.state with\n  | Pending ->\n      p.state <- st;\n      let cbs = List.rev p.callbacks in\n      p.callbacks <- [];\n      List.iter (fun cb -> cb st) cbs\n  | _ -> invalid_arg \"promise already completed\"\n\nlet resolve p v = complete p (Resolved v)\nlet reject p e = complete p (Rejected e)\n\nlet on_complete p cb =\n  match p.state with Pending -> p.callbacks <- cb :: p.callbacks | st -> cb st\n\nlet bind p f =\n  let q = make () in\n  on_complete p (function\n    | Resolved v -> (\n        match f v with\n        | p2 -> on_complete p2 (fun st -> complete q st)\n        | exception e -> reject q e)\n    | Rejected e -> reject q e\n    | Pending -> assert false);\n  q\n\nlet rec all = function\n  | [] -> return []\n  | p :: rest -> bind p (fun x -> bind (all rest) (fun xs -> return (x :: xs)))\n\nlet () =\n  let ps = [ make (); make (); make () ] in\n  let combined = all ps in\n  List.iteri (fun i p -> resolve p (10 * (3 - i))) (List.rev ps);\n  match combined.state with\n  | Resolved l -> print_endline (String.concat \",\" (List.map string_of_int l))\n  | _ -> print_endline \"not done\"\n",
+    "solutionStdout": "10,20,30\n",
+    "question": "What does `bind p f` return when `p` is rejected?",
+    "correct": "A promise rejected with the same exception, without calling f",
+    "wrong": [
+      "A promise resolved with a default value",
+      "A pending promise that never completes"
+    ],
+    "reasoning": "Rejection propagates down the chain, which is how a failure anywhere in a sequence of asynchronous steps reaches the code that handles it.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/conc/promises.html",
+    "additionalReadings": [
+      {
+        "title": "CS 3110: Concurrency",
+        "url": "https://cs3110.github.io/textbook/chapters/conc/concurrency.html",
+        "section": "Concurrency and parallelism"
+      },
+      {
+        "title": "CS 3110: Implementing promises",
+        "url": "https://cs3110.github.io/textbook/chapters/conc/impl_promises.html",
+        "section": "Implementing promises"
+      },
+      {
+        "title": "CS 3110: A full promise implementation",
+        "url": "https://cs3110.github.io/textbook/chapters/conc/full_promises_impl.html",
+        "section": "Full implementation"
+      }
+    ],
+    "project": null
+  },
+  {
+    "key": "callbacks-and-the-event-loop",
+    "stage": "19 · Concurrency from first principles",
+    "title": "Callbacks and a simulated event loop",
+    "body": [
+      "An event loop is the scheduler behind asynchronous programs. It keeps a queue of actions tagged with the time they become ready, repeatedly takes the earliest one, advances the clock to its time and runs it. While a task waits for the clock, the loop runs others, which is how one thread keeps many tasks moving. This version uses a virtual clock so the output is exact.",
+      "A *callback* is the continuation of a waiting task: instead of blocking, `fetch name k` schedules a completion and `k` is called with the result later. Chaining three fetches by nesting callbacks runs them one after another, and the total time is the sum of the delays. Starting all three at once and counting completions runs them concurrently, and the total time is the longest delay.",
+      "Nested callbacks drift to the right and tangle error handling, which is the reason for promises and `let*`. The mechanism underneath does not change: a queue ordered by time, ties broken first-come first-served, and a rule that handlers run to completion without being interrupted, so no handler ever sees another in the middle of its work."
+    ],
+    "code": "let now = ref 0\nlet seq = ref 0\nlet queue : (int * int * (unit -> unit)) list ref = ref []\n\nlet after delay f =\n  incr seq;\n  let entry = (!now + delay, !seq, f) in\n  queue := List.sort (fun (t1, s1, _) (t2, s2, _) -> compare (t1, s1) (t2, s2)) (entry :: !queue)\n\nlet run () =\n  let rec loop () =\n    match !queue with\n    | [] -> ()\n    | (time, _, f) :: rest ->\n        queue := rest;\n        now := time;\n        f ();\n        loop ()\n  in\n  loop ()\n\nlet log msg = Printf.printf \"t=%d %s\\n\" !now msg\nlet fetch name k = after (String.length name) (fun () -> k (\"content of \" ^ name))\n\nlet () =\n  (* one after another: the delays add up *)\n  fetch \"a\" (fun a ->\n      log a;\n      fetch \"bb\" (fun b ->\n          log b;\n          fetch \"ccc\" (fun c -> log c; log \"sequential done\")));\n  run ();\n  (* all at once: the longest delay decides when everything is done *)\n  now := 0;\n  let pending = ref 3 in\n  let finished content =\n    log content;\n    decr pending;\n    if !pending = 0 then log \"all done\"\n  in\n  List.iter (fun name -> fetch name finished) [ \"ccc\"; \"a\"; \"bb\" ];\n  run ();\n  (* two actions ready at the same time run in the order they were scheduled *)\n  now := 0;\n  after 5 (fun () -> log \"x\");\n  after 5 (fun () -> log \"y\");\n  run ()\n",
+    "expectedStdout": "t=1 content of a\nt=3 content of bb\nt=6 content of ccc\nt=6 sequential done\nt=1 content of a\nt=2 content of bb\nt=3 content of ccc\nt=3 all done\nt=5 x\nt=5 y\n",
+    "challenge": "Schedule three tasks named \"slow\" (delay 30), \"fast\" (delay 10) and \"medium\" (delay 20) in that order, run the loop, and print the names in the order they finish.",
+    "solution": "let now = ref 0\nlet seq = ref 0\nlet queue : (int * int * (unit -> unit)) list ref = ref []\n\nlet after delay f =\n  incr seq;\n  let entry = (!now + delay, !seq, f) in\n  queue := List.sort (fun (t1, s1, _) (t2, s2, _) -> compare (t1, s1) (t2, s2)) (entry :: !queue)\n\nlet run () =\n  let rec loop () =\n    match !queue with\n    | [] -> ()\n    | (time, _, f) :: rest ->\n        queue := rest;\n        now := time;\n        f ();\n        loop ()\n  in\n  loop ()\n\nlet () =\n  let finished = ref [] in\n  List.iter (fun (name, d) -> after d (fun () -> finished := name :: !finished)) [ (\"slow\", 30); (\"fast\", 10); (\"medium\", 20) ];\n  run ();\n  print_endline (String.concat \" \" (List.rev !finished))\n",
+    "solutionStdout": "fast medium slow\n",
+    "question": "When two events are scheduled for the same virtual time, which runs first?",
+    "correct": "The one scheduled first, because ties are broken by scheduling order",
+    "wrong": [
+      "The one with the shorter name",
+      "Both run at once in parallel"
+    ],
+    "reasoning": "The queue is ordered by time and then by a sequence number, which makes the loop deterministic.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/conc/callbacks.html",
+    "additionalReadings": [
+      {
+        "title": "CS 3110: Promises and I/O",
+        "url": "https://cs3110.github.io/textbook/chapters/conc/io_promises.html",
+        "section": "I/O promises"
+      },
+      {
+        "title": "CS 3110: Implementing callbacks",
+        "url": "https://cs3110.github.io/textbook/chapters/conc/impl_callbacks.html",
+        "section": "Implementing callbacks"
+      }
+    ],
+    "project": null
+  },
+  {
+    "key": "monads-and-their-laws",
+    "stage": "19 · Concurrency from first principles",
+    "title": "Monads and their three laws",
+    "body": [
+      "A monad is a type constructor `'a t` with two operations: `return : 'a -> 'a t`, which wraps a plain value, and `bind : 'a t -> ('a -> 'b t) -> 'b t`, which feeds the contents of a computation into the next step. `option` (computations that may fail), `list` (computations with many results), `result`, promises, and a *writer* that collects a log are all monads. The common shape is why one piece of syntax, `let*`, works for all of them.",
+      "To count as a monad the operations must obey three laws. *Left identity*: `bind (return a) f = f a`. *Right identity*: `bind m return = m`. *Associativity*: `bind (bind m f) g = bind m (fun x -> bind (f x) g)`. They say that `return` does nothing and that chaining does not depend on how you group the steps, which is exactly what you need to refactor a chain of steps safely.",
+      "Laws can be tested like any property: pick sample values and functions, and compare both sides with structural equality. A function that merely has the right type is not enough. The deliberately broken list monad below keeps only the first result and so violates right identity, which is why `let*` code built on it would silently lose answers."
+    ],
+    "code": "module type MONAD = sig\n  type 'a t\n\n  val return : 'a -> 'a t\n  val bind : 'a t -> ('a -> 'b t) -> 'b t\nend\n\nmodule Option_m : MONAD with type 'a t = 'a option = struct\n  type 'a t = 'a option\n\n  let return x = Some x\n  let bind m f = match m with None -> None | Some x -> f x\nend\n\nmodule List_m : MONAD with type 'a t = 'a list = struct\n  type 'a t = 'a list\n\n  let return x = [ x ]\n  let bind m f = List.concat_map f m\nend\n\nmodule Writer : MONAD with type 'a t = 'a * string list = struct\n  type 'a t = 'a * string list\n\n  let return x = (x, [])\n\n  let bind (x, log) f =\n    let y, log' = f x in\n    (y, log @ log')\nend\n\n(* Not a monad: it keeps only the first result. *)\nmodule Broken_list : MONAD with type 'a t = 'a list = struct\n  type 'a t = 'a list\n\n  let return x = [ x ]\n  let bind m f = match List.concat_map f m with [] -> [] | x :: _ -> [ x ]\nend\n\nmodule Laws (M : MONAD) = struct\n  let left_identity a f = M.bind (M.return a) f = f a\n  let right_identity m = M.bind m M.return = m\n  let associativity m f g = M.bind (M.bind m f) g = M.bind m (fun x -> M.bind (f x) g)\nend\n\nlet check_option () =\n  let module L = Laws (Option_m) in\n  let f x = if x > 0 then Some (x - 1) else None and g x = Some (x * 2) in\n  let ms = [ None; Some 0; Some 5 ] in\n  ( List.for_all (fun a -> L.left_identity a f) [ 0; 3 ],\n    List.for_all L.right_identity ms,\n    List.for_all (fun m -> L.associativity m f g) ms )\n\nlet check_list () =\n  let module L = Laws (List_m) in\n  let f x = [ x; x + 1 ] and g x = [ x * 10 ] in\n  let ms = [ []; [ 1 ]; [ 1; 2; 3 ] ] in\n  ( List.for_all (fun a -> L.left_identity a f) [ 0; 3 ],\n    List.for_all L.right_identity ms,\n    List.for_all (fun m -> L.associativity m f g) ms )\n\nlet check_writer () =\n  let module L = Laws (Writer) in\n  let f x = (x + 1, [ \"inc\" ]) and g x = (x * 2, [ \"double\" ]) in\n  let ms = [ (1, []); (5, [ \"start\" ]) ] in\n  ( List.for_all (fun a -> L.left_identity a f) [ 0; 3 ],\n    List.for_all L.right_identity ms,\n    List.for_all (fun m -> L.associativity m f g) ms )\n\nlet show (a, b, c) = Printf.sprintf \"%b %b %b\" a b c\n\nlet () =\n  Printf.printf \"option laws: %s\\n\" (show (check_option ()));\n  Printf.printf \"list laws: %s\\n\" (show (check_list ()));\n  Printf.printf \"writer laws: %s\\n\" (show (check_writer ()));\n  let module B = Laws (Broken_list) in\n  Printf.printf \"broken list monad, right identity: %b\\n\" (List.for_all B.right_identity [ []; [ 1 ]; [ 1; 2; 3 ] ]);\n  let ( let* ) = Option_m.bind in\n  let safe_div a b = if b = 0 then None else Some (a / b) in\n  let result = let* x = safe_div 100 5 in let* y = safe_div x 2 in Some (x + y) in\n  Printf.printf \"let* over option: %s\\n\" (match result with Some n -> string_of_int n | None -> \"none\")\n",
+    "expectedStdout": "option laws: true true true\nlist laws: true true true\nwriter laws: true true true\nbroken list monad, right identity: false\nlet* over option: 30\n",
+    "challenge": "Write a `Result_m` monad over `('a, string) result`, make a tiny `parse` and `halve` pair of steps, and use `let*` to chain them, printing the result for \"12\" and for \"x\".",
+    "solution": "module Result_m = struct\n  let return x = Ok x\n  let bind m f = match m with Error e -> Error e | Ok x -> f x\nend\n\nlet ( let* ) = Result_m.bind\nlet parse s = match int_of_string_opt s with Some n -> Ok n | None -> Error (\"not a number: \" ^ s)\nlet halve n = if n mod 2 = 0 then Ok (n / 2) else Error \"odd\"\n\nlet run s =\n  let* n = parse s in\n  let* h = halve n in\n  Result_m.return (h + 1)\n\nlet show = function Ok n -> string_of_int n | Error e -> e\n\nlet () =\n  print_endline (show (run \"12\"));\n  print_endline (show (run \"x\"))\n",
+    "solutionStdout": "7\nnot a number: x\n",
+    "question": "What do the monad laws guarantee?",
+    "correct": "That return does nothing and that chaining steps does not depend on how they are grouped",
+    "wrong": [
+      "That every computation terminates",
+      "That bind runs its argument twice"
+    ],
+    "reasoning": "Left and right identity say return is neutral, and associativity says a chain can be regrouped without changing its meaning.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/conc/monads.html",
+    "project": null
+  }
+]

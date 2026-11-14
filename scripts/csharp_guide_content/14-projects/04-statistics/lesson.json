@@ -1,0 +1,122 @@
+{
+ "key": "statistics-capstone",
+ "title": "Capstone: a generic statistics library and CLI",
+ "minutes": 45,
+ "body": [
+  "The capstone combines generic math (stage 7), spans (stage 10), LINQ (stage 9), input validation (stages 1 and 5) and testing. `Stats` provides `Mean`, `Variance`, `Median` and `Histogram` for any numeric type: the input type `T` is constrained to `INumber<T>` and the result type `TResult` to `IFloatingPoint<TResult>`, so integer inputs can produce fractional means.",
+  "Algorithms take `ReadOnlySpan<T>` so callers can pass arrays, slices or collection expressions without copying. `Median` copies once into an array to sort, leaving the caller's data untouched, which the API contract promises. `Histogram` uses .NET 9's `CountBy` and returns pairs sorted by value.",
+  "The CLI reads one number per line from standard input using invariant culture (so `3.5` parses the same everywhere), reports the first bad line with its line number on standard error and exits with code 1. Formatting uses `FormattableString.Invariant` for the same reason.",
+  "Tests use `[Theory]` with `[InlineData]` to cover odd and even counts in one method, and check the population variance against a known textbook data set (mean 5, variance 4). The validator injects an off-by-one bug into `Median` to show the theory catches it.",
+  "Run `dotnet test`, then `dotnet run --project src/Statistics.Cli < data.txt` (the validator pipes `data.txt` to standard input).",
+  "Practice: add `Percentiles.Percentile<T, TResult>(values, p)` using linear interpolation between closest ranks (p from 0 to 100), with validation, tests that the 50th percentile equals the median, and a `p90` line in the CLI output."
+ ],
+ "projectInstructions": "Run dotnet test, then dotnet run --project src/Statistics.Cli < data.txt. Practice: add a generic Percentile with linear interpolation, tests, and a p90 line in the CLI.",
+ "projectChecks": [
+  {
+   "name": "start: dotnet test",
+   "args": [
+    "test"
+   ],
+   "stdoutContains": [
+    "succeeded: 9",
+    "failed: 0"
+   ]
+  },
+  {
+   "name": "start: CLI summary",
+   "args": [
+    "run",
+    "--project",
+    "src/Statistics.Cli"
+   ],
+   "stdin": "2\n4\n4\n4\n5\n5\n7\n9\n",
+   "stdout": "count 8\nmean 5.00\nmedian 4.50\nstddev 2.00\n"
+  },
+  {
+   "name": "start: CLI rejects bad line",
+   "args": [
+    "run",
+    "--project",
+    "src/Statistics.Cli"
+   ],
+   "stdin": "1\nx\n",
+   "exit": 1,
+   "stderr": "line 2: not a number: x\n"
+  },
+  {
+   "name": "start: injected median bug is caught",
+   "args": [
+    "test"
+   ],
+   "exit": 2,
+   "stdoutContains": [
+    "MedianHandlesOddAndEvenCounts"
+   ],
+   "mutations": [
+    {
+     "path": "src/Statistics/Stats.cs",
+     "find": "TResult.CreateChecked(sorted[middle - 1]) + TResult.CreateChecked(sorted[middle])",
+     "replace": "TResult.CreateChecked(sorted[middle]) + TResult.CreateChecked(sorted[middle])"
+    }
+   ]
+  },
+  {
+   "name": "start: injected sum-in-T overflow is caught",
+   "args": [
+    "test"
+   ],
+   "exit": 2,
+   "stdoutContains": [
+    "MeanDoesNotOverflowNarrowInputs"
+   ],
+   "mutations": [
+    {
+     "path": "src/Statistics/Stats.cs",
+     "find": "        TResult sum = TResult.Zero;\n        foreach (var v in values) sum += TResult.CreateChecked(v);\n        return sum / TResult.CreateChecked(values.Length);",
+     "replace": "        T sum = T.Zero;\n        foreach (var v in values) sum += v;\n        return TResult.CreateChecked(sum) / TResult.CreateChecked(values.Length);"
+    }
+   ]
+  },
+  {
+   "name": "answer: dotnet test",
+   "args": [
+    "test"
+   ],
+   "useSolution": true,
+   "stdoutContains": [
+    "succeeded: 15",
+    "failed: 0"
+   ]
+  },
+  {
+   "name": "answer: CLI with p90",
+   "args": [
+    "run",
+    "--project",
+    "src/Statistics.Cli"
+   ],
+   "useSolution": true,
+   "stdin": "2\n4\n4\n4\n5\n5\n7\n9\n",
+   "stdout": "count 8\nmean 5.00\nmedian 4.50\nstddev 2.00\np90 7.60\n"
+  }
+ ],
+ "expectedStdout": "",
+ "solutionStdout": "",
+ "challenge": "Add a generic Percentile with linear interpolation, tests that p50 equals the median, and a p90 line in the CLI.",
+ "question": "Why does Stats use two type parameters, T : INumber<T> and TResult : IFloatingPoint<TResult>?",
+ "correct": "So integer inputs can produce fractional results such as a mean of 2.5",
+ "wrong": [
+  "Because INumber<T> cannot be used with spans",
+  "To make the methods run in parallel"
+ ],
+ "reasoning": "Averaging ints in int arithmetic would truncate; converting into a floating-point TResult keeps precision while still accepting any numeric input.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/standard/generics/math",
+ "additionalReadings": [
+  {
+   "title": "xUnit theories",
+   "url": "https://xunit.net/docs/getting-started/v3/getting-started",
+   "section": "Theory and InlineData"
+  }
+ ],
+ "recallAnswer": "Constrain inputs to INumber<T> and results to IFloatingPoint<TResult> so integer data yields fractional statistics; accept ReadOnlySpan<T> without copying the caller's data; parse with invariant culture; and cover odd/even and empty cases with theory tests."
+}

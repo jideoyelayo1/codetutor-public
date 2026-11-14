@@ -1,0 +1,3 @@
+(library
+ (name tidy)
+ (public_name tidy))

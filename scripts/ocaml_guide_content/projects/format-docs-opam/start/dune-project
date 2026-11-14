@@ -1,0 +1,11 @@
+(lang dune 3.11)
+
+(generate_opam_files true)
+
+(package
+ (name tidy)
+ (synopsis "A tidy example")
+ (depends
+  (ocaml
+   (>= 5.1))
+  dune))

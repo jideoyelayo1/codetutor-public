@@ -1,0 +1,84 @@
+{
+  "key": "threads-library",
+  "stage": "21 · Tools, libraries and the compiler",
+  "n": 7,
+  "title": "The threads library: a blocking queue with Mutex and Condition",
+  "minutes": 45,
+  "body": [
+    "The `threads.posix` library gives OCaml system threads. `Thread.create f x` starts a thread, `Thread.join` waits for it, and `Thread.delay` sleeps. In OCaml 5 threads run inside a domain and share one runtime lock, so they interleave rather than run in parallel; they are the tool for overlapping *waiting* (input, timers, locks), while domains are the tool for parallel computation.",
+    "Shared state needs a `Mutex`. `Mutex.protect m f` locks, runs `f`, and always unlocks. To *wait* for a condition, such as 'the queue is not empty', use a `Condition`: `Condition.wait c m` atomically releases the mutex and sleeps, and re-acquires the mutex when another thread calls `Condition.signal c`. Always wait in a `while` loop that rechecks the condition, because a thread can wake when the condition is no longer true.",
+    "A bounded blocking queue uses two conditions, `not_empty` for consumers and `not_full` for producers. `pop` waits while the queue is empty, takes an item and signals `not_full`; `push` waits while the queue is at capacity, adds an item and signals `not_empty`. The tests start a consumer on an empty queue and a producer on a full one and check that each really blocks, which is the property a plain `Queue` does not have."
+  ],
+  "challenge": "In src/bq.ml, `pop` raises on an empty queue and `push` ignores the capacity. Make both block: guard the queue with a mutex, add `not_empty` and `not_full` conditions, wait in `while` loops, and signal after every change.",
+  "projectInstructions": "Run `dune test --root .`. Edit only src/bq.ml. A hang usually means a missing `Condition.signal`; a lost item means a missing `Mutex`.",
+  "question": "Why wait on a Condition inside a `while` loop and not an `if`?",
+  "correct": "A thread can wake up when the condition is no longer true, so it must recheck before proceeding",
+  "wrong": [
+    "A while loop makes the wait shorter",
+    "Condition.wait returns immediately unless it is in a loop"
+  ],
+  "reasoning": "Another thread may have consumed the item between the signal and the wakeup, so the predicate has to be tested again after every wake.",
+  "sourceURL": "https://ocaml.org/manual/5.5/libthreads.html",
+  "projectChecks": [
+    {
+      "name": "starter compiles",
+      "command": [
+        "dune",
+        "build",
+        "--root",
+        "."
+      ],
+      "exit": 0
+    },
+    {
+      "name": "starter tests fail",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "test_bq.ml"
+    },
+    {
+      "name": "solution tests pass",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 0,
+      "useSolution": true,
+      "retries": 3
+    },
+    {
+      "name": "an unbounded push is caught",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "test_bq.ml",
+      "useSolution": true,
+      "retries": 3,
+      "mutations": [
+        {
+          "path": "src/bq.ml",
+          "find": ">= q.capacity",
+          "replace": "> q.capacity"
+        }
+      ]
+    }
+  ],
+  "additionalReadings": [
+    {
+      "title": "OCaml manual: Parallel programming",
+      "url": "https://ocaml.org/manual/5.5/parallelism.html",
+      "section": "Mutex and Condition"
+    }
+  ]
+}

@@ -1,0 +1,114 @@
+{
+  "key": "toplevel-depend-and-doc-tools",
+  "stage": "21 · Tools, libraries and the compiler",
+  "n": 10,
+  "title": "The toplevel as a script runner, ocamldep and ocamldoc",
+  "minutes": 30,
+  "body": [
+    "The `ocaml` command is not only an interactive prompt. Given a file, it reads the file as a script and runs it, evaluating each top-level phrase in order, so `ocaml script.ml` is a quick way to try an idea without a build. Inside a script, directives start with `#`: `#use \"file.ml\"` loads another source file as if it had been typed in (the path is resolved relative to the script's own directory), and `#load` and `#require` bring in compiled units and libraries. A type error in a script stops it with a non-zero exit code, exactly as a compiler would.",
+    "`ocamldep` reads source files and prints the modules each one refers to. `ocamldep -modules a.ml` lists the dependencies of one file, and `ocamldep -sort a.ml b.ml` orders files so that every file comes after the ones it depends on, which is the order in which they must be compiled and linked. Build systems such as Dune run this for you, but the tool is useful when you debug a dependency cycle or write a Makefile by hand.",
+    "`ocamldoc` generates HTML documentation from the special comments `(** ... *)`. It is the older tool: new projects normally use `odoc` through `dune build @doc`, as in the packaging lesson, because `odoc` understands modern language features and cross-package links. Knowing both is useful when you meet an older code base that still builds its documentation with `ocamldoc`."
+  ],
+  "challenge": "example/script.ml has a type error: it formats a string with `%d`. Fix it so `ocaml example/script.ml` loads example/b.ml with `#use` and prints `script ran: 5`.",
+  "projectInstructions": "Run `ocaml example/script.ml` and read the error. Note that `ocamldoc -d doc` needs the `doc` directory to exist (`mkdir -p doc`). Then try `ocamlfind ocamldep -modules example/a.ml`, `ocamlfind ocamldep -sort example/a.ml example/b.ml` and `ocamlfind ocamldoc -html -d doc example/b.ml`. Edit only example/script.ml.",
+  "question": "What does `ocamldep -sort a.ml b.ml` print?",
+  "correct": "The files reordered so each one comes after the files it depends on",
+  "wrong": [
+    "The files sorted alphabetically",
+    "The compiled bytecode of both files"
+  ],
+  "reasoning": "It computes the dependency order that the compiler and linker need, which is not the order you listed them in.",
+  "sourceURL": "https://ocaml.org/manual/5.5/toplevel.html",
+  "projectChecks": [
+    {
+      "name": "starter: the script has a type error",
+      "command": [
+        "ocaml",
+        "example/script.ml"
+      ],
+      "exit": 2,
+      "stderrContains": "Error"
+    },
+    {
+      "name": "solution: the script runs",
+      "command": [
+        "ocaml",
+        "example/script.ml"
+      ],
+      "exit": 0,
+      "stdout": "script ran: 5\n",
+      "useSolution": true
+    },
+    {
+      "name": "ocamldep lists a file's dependencies",
+      "command": [
+        "ocamlfind",
+        "ocamldep",
+        "-modules",
+        "example/a.ml"
+      ],
+      "exit": 0,
+      "stdout": "example/a.ml: B\n",
+      "independentOfSolution": true
+    },
+    {
+      "name": "ocamldep orders files by dependency",
+      "command": [
+        "ocamlfind",
+        "ocamldep",
+        "-sort",
+        "example/a.ml",
+        "example/b.ml"
+      ],
+      "exit": 0,
+      "stdoutContains": [
+        "example/b.ml example/a.ml"
+      ],
+      "independentOfSolution": true
+    },
+    {
+      "name": "create the output directory",
+      "command": [
+        "mkdir",
+        "-p",
+        "doc"
+      ],
+      "exit": 0,
+      "independentOfSolution": true
+    },
+    {
+      "name": "ocamldoc generates HTML",
+      "command": [
+        "ocamlfind",
+        "ocamldoc",
+        "-html",
+        "-d",
+        "doc",
+        "example/b.ml"
+      ],
+      "exit": 0,
+      "independentOfSolution": true
+    },
+    {
+      "name": "the documentation index exists",
+      "command": [
+        "ls",
+        "doc/index.html"
+      ],
+      "exit": 0,
+      "independentOfSolution": true
+    }
+  ],
+  "additionalReadings": [
+    {
+      "title": "OCaml manual: Dependency generator (ocamldep)",
+      "url": "https://ocaml.org/manual/5.5/depend.html",
+      "section": "ocamldep"
+    },
+    {
+      "title": "OCaml manual: The documentation generator (ocamldoc)",
+      "url": "https://ocaml.org/manual/5.5/ocamldoc.html",
+      "section": "ocamldoc"
+    }
+  ]
+}

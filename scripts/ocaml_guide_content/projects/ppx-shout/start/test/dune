@@ -1,0 +1,5 @@
+(library
+ (name shout_tests)
+ (inline_tests)
+ (preprocess
+  (pps ppx_shout ppx_expect)))

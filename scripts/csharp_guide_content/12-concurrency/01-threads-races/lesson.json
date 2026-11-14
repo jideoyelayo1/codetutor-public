@@ -1,0 +1,34 @@
+{
+ "key": "threads-and-races",
+ "title": "Threads, the thread pool and data races",
+ "body": [
+  "A thread is an independent path of execution. `new Thread(Work).Start()` creates a dedicated OS thread, which is expensive; most code instead queues work to the shared thread pool via `Task.Run`, `ThreadPool.QueueUserWorkItem`, async continuations or `Parallel`. The pool grows and shrinks its threads to balance throughput.",
+  "When threads share mutable data without coordination you get a data race. `count++` is a read, an add and a write; two threads can read the same old value and both write old+1, losing an update. The result varies from run to run, which makes races hard to reproduce and test.",
+  "`Interlocked` provides atomic operations on single variables: `Increment`, `Add`, `Exchange` and `CompareExchange` (compare-and-swap). They are the cheapest correct fix for counters and flags. For anything involving more than one variable, use a lock (next lesson) or an immutable snapshot swapped in with `Interlocked.Exchange`.",
+  "Compilers and CPUs may reorder memory operations as long as single-threaded behaviour is preserved, so one thread may observe another's writes in a surprising order. Locks and `Interlocked` operations include the necessary memory barriers; `Volatile.Read`/`Volatile.Write` give ordering for single fields. Avoid writing lock-free code beyond simple counters unless you have studied the .NET memory model.",
+  "The safest shared state is no shared state: give each thread its own data and combine results at the end, or communicate through channels. Before sharing a variable between threads, check every read and write path for atomicity and visibility."
+ ],
+ "expectedStdout": "interlocked: 400000\nracy count is at most the true total: True\nper-thread totals combined: 400000\nonly one initializer: True False\nreader saw a whole snapshot: True\nv2\n",
+ "challenge": "Start 8 tasks that each add the numbers 1..1000 to a shared long total using Interlocked.Add, wait for all of them and print the total.",
+ "solutionStdout": "4004000\n",
+ "question": "Why can `count++` from several threads lose updates?",
+ "correct": "It is a separate read, add and write that other threads can interleave with",
+ "wrong": [
+  "Because ints are 64-bit on modern CPUs",
+  "Because the GC moves count between threads"
+ ],
+ "reasoning": "Use Interlocked.Increment or a lock so the read-modify-write is atomic.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/standard/threading/managed-threading-best-practices",
+ "additionalReadings": [
+  {
+   "title": "Interlocked",
+   "url": "https://learn.microsoft.com/en-us/dotnet/api/system.threading.interlocked",
+   "section": "Atomic operations"
+  },
+  {
+   "title": "The managed thread pool",
+   "url": "https://learn.microsoft.com/en-us/dotnet/standard/threading/the-managed-thread-pool",
+   "section": "Thread pool"
+  }
+ ]
+}

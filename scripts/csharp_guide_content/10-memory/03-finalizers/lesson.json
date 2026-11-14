@@ -1,0 +1,34 @@
+{
+ "key": "finalizers-and-safehandle",
+ "title": "Finalizers, SafeHandle and the dispose pattern",
+ "body": [
+  "A finalizer (`~Resource() { ... }`) runs on a GC thread some time after an object becomes unreachable, if ever before process exit. It is a last-chance safety net for unmanaged resources when callers forget to dispose, not a substitute for `Dispose`. Finalizable objects survive at least one extra collection and slow the GC, so most classes should not have one.",
+  "Instead of writing finalizers, wrap native handles in a `SafeHandle` subclass (such as `SafeFileHandle`). SafeHandle has a reliable finalizer, protects against handle recycling races and makes your class's `Dispose` simply call `handle.Dispose()`. Classes that only hold managed disposables never need a finalizer.",
+  "The full dispose pattern for unsealed classes uses `protected virtual void Dispose(bool disposing)`. `Dispose()` calls `Dispose(true)` and then `GC.SuppressFinalize(this)`; a finalizer, if present, calls `Dispose(false)`. When `disposing` is false you must not touch other managed objects, because they may already have been finalized. Derived classes override `Dispose(bool)` and call `base.Dispose(disposing)`.",
+  "`GC.SuppressFinalize(this)` tells the runtime the finalizer no longer needs to run, removing the extra cost once cleanup has happened deterministically. Seal classes when you can; a sealed class can use a simple `Dispose()` without the virtual pattern.",
+  "Check whether a type truly owns an unmanaged resource. If not, do not add a finalizer; if so, prefer SafeHandle, and make sure finalizer code touches only that resource."
+ ],
+ "expectedStdout": "finalized without Dispose: 1\n42\nfinalized after Dispose: 1\nderived cleanup of managed state\n",
+ "challenge": "Write a sealed class Pinned holding a GCHandle that pins a byte[] in its constructor and frees it in Dispose, with a finalizer fallback (the GC never frees a pinned handle, so a forgotten Dispose would leak the array) and GC.SuppressFinalize in Dispose. Print IsAllocated before and after a using block.",
+ "solutionStdout": "True\nFalse\narray collected after forgotten Dispose: True\n",
+ "question": "Why should a finalizer not use other managed objects referenced by fields?",
+ "correct": "They may already have been finalized or collected in the same cycle",
+ "wrong": [
+  "Finalizers run before constructors",
+  "Managed objects are always null during finalization"
+ ],
+ "reasoning": "Finalization order is undefined; only touch the unmanaged resource the object owns. Prefer SafeHandle.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/implementing-dispose",
+ "additionalReadings": [
+  {
+   "title": "Finalizers",
+   "url": "https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/classes-and-structs/finalizers",
+   "section": "Finalizers"
+  },
+  {
+   "title": "SafeHandle",
+   "url": "https://learn.microsoft.com/en-us/dotnet/api/system.runtime.interopservices.safehandle",
+   "section": "Remarks"
+  }
+ ]
+}

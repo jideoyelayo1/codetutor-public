@@ -1,0 +1,3 @@
+(library
+ (name textutil)
+ (libraries str))

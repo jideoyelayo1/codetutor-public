@@ -1,0 +1,34 @@
+{
+ "key": "strings",
+ "title": "Strings, interpolation and formatting",
+ "body": [
+  "A `string` is an immutable sequence of UTF-16 code units. Methods such as `ToUpper`, `Replace` and `Trim` return new strings and never modify the original. Because of immutability, building a long string by repeated `+=` in a loop copies repeatedly; `System.Text.StringBuilder` appends into a growable buffer instead.",
+  "Interpolated strings start with `$` and embed expressions in braces: `$\"{name} is {age}\"`. A format specifier follows a colon (`{price:F2}` for two decimals, `{n:N0}` for digit grouping, `{x:X}` for hex) and an alignment follows a comma (`{word,-8}` pads to 8 characters, left-aligned). Formatting uses the current culture unless you pass `CultureInfo.InvariantCulture`; the guide's checks run with invariant culture.",
+  "Escape sequences such as `\\n` and `\\t` work in regular literals. A verbatim literal `@\"C:\\temp\"` treats backslashes literally. Raw string literals use three or more double quotes and can span lines without escaping quotes; the indentation of the closing quotes is removed from every line. Combine `$` with a raw literal for templated text such as JSON.",
+  "`Length` counts UTF-16 code units, not user-perceived characters: an emoji outside the Basic Multilingual Plane uses two. Index with `s[0]` for a char, and use ranges such as `s[1..4]` (start inclusive, end exclusive) or `s[^3..]` for the last three characters.",
+  "Compare strings deliberately. `==` compares content ordinally for strings. For user-facing or case-insensitive comparisons pass a `StringComparison`, for example `string.Equals(a, b, StringComparison.OrdinalIgnoreCase)`. Check culture, case and length semantics whenever text crosses a boundary such as a file, a URL or a user."
+ ],
+ "expectedStdout": "Ada is 36 years old\nprice: 19.50\n|left    |   right|\nbananas\nana\nC:\\temp\\new\n{\"name\": \"Ada\"}\ntrue\n",
+ "challenge": "Use a StringBuilder to build the string 0,1,2,3,4 with commas between numbers and no trailing comma, then print it and its Length.",
+ "solutionStdout": "0,1,2,3,4\n9\n",
+ "question": "What does `s.ToUpper()` do to the string stored in `s`?",
+ "correct": "Nothing; it returns a new upper-case string",
+ "wrong": [
+  "Converts s in place",
+  "Throws unless s is mutable"
+ ],
+ "reasoning": "Strings are immutable. Assign the result (s = s.ToUpper()) if you want the variable to refer to the new value.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/tokens/interpolated",
+ "additionalReadings": [
+  {
+   "title": "Raw string literals",
+   "url": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/tokens/raw-string",
+   "section": "Raw literals"
+  },
+  {
+   "title": "Strings",
+   "url": "https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/strings/",
+   "section": "Immutability"
+  }
+ ]
+}

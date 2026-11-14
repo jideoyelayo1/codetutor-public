@@ -1,0 +1,35 @@
+{
+  "key": "core-command-cli",
+  "stage": "11 · Jane Street stack",
+  "n": 3,
+  "title": "Command-line tools with Core.Command",
+  "minutes": 40,
+  "body": [
+    "`Command` builds command-line programs from typed parameters. A flag such as `flag \"-n\" (optional_with_default 3 int) ~doc:\"N ...\"` knows its type, its default and its help text, and `anon (\"TEXT\" %: string)` declares a positional argument. You get argument parsing, error messages and `-help` output without writing any of that yourself.",
+    "The parameters are combined applicatively with `let%map_open.Command n = ... and text = ... in fun () -> ...`. The result is a `unit -> unit` action that runs only after every argument has parsed successfully, which keeps parsing and behaviour separate. `Command_unix.run` (from `core_unix.command_unix`) turns the command into a program.",
+    "Keep the real work in a library and make the executable a thin shell. The library function `Wordfreq.top ~n text` is then testable without spawning a process, and the executable only wires parsed arguments to it."
+  ],
+  "challenge": "Implement `Wordfreq.top ~n text` in src/wordfreq.ml: split on whitespace, lower-case, count words, sort by count descending then word ascending, and keep the first n. The CLI in bin/main.ml is already wired up.",
+  "projectInstructions": "Build with `dune build --root .`, then run `dune exec --root . bin/main.exe -- -n 2 \"a b a c a b\"`. Try `-help` too. Edit only src/wordfreq.ml.",
+  "question": "Why keep the counting logic in a library instead of in the executable?",
+  "correct": "A library function can be tested directly, while the executable only wires parsed arguments to it",
+  "wrong": [
+    "Executables cannot contain functions",
+    "Libraries run faster than executables"
+  ],
+  "reasoning": "Separating parsing from behaviour makes the behaviour reusable and testable without a process boundary.",
+  "sourceURL": "https://dev.realworldocaml.org/command-line-parsing.html",
+  "projectChecks": [
+    { "name": "starter builds", "command": ["dune", "build", "--root", "."], "exit": 0 },
+    { "name": "starter prints nothing", "command": ["dune", "exec", "--root", ".", "bin/main.exe", "--", "-n", "2", "a b a c a b"], "exit": 0, "stdout": "" },
+    { "name": "solution counts words", "command": ["dune", "exec", "--root", ".", "bin/main.exe", "--", "-n", "2", "a b a c a b"], "exit": 0, "stdout": "a 3\nb 2\n", "useSolution": true },
+    { "name": "help text is generated", "command": ["dune", "exec", "--root", ".", "bin/main.exe", "--", "-help"], "exit": 0, "stdoutContains": ["Print the most frequent words", "-n"], "useSolution": true },
+    { "name": "bad flag value is rejected", "command": ["dune", "exec", "--root", ".", "bin/main.exe", "--", "-n", "x", "text"], "exit": 1, "stderrContains": "-n", "useSolution": true },
+    { "name": "ties sort alphabetically", "command": ["dune", "exec", "--root", ".", "bin/main.exe", "--", "-n", "2", "y x"], "exit": 0, "stdout": "x 1\ny 1\n", "useSolution": true },
+    { "name": "reversed tie-break is visible", "command": ["dune", "exec", "--root", ".", "bin/main.exe", "--", "-n", "2", "y x"], "exit": 0, "stdout": "y 1\nx 1\n", "useSolution": true,
+      "mutations": [{ "path": "src/wordfreq.ml", "find": "String.compare w1 w2", "replace": "String.compare w2 w1" }] }
+  ],
+  "additionalReadings": [
+    { "title": "Real World OCaml: Command-Line Parsing", "url": "https://dev.realworldocaml.org/command-line-parsing.html", "section": "Basic command-line parsing" }
+  ]
+}

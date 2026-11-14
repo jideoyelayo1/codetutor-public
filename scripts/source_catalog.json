@@ -1,0 +1,3311 @@
+[
+  {
+    "id": "rust-book",
+    "title": "The Rust Programming Language",
+    "kind": "Official book",
+    "trackIDs": [
+      "rust"
+    ],
+    "sourceURL": "https://doc.rust-lang.org/book/ch01-00-getting-started.html",
+    "edition": "Outline checked 13 October 2026",
+    "scope": "Every numbered teaching chapter has a reading assignment and original reinforcement. Cargo projects and async dependencies need a project environment.",
+    "chapters": [
+      {
+        "id": "rust-book.section-001",
+        "title": "1. Getting Started",
+        "sections": [
+          "1.1. Installation",
+          "1.2. Hello, World!",
+          "1.3. Hello, Cargo!"
+        ],
+        "lessonIDs": [
+          "source.rs-cargo"
+        ],
+        "reading": {
+          "title": "The Rust Programming Language",
+          "url": "https://doc.rust-lang.org/book/ch01-00-getting-started.html",
+          "section": "1. Getting Started"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-book.section-002",
+        "title": "2. Programming a Guessing Game",
+        "sections": [],
+        "lessonIDs": [
+          "source.rs-bindings",
+          "source.rs-control"
+        ],
+        "reading": {
+          "title": "The Rust Programming Language",
+          "url": "https://doc.rust-lang.org/book/ch02-00-guessing-game-tutorial.html",
+          "section": "2. Programming a Guessing Game"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-book.section-003",
+        "title": "3. Common Programming Concepts",
+        "sections": [
+          "3.1. Variables and Mutability",
+          "3.2. Data Types",
+          "3.3. Functions",
+          "3.4. Comments",
+          "3.5. Control Flow"
+        ],
+        "lessonIDs": [
+          "source.rs-bindings",
+          "source.rs-primitives",
+          "source.rs-control"
+        ],
+        "reading": {
+          "title": "The Rust Programming Language",
+          "url": "https://doc.rust-lang.org/book/ch03-00-common-programming-concepts.html",
+          "section": "3. Common Programming Concepts"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-book.section-004",
+        "title": "4. Understanding Ownership",
+        "sections": [
+          "4.1. What is Ownership?",
+          "4.2. References and Borrowing",
+          "4.3. The Slice Type"
+        ],
+        "lessonIDs": [
+          "rust.ownership",
+          "rust.borrowing",
+          "source.rs-collections"
+        ],
+        "reading": {
+          "title": "The Rust Programming Language",
+          "url": "https://doc.rust-lang.org/book/ch04-00-understanding-ownership.html",
+          "section": "4. Understanding Ownership"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-book.section-005",
+        "title": "5. Using Structs to Structure Related Data",
+        "sections": [
+          "5.1. Defining and Instantiating Structs",
+          "5.2. An Example Program Using Structs",
+          "5.3. Methods"
+        ],
+        "lessonIDs": [
+          "source.rs-structs"
+        ],
+        "reading": {
+          "title": "The Rust Programming Language",
+          "url": "https://doc.rust-lang.org/book/ch05-00-structs.html",
+          "section": "5. Using Structs to Structure Related Data"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-book.section-006",
+        "title": "6. Enums and Pattern Matching",
+        "sections": [
+          "6.1. Defining an Enum",
+          "6.2. The match Control Flow Construct",
+          "6.3. Concise Control Flow with if let and let...else"
+        ],
+        "lessonIDs": [
+          "source.rs-structs",
+          "source.rs-patterns",
+          "rust.results"
+        ],
+        "reading": {
+          "title": "The Rust Programming Language",
+          "url": "https://doc.rust-lang.org/book/ch06-00-enums.html",
+          "section": "6. Enums and Pattern Matching"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-book.section-007",
+        "title": "7. Packages, Crates, and Modules",
+        "sections": [
+          "7.1. Packages and Crates",
+          "7.2. Control Scope and Privacy with Modules",
+          "7.3. Paths for Referring to an Item in the Module Tree",
+          "7.4. Bringing Paths Into Scope with the use Keyword",
+          "7.5. Separating Modules into Different Files"
+        ],
+        "lessonIDs": [
+          "source.rs-modules",
+          "source.rs-cargo"
+        ],
+        "reading": {
+          "title": "The Rust Programming Language",
+          "url": "https://doc.rust-lang.org/book/ch07-00-managing-growing-projects-with-packages-crates-and-modules.html",
+          "section": "7. Packages, Crates, and Modules"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-book.section-008",
+        "title": "8. Common Collections",
+        "sections": [
+          "8.1. Storing Lists of Values with Vectors",
+          "8.2. Storing UTF-8 Encoded Text with Strings",
+          "8.3. Storing Keys with Associated Values in Hash Maps"
+        ],
+        "lessonIDs": [
+          "source.rs-collections"
+        ],
+        "reading": {
+          "title": "The Rust Programming Language",
+          "url": "https://doc.rust-lang.org/book/ch08-00-common-collections.html",
+          "section": "8. Common Collections"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-book.section-009",
+        "title": "9. Error Handling",
+        "sections": [
+          "9.1. Unrecoverable Errors with panic!",
+          "9.2. Recoverable Errors with Result",
+          "9.3. To panic! or Not to panic!"
+        ],
+        "lessonIDs": [
+          "source.rs-errors",
+          "rust.results"
+        ],
+        "reading": {
+          "title": "The Rust Programming Language",
+          "url": "https://doc.rust-lang.org/book/ch09-00-error-handling.html",
+          "section": "9. Error Handling"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-book.section-010",
+        "title": "10. Generic Types, Traits, and Lifetimes",
+        "sections": [
+          "10.1. Generic Data Types",
+          "10.2. Defining Shared Behavior with Traits",
+          "10.3. Validating References with Lifetimes"
+        ],
+        "lessonIDs": [
+          "rust.generics",
+          "rust.traits",
+          "rust.lifetimes"
+        ],
+        "reading": {
+          "title": "The Rust Programming Language",
+          "url": "https://doc.rust-lang.org/book/ch10-00-generics.html",
+          "section": "10. Generic Types, Traits, and Lifetimes"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-book.section-011",
+        "title": "11. Writing Automated Tests",
+        "sections": [
+          "11.1. How to Write Tests",
+          "11.2. Controlling How Tests Are Run",
+          "11.3. Test Organization"
+        ],
+        "lessonIDs": [
+          "source.rs-testing",
+          "rust.assertions"
+        ],
+        "reading": {
+          "title": "The Rust Programming Language",
+          "url": "https://doc.rust-lang.org/book/ch11-00-testing.html",
+          "section": "11. Writing Automated Tests"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-book.section-012",
+        "title": "12. An I/O Project: Building a Command Line Program",
+        "sections": [
+          "12.1. Accepting Command Line Arguments",
+          "12.2. Reading a File",
+          "12.3. Refactoring to Improve Modularity and Error Handling",
+          "12.4. Adding Functionality with Test Driven Development",
+          "12.5. Working with Environment Variables",
+          "12.6. Redirecting Errors to Standard Error"
+        ],
+        "lessonIDs": [
+          "source.rs-cli"
+        ],
+        "reading": {
+          "title": "The Rust Programming Language",
+          "url": "https://doc.rust-lang.org/book/ch12-00-an-io-project.html",
+          "section": "12. An I/O Project: Building a Command Line Program"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-book.section-013",
+        "title": "13. Functional Language Features: Iterators and Closures",
+        "sections": [
+          "13.1. Closures",
+          "13.2. Processing a Series of Items with Iterators",
+          "13.3. Improving Our I/O Project",
+          "13.4. Performance in Loops vs. Iterators"
+        ],
+        "lessonIDs": [
+          "source.rs-closures",
+          "rust.iterators"
+        ],
+        "reading": {
+          "title": "The Rust Programming Language",
+          "url": "https://doc.rust-lang.org/book/ch13-00-functional-features.html",
+          "section": "13. Functional Language Features: Iterators and Closures"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-book.section-014",
+        "title": "14. More about Cargo and Crates.io",
+        "sections": [
+          "14.1. Customizing Builds with Release Profiles",
+          "14.2. Publishing a Crate to Crates.io",
+          "14.3. Cargo Workspaces",
+          "14.4. Installing Binaries with cargo install",
+          "14.5. Extending Cargo with Custom Commands"
+        ],
+        "lessonIDs": [
+          "source.rs-cargo"
+        ],
+        "reading": {
+          "title": "The Rust Programming Language",
+          "url": "https://doc.rust-lang.org/book/ch14-00-more-about-cargo.html",
+          "section": "14. More about Cargo and Crates.io"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-book.section-015",
+        "title": "15. Smart Pointers",
+        "sections": [
+          "15.1. Using Box<T> to Point to Data on the Heap",
+          "15.2. Treating Smart Pointers Like Regular References",
+          "15.3. Running Code on Cleanup with the Drop Trait",
+          "15.4. Rc<T>, the Reference Counted Smart Pointer",
+          "15.5. RefCell<T> and the Interior Mutability Pattern",
+          "15.6. Reference Cycles Can Leak Memory"
+        ],
+        "lessonIDs": [
+          "source.rs-smart"
+        ],
+        "reading": {
+          "title": "The Rust Programming Language",
+          "url": "https://doc.rust-lang.org/book/ch15-00-smart-pointers.html",
+          "section": "15. Smart Pointers"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-book.section-016",
+        "title": "16. Fearless Concurrency",
+        "sections": [
+          "16.1. Using Threads to Run Code Simultaneously",
+          "16.2. Transfer Data Between Threads with Message Passing",
+          "16.3. Shared-State Concurrency",
+          "16.4. Extensible Concurrency with Send and Sync"
+        ],
+        "lessonIDs": [
+          "rust.threads",
+          "source.rs-channels"
+        ],
+        "reading": {
+          "title": "The Rust Programming Language",
+          "url": "https://doc.rust-lang.org/book/ch16-00-concurrency.html",
+          "section": "16. Fearless Concurrency"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-book.section-017",
+        "title": "17. Fundamentals of Asynchronous Programming: Async, Await, Futures, and Streams",
+        "sections": [
+          "17.1. Futures and the Async Syntax",
+          "17.2. Applying Concurrency with Async",
+          "17.3. Working With Any Number of Futures",
+          "17.4. Streams: Futures in Sequence",
+          "17.5. A Closer Look at the Traits for Async",
+          "17.6. Futures, Tasks, and Threads"
+        ],
+        "lessonIDs": [
+          "source.rs-async"
+        ],
+        "reading": {
+          "title": "The Rust Programming Language",
+          "url": "https://doc.rust-lang.org/book/ch17-00-async-await.html",
+          "section": "17. Fundamentals of Asynchronous Programming: Async, Await, Futures, and Streams"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-book.section-018",
+        "title": "18. Object Oriented Programming Features",
+        "sections": [
+          "18.1. Characteristics of Object-Oriented Languages",
+          "18.2. Using Trait Objects to Abstract over Shared Behavior",
+          "18.3. Implementing an Object-Oriented Design Pattern"
+        ],
+        "lessonIDs": [
+          "source.rs-trait-objects",
+          "source.rs-structs"
+        ],
+        "reading": {
+          "title": "The Rust Programming Language",
+          "url": "https://doc.rust-lang.org/book/ch18-00-oop.html",
+          "section": "18. Object Oriented Programming Features"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-book.section-019",
+        "title": "19. Patterns and Matching",
+        "sections": [
+          "19.1. All the Places Patterns Can Be Used",
+          "19.2. Refutability: Whether a Pattern Might Fail to Match",
+          "19.3. Pattern Syntax"
+        ],
+        "lessonIDs": [
+          "source.rs-patterns"
+        ],
+        "reading": {
+          "title": "The Rust Programming Language",
+          "url": "https://doc.rust-lang.org/book/ch19-00-patterns.html",
+          "section": "19. Patterns and Matching"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-book.section-020",
+        "title": "20. Advanced Features",
+        "sections": [
+          "20.1. Unsafe Rust",
+          "20.2. Advanced Traits",
+          "20.3. Advanced Types",
+          "20.4. Advanced Functions and Closures",
+          "20.5. Macros"
+        ],
+        "lessonIDs": [
+          "source.rs-unsafe",
+          "source.rs-associated",
+          "source.rs-macros"
+        ],
+        "reading": {
+          "title": "The Rust Programming Language",
+          "url": "https://doc.rust-lang.org/book/ch20-00-advanced-features.html",
+          "section": "20. Advanced Features"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-book.section-021",
+        "title": "21. Final Project: Building a Multithreaded Web Server",
+        "sections": [
+          "21.1. Building a Single-Threaded Web Server",
+          "21.2. From Single-Threaded to Multithreaded Server",
+          "21.3. Graceful Shutdown and Cleanup"
+        ],
+        "lessonIDs": [
+          "source.rs-cli",
+          "source.cpp-work-pools",
+          "source.net-tcp"
+        ],
+        "reading": {
+          "title": "The Rust Programming Language",
+          "url": "https://doc.rust-lang.org/book/ch21-00-final-project-a-web-server.html",
+          "section": "21. Final Project: Building a Multithreaded Web Server"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      }
+    ]
+  },
+  {
+    "id": "rust-example",
+    "title": "Rust by Example",
+    "kind": "Official examples",
+    "trackIDs": [
+      "rust"
+    ],
+    "sourceURL": "https://doc.rust-lang.org/rust-by-example/hello.html",
+    "edition": "Outline checked 13 October 2026",
+    "scope": "All 24 numbered topic groups are assigned. Use the source for its nested examples; related app practice is original.",
+    "chapters": [
+      {
+        "id": "rust-example.section-001",
+        "title": "1. Hello World",
+        "sections": [
+          "1.1. Comments",
+          "1.2. Formatted print",
+          "1.2.1. Debug",
+          "1.2.2. Display",
+          "1.2.2.1. Testcase: List",
+          "1.2.3. Formatting"
+        ],
+        "lessonIDs": [
+          "source.rs-cargo"
+        ],
+        "reading": {
+          "title": "Rust by Example",
+          "url": "https://doc.rust-lang.org/rust-by-example/hello.html",
+          "section": "1. Hello World"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-example.section-002",
+        "title": "2. Primitives",
+        "sections": [
+          "2.1. Literals and operators",
+          "2.2. Tuples",
+          "2.3. Arrays and Slices"
+        ],
+        "lessonIDs": [
+          "source.rs-primitives"
+        ],
+        "reading": {
+          "title": "Rust by Example",
+          "url": "https://doc.rust-lang.org/rust-by-example/primitives.html",
+          "section": "2. Primitives"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-example.section-003",
+        "title": "3. Custom Types",
+        "sections": [
+          "3.1. Structures",
+          "3.2. Enums",
+          "3.2.1. use",
+          "3.2.2. C-like",
+          "3.2.3. Testcase: linked-list",
+          "3.3. constants"
+        ],
+        "lessonIDs": [
+          "source.rs-structs"
+        ],
+        "reading": {
+          "title": "Rust by Example",
+          "url": "https://doc.rust-lang.org/rust-by-example/custom_types.html",
+          "section": "3. Custom Types"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-example.section-004",
+        "title": "4. Variable Bindings",
+        "sections": [
+          "4.1. Mutability",
+          "4.2. Scope and Shadowing",
+          "4.3. Declare first",
+          "4.4. Freezing"
+        ],
+        "lessonIDs": [
+          "source.rs-bindings"
+        ],
+        "reading": {
+          "title": "Rust by Example",
+          "url": "https://doc.rust-lang.org/rust-by-example/variable_bindings.html",
+          "section": "4. Variable Bindings"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-example.section-005",
+        "title": "5. Types",
+        "sections": [
+          "5.1. Casting",
+          "5.2. Literals",
+          "5.3. Inference",
+          "5.4. Aliasing"
+        ],
+        "lessonIDs": [
+          "source.rs-primitives"
+        ],
+        "reading": {
+          "title": "Rust by Example",
+          "url": "https://doc.rust-lang.org/rust-by-example/types.html",
+          "section": "5. Types"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-example.section-006",
+        "title": "6. Conversion",
+        "sections": [
+          "6.1. From and Into",
+          "6.2. TryFrom and TryInto",
+          "6.3. To and from Strings"
+        ],
+        "lessonIDs": [
+          "source.rs-primitives"
+        ],
+        "reading": {
+          "title": "Rust by Example",
+          "url": "https://doc.rust-lang.org/rust-by-example/conversion.html",
+          "section": "6. Conversion"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-example.section-007",
+        "title": "7. Expressions",
+        "sections": [],
+        "lessonIDs": [
+          "source.rs-control"
+        ],
+        "reading": {
+          "title": "Rust by Example",
+          "url": "https://doc.rust-lang.org/rust-by-example/expression.html",
+          "section": "7. Expressions"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-example.section-008",
+        "title": "8. Flow of Control",
+        "sections": [
+          "8.1. if/else",
+          "8.2. loop",
+          "8.2.1. Nesting and labels",
+          "8.2.2. Returning from loops",
+          "8.3. while",
+          "8.4. for and range",
+          "8.5. match",
+          "8.5.1. Destructuring",
+          "8.5.1.1. tuples",
+          "8.5.1.2. arrays/slices",
+          "8.5.1.3. enums",
+          "8.5.1.4. pointers/ref",
+          "8.5.1.5. structs",
+          "8.5.2. Guards",
+          "8.5.3. Binding",
+          "8.6. if let",
+          "8.7. let-else",
+          "8.8. while let"
+        ],
+        "lessonIDs": [
+          "source.rs-control"
+        ],
+        "reading": {
+          "title": "Rust by Example",
+          "url": "https://doc.rust-lang.org/rust-by-example/flow_control.html",
+          "section": "8. Flow of Control"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-example.section-009",
+        "title": "9. Functions",
+        "sections": [
+          "9.1. Methods",
+          "9.2. Closures",
+          "9.2.1. Capturing",
+          "9.2.2. As input parameters",
+          "9.2.3. Type anonymity",
+          "9.2.4. Input functions",
+          "9.2.5. As output parameters",
+          "9.2.6. Examples in std",
+          "9.2.6.1. Iterator::any",
+          "9.2.6.2. Searching through iterators",
+          "9.3. Higher Order Functions",
+          "9.4. Diverging functions"
+        ],
+        "lessonIDs": [
+          "source.rs-closures"
+        ],
+        "reading": {
+          "title": "Rust by Example",
+          "url": "https://doc.rust-lang.org/rust-by-example/fn.html",
+          "section": "9. Functions"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-example.section-010",
+        "title": "10. Modules",
+        "sections": [
+          "10.1. Visibility",
+          "10.2. Struct visibility",
+          "10.3. The use declaration",
+          "10.4. super and self",
+          "10.5. File hierarchy"
+        ],
+        "lessonIDs": [
+          "source.rs-modules"
+        ],
+        "reading": {
+          "title": "Rust by Example",
+          "url": "https://doc.rust-lang.org/rust-by-example/mod.html",
+          "section": "10. Modules"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-example.section-011",
+        "title": "11. Crates",
+        "sections": [
+          "11.1. Creating a Library",
+          "11.2. Using a Library"
+        ],
+        "lessonIDs": [
+          "source.rs-cargo"
+        ],
+        "reading": {
+          "title": "Rust by Example",
+          "url": "https://doc.rust-lang.org/rust-by-example/crates.html",
+          "section": "11. Crates"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-example.section-012",
+        "title": "12. Cargo",
+        "sections": [
+          "12.1. Dependencies",
+          "12.2. Conventions",
+          "12.3. Tests",
+          "12.4. Build Scripts"
+        ],
+        "lessonIDs": [
+          "source.rs-cargo"
+        ],
+        "reading": {
+          "title": "Rust by Example",
+          "url": "https://doc.rust-lang.org/rust-by-example/cargo.html",
+          "section": "12. Cargo"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-example.section-013",
+        "title": "13. Attributes",
+        "sections": [
+          "13.1. dead_code",
+          "13.2. Crates",
+          "13.3. cfg",
+          "13.3.1. Custom"
+        ],
+        "lessonIDs": [
+          "source.rs-macros"
+        ],
+        "reading": {
+          "title": "Rust by Example",
+          "url": "https://doc.rust-lang.org/rust-by-example/attribute.html",
+          "section": "13. Attributes"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-example.section-014",
+        "title": "14. Generics",
+        "sections": [
+          "14.1. Functions",
+          "14.2. Implementation",
+          "14.3. Traits",
+          "14.4. Bounds",
+          "14.4.1. Testcase: empty bounds",
+          "14.5. Multiple bounds",
+          "14.6. Where clauses",
+          "14.7. New Type Idiom",
+          "14.8. Associated items",
+          "14.8.1. The Problem",
+          "14.8.2. Associated types",
+          "14.9. Phantom type parameters",
+          "14.9.1. Testcase: unit clarification"
+        ],
+        "lessonIDs": [
+          "rust.generics"
+        ],
+        "reading": {
+          "title": "Rust by Example",
+          "url": "https://doc.rust-lang.org/rust-by-example/generics.html",
+          "section": "14. Generics"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-example.section-015",
+        "title": "15. Scoping rules",
+        "sections": [
+          "15.1. RAII",
+          "15.2. Ownership and moves",
+          "15.2.1. Mutability",
+          "15.2.2. Partial moves",
+          "15.3. Borrowing",
+          "15.3.1. Mutability",
+          "15.3.2. Aliasing",
+          "15.3.3. The ref pattern",
+          "15.4. Lifetimes",
+          "15.4.1. Explicit annotation",
+          "15.4.2. Functions",
+          "15.4.3. Methods",
+          "15.4.4. Structs",
+          "15.4.5. Traits",
+          "15.4.6. Bounds",
+          "15.4.7. Coercion",
+          "15.4.8. Static",
+          "15.4.9. Elision"
+        ],
+        "lessonIDs": [
+          "rust.ownership",
+          "rust.borrowing",
+          "rust.lifetimes"
+        ],
+        "reading": {
+          "title": "Rust by Example",
+          "url": "https://doc.rust-lang.org/rust-by-example/scope.html",
+          "section": "15. Scoping rules"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-example.section-016",
+        "title": "16. Traits",
+        "sections": [
+          "16.1. Derive",
+          "16.2. Returning Traits with dyn",
+          "16.3. Operator Overloading",
+          "16.4. Drop",
+          "16.5. Iterators",
+          "16.6. impl Trait",
+          "16.7. Clone",
+          "16.8. Supertraits",
+          "16.9. Disambiguating overlapping traits"
+        ],
+        "lessonIDs": [
+          "rust.traits",
+          "source.rs-associated"
+        ],
+        "reading": {
+          "title": "Rust by Example",
+          "url": "https://doc.rust-lang.org/rust-by-example/trait.html",
+          "section": "16. Traits"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-example.section-017",
+        "title": "17. macro_rules!",
+        "sections": [
+          "17.1. Syntax",
+          "17.1.1. Designators",
+          "17.1.2. Overload",
+          "17.1.3. Repeat",
+          "17.2. DRY (Don't Repeat Yourself)",
+          "17.3. DSL (Domain Specific Languages)",
+          "17.4. Variadics"
+        ],
+        "lessonIDs": [
+          "source.rs-macros"
+        ],
+        "reading": {
+          "title": "Rust by Example",
+          "url": "https://doc.rust-lang.org/rust-by-example/macros.html",
+          "section": "17. macro_rules!"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-example.section-018",
+        "title": "18. Error handling",
+        "sections": [
+          "18.1. panic",
+          "18.2. abort & unwind",
+          "18.3. Option & unwrap",
+          "18.3.1. Unpacking options with ?",
+          "18.3.2. Combinators: map",
+          "18.3.3. Combinators: and_then",
+          "18.3.4. Defaults: or, or_else, get_or_insert, get_or_insert_with",
+          "18.4. Result",
+          "18.4.1. map for Result",
+          "18.4.2. aliases for Result",
+          "18.4.3. Early returns",
+          "18.4.4. Introducing ?",
+          "18.5. Multiple error types",
+          "18.5.1. Pulling Results out of Options",
+          "18.5.2. Defining an error type",
+          "18.5.3. Boxing errors",
+          "18.5.4. Other uses of ?",
+          "18.5.5. Wrapping errors",
+          "18.6. Iterating over Results"
+        ],
+        "lessonIDs": [
+          "source.rs-errors"
+        ],
+        "reading": {
+          "title": "Rust by Example",
+          "url": "https://doc.rust-lang.org/rust-by-example/error.html",
+          "section": "18. Error handling"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-example.section-019",
+        "title": "19. Std library types",
+        "sections": [
+          "19.1. Box, stack and heap",
+          "19.2. Vectors",
+          "19.3. Strings",
+          "19.4. Option",
+          "19.5. Result",
+          "19.5.1. ?",
+          "19.6. panic!",
+          "19.7. HashMap",
+          "19.7.1. Alternate/custom key types",
+          "19.7.2. HashSet",
+          "19.8. Rc",
+          "19.9. Arc"
+        ],
+        "lessonIDs": [
+          "source.rs-smart",
+          "source.rs-collections"
+        ],
+        "reading": {
+          "title": "Rust by Example",
+          "url": "https://doc.rust-lang.org/rust-by-example/std.html",
+          "section": "19. Std library types"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-example.section-020",
+        "title": "20. Std misc",
+        "sections": [
+          "20.1. Threads",
+          "20.1.1. Testcase: map-reduce",
+          "20.2. Channels",
+          "20.3. Path",
+          "20.4. File I/O",
+          "20.4.1. open",
+          "20.4.2. create",
+          "20.4.3. read_lines",
+          "20.5. Child processes",
+          "20.5.1. Pipes",
+          "20.5.2. Wait",
+          "20.6. Filesystem Operations",
+          "20.7. Program arguments",
+          "20.7.1. Argument parsing",
+          "20.8. Foreign Function Interface"
+        ],
+        "lessonIDs": [
+          "source.rs-channels",
+          "source.rs-cli"
+        ],
+        "reading": {
+          "title": "Rust by Example",
+          "url": "https://doc.rust-lang.org/rust-by-example/std_misc.html",
+          "section": "20. Std misc"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-example.section-021",
+        "title": "21. Testing",
+        "sections": [
+          "21.1. Unit testing",
+          "21.2. Documentation testing",
+          "21.3. Integration testing",
+          "21.4. Dev-dependencies"
+        ],
+        "lessonIDs": [
+          "source.rs-testing"
+        ],
+        "reading": {
+          "title": "Rust by Example",
+          "url": "https://doc.rust-lang.org/rust-by-example/testing.html",
+          "section": "21. Testing"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-example.section-022",
+        "title": "22. Unsafe Operations",
+        "sections": [
+          "22.1. Inline assembly"
+        ],
+        "lessonIDs": [
+          "source.rs-unsafe"
+        ],
+        "reading": {
+          "title": "Rust by Example",
+          "url": "https://doc.rust-lang.org/rust-by-example/unsafe.html",
+          "section": "22. Unsafe Operations"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-example.section-023",
+        "title": "23. Compatibility",
+        "sections": [
+          "23.1. Raw identifiers"
+        ],
+        "lessonIDs": [
+          "source.rs-compatibility"
+        ],
+        "reading": {
+          "title": "Rust by Example",
+          "url": "https://doc.rust-lang.org/rust-by-example/compatibility.html",
+          "section": "23. Compatibility"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-example.section-024",
+        "title": "24. Meta",
+        "sections": [
+          "24.1. Documentation",
+          "24.2. Playground"
+        ],
+        "lessonIDs": [
+          "source.rs-testing",
+          "source.rs-compatibility"
+        ],
+        "reading": {
+          "title": "Rust by Example",
+          "url": "https://doc.rust-lang.org/rust-by-example/meta.html",
+          "section": "24. Meta"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      }
+    ]
+  },
+  {
+    "id": "rust-video",
+    "title": "Rust complete course · Arfan Zubi / freeCodeCamp",
+    "kind": "Video course",
+    "trackIDs": [
+      "rust"
+    ],
+    "sourceURL": "https://www.youtube.com/watch?v=BpPEoZW5IiY&t=0s",
+    "edition": "Outline checked 13 October 2026",
+    "scope": "All 34 publisher chapter markers are assigned. Catalog and description inspected; not a full transcript. The move-closure correction is included in the closure lesson.",
+    "chapters": [
+      {
+        "id": "rust-video.section-001",
+        "title": "Introduction & Learning Resources",
+        "sections": [],
+        "lessonIDs": [
+          "source.rs-cargo"
+        ],
+        "reading": {
+          "title": "Rust complete course · Arfan Zubi / freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=BpPEoZW5IiY&t=0s",
+          "section": "Introduction & Learning Resources"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-video.section-002",
+        "title": "Variables",
+        "sections": [],
+        "lessonIDs": [
+          "source.rs-bindings"
+        ],
+        "reading": {
+          "title": "Rust complete course · Arfan Zubi / freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=BpPEoZW5IiY&t=379s",
+          "section": "Variables"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-video.section-003",
+        "title": "Numbers & Binary System",
+        "sections": [],
+        "lessonIDs": [
+          "source.rs-primitives"
+        ],
+        "reading": {
+          "title": "Rust complete course · Arfan Zubi / freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=BpPEoZW5IiY&t=1627s",
+          "section": "Numbers & Binary System"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-video.section-004",
+        "title": "Chars, Bools & Unit Types",
+        "sections": [],
+        "lessonIDs": [
+          "source.rs-primitives"
+        ],
+        "reading": {
+          "title": "Rust complete course · Arfan Zubi / freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=BpPEoZW5IiY&t=4191s",
+          "section": "Chars, Bools & Unit Types"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-video.section-005",
+        "title": "Statements & Expressions",
+        "sections": [],
+        "lessonIDs": [
+          "source.rs-control"
+        ],
+        "reading": {
+          "title": "Rust complete course · Arfan Zubi / freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=BpPEoZW5IiY&t=4675s",
+          "section": "Statements & Expressions"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-video.section-006",
+        "title": "Functions",
+        "sections": [],
+        "lessonIDs": [
+          "source.rs-control"
+        ],
+        "reading": {
+          "title": "Rust complete course · Arfan Zubi / freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=BpPEoZW5IiY&t=5090s",
+          "section": "Functions"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-video.section-007",
+        "title": "Ownership",
+        "sections": [],
+        "lessonIDs": [
+          "rust.ownership"
+        ],
+        "reading": {
+          "title": "Rust complete course · Arfan Zubi / freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=BpPEoZW5IiY&t=5573s",
+          "section": "Ownership"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-video.section-008",
+        "title": "Borrowing",
+        "sections": [],
+        "lessonIDs": [
+          "rust.borrowing"
+        ],
+        "reading": {
+          "title": "Rust complete course · Arfan Zubi / freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=BpPEoZW5IiY&t=8646s",
+          "section": "Borrowing"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-video.section-009",
+        "title": "String vs. &str",
+        "sections": [],
+        "lessonIDs": [
+          "source.rs-collections"
+        ],
+        "reading": {
+          "title": "Rust complete course · Arfan Zubi / freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=BpPEoZW5IiY&t=10065s",
+          "section": "String vs. &str"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-video.section-010",
+        "title": "Slices",
+        "sections": [],
+        "lessonIDs": [
+          "source.rs-collections"
+        ],
+        "reading": {
+          "title": "Rust complete course · Arfan Zubi / freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=BpPEoZW5IiY&t=11879s",
+          "section": "Slices"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-video.section-011",
+        "title": "Tuples",
+        "sections": [],
+        "lessonIDs": [
+          "source.rs-structs"
+        ],
+        "reading": {
+          "title": "Rust complete course · Arfan Zubi / freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=BpPEoZW5IiY&t=12695s",
+          "section": "Tuples"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-video.section-012",
+        "title": "Structs",
+        "sections": [],
+        "lessonIDs": [
+          "source.rs-structs"
+        ],
+        "reading": {
+          "title": "Rust complete course · Arfan Zubi / freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=BpPEoZW5IiY&t=13204s",
+          "section": "Structs"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-video.section-013",
+        "title": "Enums",
+        "sections": [],
+        "lessonIDs": [
+          "source.rs-structs"
+        ],
+        "reading": {
+          "title": "Rust complete course · Arfan Zubi / freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=BpPEoZW5IiY&t=14572s",
+          "section": "Enums"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-video.section-014",
+        "title": "The \"Option\" Enum",
+        "sections": [],
+        "lessonIDs": [
+          "rust.results"
+        ],
+        "reading": {
+          "title": "Rust complete course · Arfan Zubi / freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=BpPEoZW5IiY&t=15226s",
+          "section": "The \"Option\" Enum"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-video.section-015",
+        "title": "Flow Control",
+        "sections": [],
+        "lessonIDs": [
+          "source.rs-control"
+        ],
+        "reading": {
+          "title": "Rust complete course · Arfan Zubi / freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=BpPEoZW5IiY&t=15692s",
+          "section": "Flow Control"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-video.section-016",
+        "title": "Pattern Match",
+        "sections": [],
+        "lessonIDs": [
+          "source.rs-patterns"
+        ],
+        "reading": {
+          "title": "Rust complete course · Arfan Zubi / freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=BpPEoZW5IiY&t=17083s",
+          "section": "Pattern Match"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-video.section-017",
+        "title": "Methods & Associated Functions",
+        "sections": [],
+        "lessonIDs": [
+          "source.rs-structs"
+        ],
+        "reading": {
+          "title": "Rust complete course · Arfan Zubi / freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=BpPEoZW5IiY&t=19002s",
+          "section": "Methods & Associated Functions"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-video.section-018",
+        "title": "Generics",
+        "sections": [],
+        "lessonIDs": [
+          "rust.generics"
+        ],
+        "reading": {
+          "title": "Rust complete course · Arfan Zubi / freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=BpPEoZW5IiY&t=19910s",
+          "section": "Generics"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-video.section-019",
+        "title": "Traits",
+        "sections": [],
+        "lessonIDs": [
+          "rust.traits"
+        ],
+        "reading": {
+          "title": "Rust complete course · Arfan Zubi / freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=BpPEoZW5IiY&t=21992s",
+          "section": "Traits"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-video.section-020",
+        "title": "Trait Objects",
+        "sections": [],
+        "lessonIDs": [
+          "source.rs-trait-objects"
+        ],
+        "reading": {
+          "title": "Rust complete course · Arfan Zubi / freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=BpPEoZW5IiY&t=24435s",
+          "section": "Trait Objects"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-video.section-021",
+        "title": "Associated Types",
+        "sections": [],
+        "lessonIDs": [
+          "source.rs-associated"
+        ],
+        "reading": {
+          "title": "Rust complete course · Arfan Zubi / freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=BpPEoZW5IiY&t=25791s",
+          "section": "Associated Types"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-video.section-022",
+        "title": "String",
+        "sections": [],
+        "lessonIDs": [
+          "source.rs-collections"
+        ],
+        "reading": {
+          "title": "Rust complete course · Arfan Zubi / freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=BpPEoZW5IiY&t=27571s",
+          "section": "String"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-video.section-023",
+        "title": "Vectors",
+        "sections": [],
+        "lessonIDs": [
+          "source.rs-collections"
+        ],
+        "reading": {
+          "title": "Rust complete course · Arfan Zubi / freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=BpPEoZW5IiY&t=28792s",
+          "section": "Vectors"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-video.section-024",
+        "title": "HashMaps",
+        "sections": [],
+        "lessonIDs": [
+          "source.rs-collections"
+        ],
+        "reading": {
+          "title": "Rust complete course · Arfan Zubi / freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=BpPEoZW5IiY&t=30540s",
+          "section": "HashMaps"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-video.section-025",
+        "title": "Type Coercion",
+        "sections": [],
+        "lessonIDs": [
+          "source.rs-compatibility"
+        ],
+        "reading": {
+          "title": "Rust complete course · Arfan Zubi / freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=BpPEoZW5IiY&t=31965s",
+          "section": "Type Coercion"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-video.section-026",
+        "title": "From & Into",
+        "sections": [],
+        "lessonIDs": [
+          "source.rs-primitives"
+        ],
+        "reading": {
+          "title": "Rust complete course · Arfan Zubi / freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=BpPEoZW5IiY&t=32694s",
+          "section": "From & Into"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-video.section-027",
+        "title": "panic!",
+        "sections": [],
+        "lessonIDs": [
+          "source.rs-errors"
+        ],
+        "reading": {
+          "title": "Rust complete course · Arfan Zubi / freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=BpPEoZW5IiY&t=34563s",
+          "section": "panic!"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-video.section-028",
+        "title": "Result",
+        "sections": [],
+        "lessonIDs": [
+          "rust.results",
+          "source.rs-errors"
+        ],
+        "reading": {
+          "title": "Rust complete course · Arfan Zubi / freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=BpPEoZW5IiY&t=35096s",
+          "section": "Result"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-video.section-029",
+        "title": "Cargo, Crates & Modules",
+        "sections": [],
+        "lessonIDs": [
+          "source.rs-cargo",
+          "source.rs-modules"
+        ],
+        "reading": {
+          "title": "Rust complete course · Arfan Zubi / freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=BpPEoZW5IiY&t=37703s",
+          "section": "Cargo, Crates & Modules"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-video.section-030",
+        "title": "Debug & Display",
+        "sections": [],
+        "lessonIDs": [
+          "source.rs-associated"
+        ],
+        "reading": {
+          "title": "Rust complete course · Arfan Zubi / freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=BpPEoZW5IiY&t=40108s",
+          "section": "Debug & Display"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-video.section-031",
+        "title": "Lifetimes",
+        "sections": [],
+        "lessonIDs": [
+          "rust.lifetimes"
+        ],
+        "reading": {
+          "title": "Rust complete course · Arfan Zubi / freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=BpPEoZW5IiY&t=41413s",
+          "section": "Lifetimes"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-video.section-032",
+        "title": "Lifetime Elision",
+        "sections": [],
+        "lessonIDs": [
+          "rust.lifetimes"
+        ],
+        "reading": {
+          "title": "Rust complete course · Arfan Zubi / freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=BpPEoZW5IiY&t=44086s",
+          "section": "Lifetime Elision"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-video.section-033",
+        "title": "Closures",
+        "sections": [],
+        "lessonIDs": [
+          "source.rs-closures"
+        ],
+        "reading": {
+          "title": "Rust complete course · Arfan Zubi / freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=BpPEoZW5IiY&t=45533s",
+          "section": "Closures"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "rust-video.section-034",
+        "title": "Iterators",
+        "sections": [],
+        "lessonIDs": [
+          "rust.iterators"
+        ],
+        "reading": {
+          "title": "Rust complete course · Arfan Zubi / freeCodeCamp",
+          "url": "https://www.youtube.com/watch?v=BpPEoZW5IiY&t=48608s",
+          "section": "Iterators"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      }
+    ]
+  },
+  {
+    "id": "learninglad",
+    "title": "Advanced C++ · LearningLad",
+    "kind": "Video playlist",
+    "trackIDs": [
+      "cpp"
+    ],
+    "sourceURL": "https://www.youtube.com/watch?v=tFYRTWFXSgY",
+    "edition": "Outline checked 13 October 2026",
+    "scope": "Every visible playlist video is assigned in order. Titles and catalog inspected; not every lecture was transcribed. Pair historical examples with current language contracts.",
+    "chapters": [
+      {
+        "id": "learninglad.section-001",
+        "title": "C++ Operator Overloading Introduction | Plus + Operator | Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-operators"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=tFYRTWFXSgY",
+          "section": "C++ Operator Overloading Introduction | Plus + Operator | Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-002",
+        "title": "C++ Overloading \"-\" Operator | Define Operator Function outside Class | Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-operators"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=baZmwaoaHn8",
+          "section": "C++ Overloading \"-\" Operator | Define Operator Function outside Class | Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-003",
+        "title": "Overloading Short Hand Operators | Operator Function as Friend Function | C++ Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-operators"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=VlEd6bJ6n1Q",
+          "section": "Overloading Short Hand Operators | Operator Function as Friend Function | C++ Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-004",
+        "title": "Overloading Increment and Decrement Operators in Prefix form | C++ Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-operators"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=EwNfWrkOeXU",
+          "section": "Overloading Increment and Decrement Operators in Prefix form | C++ Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-005",
+        "title": "Overloading Increment and Decrement Operators in Postfix form | C++ Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-operators"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=XJbA1AjW1zw",
+          "section": "Overloading Increment and Decrement Operators in Postfix form | C++ Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-006",
+        "title": "Overloading Special [ ]  C++ Array Subscript Operator | Cpp Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-index-call"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=pbxxtg3JQc8",
+          "section": "Overloading Special [ ]  C++ Array Subscript Operator | Cpp Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-007",
+        "title": "Overloading C++ Function Call Operator ( ) | Cpp Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-index-call"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=X0KY4M9AAzE",
+          "section": "Overloading C++ Function Call Operator ( ) | Cpp Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-008",
+        "title": "Overloading Arrow Operator | Class Member Access Operator | C++ Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-index-call"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=nReSnvgbRQc",
+          "section": "Overloading Arrow Operator | Class Member Access Operator | C++ Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-009",
+        "title": "Rules and Restrictions for Operator Overloading in C++",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-operators"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=Vtq5AZLCdQw",
+          "section": "Rules and Restrictions for Operator Overloading in C++"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-010",
+        "title": "Introduction to Exception Handling | try, catch and throw | C++ Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-exceptions"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=P_Kx0i7yXhU",
+          "section": "Introduction to Exception Handling | try, catch and throw | C++ Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-011",
+        "title": "Available C++ Standard Exception Classes / Types and using them",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-exceptions"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=FynvrvLw3Rs",
+          "section": "Available C++ Standard Exception Classes / Types and using them"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-012",
+        "title": "Multiple Catch Blocks | Catching All Exceptions in C++",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-exceptions"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=gMPUFJfcIU4",
+          "section": "Multiple Catch Blocks | Catching All Exceptions in C++"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-013",
+        "title": "Functions Throwing Exceptions | C++ Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-exceptions"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=iFexdxXbOfE",
+          "section": "Functions Throwing Exceptions | C++ Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-014",
+        "title": "C++ Nested Try Catch statements | Re throwing Exceptions",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-exceptions"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=UcT_sXaJF94",
+          "section": "C++ Nested Try Catch statements | Re throwing Exceptions"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-015",
+        "title": "Creating Custom, User Defined Exception Class | C++ Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-exceptions"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=Ix05fozWn0A",
+          "section": "Creating Custom, User Defined Exception Class | C++ Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-016",
+        "title": "Overloading New and Delete Operators | C++ Programming Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-allocation-functions"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=UqDof9U-Pco",
+          "section": "Overloading New and Delete Operators | C++ Programming Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-017",
+        "title": "Overloading C++ Stream Insertion, Extraction Operators | C++ Programming Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-operators"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=TwW2Nl45FvE",
+          "section": "Overloading C++ Stream Insertion, Extraction Operators | C++ Programming Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-018",
+        "title": "CPP Copy Constructor with Example | C++ Programming Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-copy"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=2KvslbLHTUY",
+          "section": "CPP Copy Constructor with Example | C++ Programming Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-019",
+        "title": "C++ IO Stream | Introduction",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-streams"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=RglhIB3i_aw",
+          "section": "C++ IO Stream | Introduction"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-020",
+        "title": "Reading and Displaying Boolean Values as TRUE and FALSE instead of 0 and 1",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-formatting"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=NJqOkULYYmo",
+          "section": "Reading and Displaying Boolean Values as TRUE and FALSE instead of 0 and 1"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-021",
+        "title": "Precision Fill Width parameters with C++ IO Streams | video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-formatting"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=6S5Y2K9SrtU",
+          "section": "Precision Fill Width parameters with C++ IO Streams | video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-022",
+        "title": "Set and Unset Format Flags of IO streams | C++ Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-formatting"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=w8aWmg7ciwE",
+          "section": "Set and Unset Format Flags of IO streams | C++ Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-023",
+        "title": "C++ iomanip class | using Manipulators with IO Streams | CPP Programming Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-formatting"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=ezzmiX_pJAQ",
+          "section": "C++ iomanip class | using Manipulators with IO Streams | CPP Programming Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-024",
+        "title": "Writing your own Manipulator function on C++ IO Streams | Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-formatting"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=1XjUOREpX40",
+          "section": "Writing your own Manipulator function on C++ IO Streams | Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-025",
+        "title": "String Class in C++ | Methods and More | CPP Programming Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-sequences"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=KTH5g7lJsC0",
+          "section": "String Class in C++ | Methods and More | CPP Programming Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-026",
+        "title": "C++ getline Function | Reading an Entire Line from Streams | Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-streams"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=wpDSWDbGXrQ",
+          "section": "C++ getline Function | Reading an Entire Line from Streams | Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-027",
+        "title": "C++ File Handling | Creating and Opening | fstream, ifstream, ofstream | Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-files"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=rkJJzH-ymg8",
+          "section": "C++ File Handling | Creating and Opening | fstream, ifstream, ofstream | Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-028",
+        "title": "Writing to a File in C++ using Ofstream Class | Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-files"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=8pJCZW-raug",
+          "section": "Writing to a File in C++ using Ofstream Class | Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-029",
+        "title": "Reading from a File using ifstream class | C++ Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-files"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=Ru7Tump8fKY",
+          "section": "Reading from a File using ifstream class | C++ Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-030",
+        "title": "fstream Class | Appending to a File in C++ | CPP Programming Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-files"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=DJSchIAXhDY",
+          "section": "fstream Class | Appending to a File in C++ | CPP Programming Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-031",
+        "title": "C++ File Position Indicators | Get, Put | tellg tellp | seekg seekp",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-file-position"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=CaU7x2Bkj4M",
+          "section": "C++ File Position Indicators | Get, Put | tellg tellp | seekg seekp"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-032",
+        "title": "Binary Files in C++ | CPP Programming File Handling Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-files"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=SJMxuXrP_Rk",
+          "section": "Binary Files in C++ | CPP Programming File Handling Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-033",
+        "title": "C++ Binary Files | Read, Write Methods | CPP Programming File Management Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-files"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=P7XGOBoVzW4",
+          "section": "C++ Binary Files | Read, Write Methods | CPP Programming File Management Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-034",
+        "title": "Stringstream in C++ | CPP Programming Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-streams"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=LM6EDIKS5Pk",
+          "section": "Stringstream in C++ | CPP Programming Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-035",
+        "title": "#include PreProcessor Directives in C++ Programming Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-macros"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=MDbPJIR8p3Y",
+          "section": "#include PreProcessor Directives in C++ Programming Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-036",
+        "title": "#Define PreProcessor Directive | C++ Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-macros"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=aXrb8FNzW6w",
+          "section": "#Define PreProcessor Directive | C++ Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-037",
+        "title": "Function like Macros | C++ PreProcessor Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-macros"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=H8XzsNSQN1A",
+          "section": "Function like Macros | C++ PreProcessor Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-038",
+        "title": "if endif elif else Conditional Compilation Macros | C++ Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-macros"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=URS8uOj578Q",
+          "section": "if endif elif else Conditional Compilation Macros | C++ Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-039",
+        "title": "Conditional Compilation Macros | ifdef  ifndef | C++ Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-macros"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=90-_O4Af_Cg",
+          "section": "Conditional Compilation Macros | ifdef  ifndef | C++ Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-040",
+        "title": "#undef Pre Processor Directive | C++ Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-macros"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=_DxaWBF9tpY",
+          "section": "#undef Pre Processor Directive | C++ Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-041",
+        "title": "C++ Predefined macros | LINE PreProcessor Directive | CPP  Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-macros"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=rP9r6b0jLpg",
+          "section": "C++ Predefined macros | LINE PreProcessor Directive | CPP  Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-042",
+        "title": "Generic Programming in C++ and Templates | CPP  Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-templates"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=zagx5hdXBLw",
+          "section": "Generic Programming in C++ and Templates | CPP  Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-043",
+        "title": "Multiple Parameters and Return Values | C++ Generic Programming Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-templates"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=zLVTYnroqx4",
+          "section": "Multiple Parameters and Return Values | C++ Generic Programming Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-044",
+        "title": "Passing Standard Parameters to C++ Generic Functions | CPP Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-templates"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=y4UnyCI24Hg",
+          "section": "Passing Standard Parameters to C++ Generic Functions | CPP Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-045",
+        "title": "Generic Functions with Multiple Generic Types | C++ Programming Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-templates"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=8ugdVOpQztk",
+          "section": "Generic Functions with Multiple Generic Types | C++ Programming Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-046",
+        "title": "Explicitly Overloading Generic Functions | C++ Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-templates"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=_iJRiNLkKY0",
+          "section": "Explicitly Overloading Generic Functions | C++ Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-047",
+        "title": "Overloading Generic Function Template | C++ Programming Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-templates"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=iHz-ScuWiaI",
+          "section": "Overloading Generic Function Template | C++ Programming Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-048",
+        "title": "Introduction to C++ Generic Classes | CPP Generic Programming Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-templates"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=cki2wRkhAWQ",
+          "section": "Introduction to C++ Generic Classes | CPP Generic Programming Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-049",
+        "title": "C++ Generic Class with more than one Generic Type | CPP Programming Video Tutorials",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-templates"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=sLqa_TVMUcc",
+          "section": "C++ Generic Class with more than one Generic Type | CPP Programming Video Tutorials"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-050",
+        "title": "Default Data Types as Parameters to Generic Classes | C++ Programming Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-templates"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=J5uki5lqlEw",
+          "section": "Default Data Types as Parameters to Generic Classes | C++ Programming Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-051",
+        "title": "Explicit Specialisation of Generic Class | C++ Generic Programming Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-templates"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=DcRXO6be4jE",
+          "section": "Explicit Specialisation of Generic Class | C++ Generic Programming Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-052",
+        "title": "Introduction to C++ Namespace | CPP Programming Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-namespaces"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=TvMS45AQeC4",
+          "section": "Introduction to C++ Namespace | CPP Programming Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-053",
+        "title": "C++ Nested Namespace | CPP Programming Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-namespaces"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=T0IrsXLxVEI",
+          "section": "C++ Nested Namespace | CPP Programming Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-054",
+        "title": "UnNamed or Anonymous Namespaces in C++ | CPP Programming Video Tutorials",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-namespaces"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=HrFtpSH-Eso",
+          "section": "UnNamed or Anonymous Namespaces in C++ | CPP Programming Video Tutorials"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-055",
+        "title": "Nested UnNamed or Anonymous Namespaces | C++ Programming Video Tutorials",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-namespaces"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=1E8Mhe-1bKM",
+          "section": "Nested UnNamed or Anonymous Namespaces | C++ Programming Video Tutorials"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-056",
+        "title": "C++ Namespace Aliases | Giving a New Name to an Existing Namespace | Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-namespaces"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=XVVCSKM_vOo",
+          "section": "C++ Namespace Aliases | Giving a New Name to an Existing Namespace | Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-057",
+        "title": "Inline Nested Namespace in C++ | CPP Programming Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-namespaces"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=QGNuUkgig3A",
+          "section": "Inline Nested Namespace in C++ | CPP Programming Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "learninglad.section-058",
+        "title": "Writing Classes in Separate Files using #define in C++ | CPP Video Tutorial",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-build"
+        ],
+        "reading": {
+          "title": "Advanced C++ · LearningLad",
+          "url": "https://www.youtube.com/watch?v=pywM36qKHvg",
+          "section": "Writing Classes in Separate Files using #define in C++ | CPP Video Tutorial"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      }
+    ]
+  },
+  {
+    "id": "hayden",
+    "title": "Advanced C++ · Hayden Smith",
+    "kind": "Video playlist",
+    "trackIDs": [
+      "cpp"
+    ],
+    "sourceURL": "https://www.youtube.com/watch?v=t2EJ-FYyc2w",
+    "edition": "Outline checked 13 October 2026",
+    "scope": "Every visible playlist video is assigned in order. Titles and catalog inspected; not every lecture was transcribed. Pair historical examples with current language contracts.",
+    "chapters": [
+      {
+        "id": "hayden.section-001",
+        "title": "🥑 Welcome & Getting Started | Advanced C++ (COMP6771)",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-build"
+        ],
+        "reading": {
+          "title": "Advanced C++ · Hayden Smith",
+          "url": "https://www.youtube.com/watch?v=t2EJ-FYyc2w",
+          "section": "🥑 Welcome & Getting Started | Advanced C++ (COMP6771)"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "hayden.section-002",
+        "title": "🥑 C++ Basics | Advanced C++ Programming",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-types"
+        ],
+        "reading": {
+          "title": "Advanced C++ · Hayden Smith",
+          "url": "https://www.youtube.com/watch?v=kT2ZsOtEwMk",
+          "section": "🥑 C++ Basics | Advanced C++ Programming"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "hayden.section-003",
+        "title": "🍓 STL Containers | Advanced C++ Programming",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-sequences"
+        ],
+        "reading": {
+          "title": "Advanced C++ · Hayden Smith",
+          "url": "https://www.youtube.com/watch?v=uqSl1UjfffM",
+          "section": "🍓 STL Containers | Advanced C++ Programming"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "hayden.section-004",
+        "title": "🍓 STL Iterators | Advanced C++ Programming",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-sequences"
+        ],
+        "reading": {
+          "title": "Advanced C++ · Hayden Smith",
+          "url": "https://www.youtube.com/watch?v=s8Dcunf65aA",
+          "section": "🍓 STL Iterators | Advanced C++ Programming"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "hayden.section-005",
+        "title": "🍓 STL Algorithms | Advanced C++ Programming",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-algorithms"
+        ],
+        "reading": {
+          "title": "Advanced C++ · Hayden Smith",
+          "url": "https://www.youtube.com/watch?v=eba-YRdc0pM",
+          "section": "🍓 STL Algorithms | Advanced C++ Programming"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "hayden.section-006",
+        "title": "🥦 Class Types | Advanced C++ Programming",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-classes"
+        ],
+        "reading": {
+          "title": "Advanced C++ · Hayden Smith",
+          "url": "https://www.youtube.com/watch?v=usUIvQZeYDg",
+          "section": "🥦 Class Types | Advanced C++ Programming"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "hayden.section-007",
+        "title": "🫐 Operator Overloading | Advanced C++ Programming",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-operators"
+        ],
+        "reading": {
+          "title": "Advanced C++ · Hayden Smith",
+          "url": "https://www.youtube.com/watch?v=2Ai-hkeVbBY",
+          "section": "🫐 Operator Overloading | Advanced C++ Programming"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "hayden.section-008",
+        "title": "🫐 Custom Iterators | Advanced C++ Programming",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-index-call"
+        ],
+        "reading": {
+          "title": "Advanced C++ · Hayden Smith",
+          "url": "https://www.youtube.com/watch?v=tCRRDg9f2-M",
+          "section": "🫐 Custom Iterators | Advanced C++ Programming"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "hayden.section-009",
+        "title": "🍪 Exceptions | Advanced C++ Programming",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-exceptions"
+        ],
+        "reading": {
+          "title": "Advanced C++ · Hayden Smith",
+          "url": "https://www.youtube.com/watch?v=jqOO27wa9tU",
+          "section": "🍪 Exceptions | Advanced C++ Programming"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "hayden.section-010",
+        "title": "🍪 Resource Management | Advanced C++ Programming",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-copy",
+          "cpp.raii"
+        ],
+        "reading": {
+          "title": "Advanced C++ · Hayden Smith",
+          "url": "https://www.youtube.com/watch?v=p7nVL9qhFn4",
+          "section": "🍪 Resource Management | Advanced C++ Programming"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "hayden.section-011",
+        "title": "🍪 Smart Pointers | Advanced C++ Programming",
+        "sections": [],
+        "lessonIDs": [
+          "cpp.raii"
+        ],
+        "reading": {
+          "title": "Advanced C++ · Hayden Smith",
+          "url": "https://www.youtube.com/watch?v=ZImvWF6sKoI",
+          "section": "🍪 Smart Pointers | Advanced C++ Programming"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "hayden.section-012",
+        "title": "🍰 Dynamic Polymorphism | Advanced C++ Programming",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-polymorphism"
+        ],
+        "reading": {
+          "title": "Advanced C++ · Hayden Smith",
+          "url": "https://www.youtube.com/watch?v=qxMdOOBPHEU",
+          "section": "🍰 Dynamic Polymorphism | Advanced C++ Programming"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "hayden.section-013",
+        "title": "🚗 Templates | Advanced C++ Programming",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-templates"
+        ],
+        "reading": {
+          "title": "Advanced C++ · Hayden Smith",
+          "url": "https://www.youtube.com/watch?v=AXn-iI1vZGc",
+          "section": "🚗 Templates | Advanced C++ Programming"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "hayden.section-014",
+        "title": "🧪 Metaprogramming | Advanced C++ Programming",
+        "sections": [],
+        "lessonIDs": [
+          "source.cpp-templates",
+          "source.cpp-constexpr"
+        ],
+        "reading": {
+          "title": "Advanced C++ · Hayden Smith",
+          "url": "https://www.youtube.com/watch?v=goEtQLXnGvM",
+          "section": "🧪 Metaprogramming | Advanced C++ Programming"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      }
+    ]
+  },
+  {
+    "id": "lean-fpil",
+    "title": "Functional Programming in Lean",
+    "kind": "Official book",
+    "trackIDs": [
+      "lean"
+    ],
+    "sourceURL": "https://lean-lang.org/functional_programming_in_lean/Introduction/#Functional-Programming-in-Lean--Introduction",
+    "edition": "Outline checked 13 October 2026",
+    "scope": "All teaching chapters and interludes are assigned with original reinforcement. Some project/effectful work needs Lake rather than a core-only single-file runner.",
+    "chapters": [
+      {
+        "id": "lean-fpil.section-001",
+        "title": "Introduction",
+        "sections": [],
+        "lessonIDs": [
+          "source.lean-interaction"
+        ],
+        "reading": {
+          "title": "Functional Programming in Lean",
+          "url": "https://lean-lang.org/functional_programming_in_lean/Introduction/#Functional-Programming-in-Lean--Introduction",
+          "section": "Introduction"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "lean-fpil.section-002",
+        "title": "Getting to Know Lean",
+        "sections": [],
+        "lessonIDs": [
+          "lean.functions"
+        ],
+        "reading": {
+          "title": "Functional Programming in Lean",
+          "url": "https://lean-lang.org/functional_programming_in_lean/Getting-to-Know-Lean/#getting-to-know",
+          "section": "Getting to Know Lean"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "lean-fpil.section-003",
+        "title": "Hello, World!",
+        "sections": [],
+        "lessonIDs": [
+          "source.lean-io"
+        ],
+        "reading": {
+          "title": "Functional Programming in Lean",
+          "url": "https://lean-lang.org/functional_programming_in_lean/Hello___-World___/#hello-world",
+          "section": "Hello, World!"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "lean-fpil.section-004",
+        "title": "Interlude: Propositions, Proofs, and Indexing",
+        "sections": [],
+        "lessonIDs": [
+          "lean.proofs",
+          "source.lean-indexed"
+        ],
+        "reading": {
+          "title": "Functional Programming in Lean",
+          "url": "https://lean-lang.org/functional_programming_in_lean/Interlude___-Propositions___-Proofs___-and-Indexing/#props-proofs-indexing",
+          "section": "Interlude: Propositions, Proofs, and Indexing"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "lean-fpil.section-005",
+        "title": "Overloading and Type Classes",
+        "sections": [],
+        "lessonIDs": [
+          "source.lean-classes"
+        ],
+        "reading": {
+          "title": "Functional Programming in Lean",
+          "url": "https://lean-lang.org/functional_programming_in_lean/Overloading-and-Type-Classes/#type-classes",
+          "section": "Overloading and Type Classes"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "lean-fpil.section-006",
+        "title": "Monads",
+        "sections": [],
+        "lessonIDs": [
+          "source.lean-monads"
+        ],
+        "reading": {
+          "title": "Functional Programming in Lean",
+          "url": "https://lean-lang.org/functional_programming_in_lean/Monads/#monads",
+          "section": "Monads"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "lean-fpil.section-007",
+        "title": "Functors, Applicative Functors, and Monads",
+        "sections": [],
+        "lessonIDs": [
+          "source.lean-applicative"
+        ],
+        "reading": {
+          "title": "Functional Programming in Lean",
+          "url": "https://lean-lang.org/functional_programming_in_lean/Functors___-Applicative-Functors___-and-Monads/#Functional-Programming-in-Lean--Functors___-Applicative-Functors___-and-Monads",
+          "section": "Functors, Applicative Functors, and Monads"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "lean-fpil.section-008",
+        "title": "Monad Transformers",
+        "sections": [],
+        "lessonIDs": [
+          "source.lean-transformers"
+        ],
+        "reading": {
+          "title": "Functional Programming in Lean",
+          "url": "https://lean-lang.org/functional_programming_in_lean/Monad-Transformers/#Functional-Programming-in-Lean--Monad-Transformers",
+          "section": "Monad Transformers"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "lean-fpil.section-009",
+        "title": "Programming with Dependent Types",
+        "sections": [],
+        "lessonIDs": [
+          "source.lean-indexed"
+        ],
+        "reading": {
+          "title": "Functional Programming in Lean",
+          "url": "https://lean-lang.org/functional_programming_in_lean/Programming-with-Dependent-Types/#dependent-types",
+          "section": "Programming with Dependent Types"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "lean-fpil.section-010",
+        "title": "Interlude: Tactics, Induction, and Proofs",
+        "sections": [],
+        "lessonIDs": [
+          "lean.induction"
+        ],
+        "reading": {
+          "title": "Functional Programming in Lean",
+          "url": "https://lean-lang.org/functional_programming_in_lean/Interlude___-Tactics___-Induction___-and-Proofs/#tactics-induction-proofs",
+          "section": "Interlude: Tactics, Induction, and Proofs"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "lean-fpil.section-011",
+        "title": "Programming, Proving, and Performance",
+        "sections": [],
+        "lessonIDs": [
+          "source.lean-termination"
+        ],
+        "reading": {
+          "title": "Functional Programming in Lean",
+          "url": "https://lean-lang.org/functional_programming_in_lean/Programming___-Proving___-and-Performance/#Functional-Programming-in-Lean--Programming___-Proving___-and-Performance",
+          "section": "Programming, Proving, and Performance"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "lean-fpil.section-012",
+        "title": "Next Steps",
+        "sections": [],
+        "lessonIDs": [
+          "source.lean-interaction"
+        ],
+        "reading": {
+          "title": "Functional Programming in Lean",
+          "url": "https://lean-lang.org/functional_programming_in_lean/Next-Steps/#next-steps",
+          "section": "Next Steps"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      }
+    ]
+  },
+  {
+    "id": "lean-tpil",
+    "title": "Theorem Proving in Lean 4",
+    "kind": "Official book",
+    "trackIDs": [
+      "lean"
+    ],
+    "sourceURL": "https://lean-lang.org/theorem_proving_in_lean4/Introduction/#Intro",
+    "edition": "Outline checked 13 October 2026",
+    "scope": "All teaching chapters and interludes are assigned with original reinforcement. Some project/effectful work needs Lake rather than a core-only single-file runner.",
+    "chapters": [
+      {
+        "id": "lean-tpil.section-001",
+        "title": "Introduction",
+        "sections": [],
+        "lessonIDs": [
+          "source.lean-interaction"
+        ],
+        "reading": {
+          "title": "Theorem Proving in Lean 4",
+          "url": "https://lean-lang.org/theorem_proving_in_lean4/Introduction/#Intro",
+          "section": "Introduction"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "lean-tpil.section-002",
+        "title": "Dependent Type Theory",
+        "sections": [],
+        "lessonIDs": [
+          "source.lean-universes"
+        ],
+        "reading": {
+          "title": "Theorem Proving in Lean 4",
+          "url": "https://lean-lang.org/theorem_proving_in_lean4/Dependent-Type-Theory/#dependent-type-theory",
+          "section": "Dependent Type Theory"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "lean-tpil.section-003",
+        "title": "Propositions and Proofs",
+        "sections": [],
+        "lessonIDs": [
+          "lean.proofs",
+          "lean.conjunction"
+        ],
+        "reading": {
+          "title": "Theorem Proving in Lean 4",
+          "url": "https://lean-lang.org/theorem_proving_in_lean4/Propositions-and-Proofs/#propositions-and-proofs",
+          "section": "Propositions and Proofs"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "lean-tpil.section-004",
+        "title": "Quantifiers and Equality",
+        "sections": [],
+        "lessonIDs": [
+          "lean.quantifiers",
+          "lean.equality"
+        ],
+        "reading": {
+          "title": "Theorem Proving in Lean 4",
+          "url": "https://lean-lang.org/theorem_proving_in_lean4/Quantifiers-and-Equality/#quantifiers-and-equality",
+          "section": "Quantifiers and Equality"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "lean-tpil.section-005",
+        "title": "Tactics",
+        "sections": [],
+        "lessonIDs": [
+          "lean.rewriting"
+        ],
+        "reading": {
+          "title": "Theorem Proving in Lean 4",
+          "url": "https://lean-lang.org/theorem_proving_in_lean4/Tactics/#Theorem-Proving-in-Lean-4--Tactics",
+          "section": "Tactics"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "lean-tpil.section-006",
+        "title": "Interacting with Lean",
+        "sections": [],
+        "lessonIDs": [
+          "source.lean-interaction"
+        ],
+        "reading": {
+          "title": "Theorem Proving in Lean 4",
+          "url": "https://lean-lang.org/theorem_proving_in_lean4/Interacting-with-Lean/#Theorem-Proving-in-Lean-4--Interacting-with-Lean",
+          "section": "Interacting with Lean"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "lean-tpil.section-007",
+        "title": "Inductive Types",
+        "sections": [],
+        "lessonIDs": [
+          "lean.patterns"
+        ],
+        "reading": {
+          "title": "Theorem Proving in Lean 4",
+          "url": "https://lean-lang.org/theorem_proving_in_lean4/Inductive-Types/#inductive-types",
+          "section": "Inductive Types"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "lean-tpil.section-008",
+        "title": "Induction and Recursion",
+        "sections": [],
+        "lessonIDs": [
+          "lean.induction"
+        ],
+        "reading": {
+          "title": "Theorem Proving in Lean 4",
+          "url": "https://lean-lang.org/theorem_proving_in_lean4/Induction-and-Recursion/#induction-and-recursion",
+          "section": "Induction and Recursion"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "lean-tpil.section-009",
+        "title": "Structures and Records",
+        "sections": [],
+        "lessonIDs": [
+          "lean.structures"
+        ],
+        "reading": {
+          "title": "Theorem Proving in Lean 4",
+          "url": "https://lean-lang.org/theorem_proving_in_lean4/Structures-and-Records/#structures-and-records",
+          "section": "Structures and Records"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "lean-tpil.section-010",
+        "title": "Type Classes",
+        "sections": [],
+        "lessonIDs": [
+          "source.lean-classes"
+        ],
+        "reading": {
+          "title": "Theorem Proving in Lean 4",
+          "url": "https://lean-lang.org/theorem_proving_in_lean4/Type-Classes/#type-classes",
+          "section": "Type Classes"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "lean-tpil.section-011",
+        "title": "The Conversion Tactic Mode",
+        "sections": [],
+        "lessonIDs": [
+          "source.lean-conv"
+        ],
+        "reading": {
+          "title": "Theorem Proving in Lean 4",
+          "url": "https://lean-lang.org/theorem_proving_in_lean4/The-Conversion-Tactic-Mode/#conv",
+          "section": "The Conversion Tactic Mode"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "lean-tpil.section-012",
+        "title": "Axioms and Computation",
+        "sections": [],
+        "lessonIDs": [
+          "source.lean-axioms"
+        ],
+        "reading": {
+          "title": "Theorem Proving in Lean 4",
+          "url": "https://lean-lang.org/theorem_proving_in_lean4/Axioms-and-Computation/#axioms-and-computation",
+          "section": "Axioms and Computation"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      }
+    ]
+  },
+  {
+    "id": "lean-mil",
+    "title": "Mathematics in Lean",
+    "kind": "Mathlib book",
+    "trackIDs": [
+      "lean"
+    ],
+    "sourceURL": "https://leanprover-community.github.io/mathematics_in_lean/C01_Introduction.html",
+    "edition": "Outline checked 13 October 2026",
+    "scope": "Every numbered chapter is assigned. These topics require a compatible pinned Mathlib project for the source exercises; current app practice explains selected contracts.",
+    "chapters": [
+      {
+        "id": "lean-mil.section-001",
+        "title": "1. Introduction",
+        "sections": [
+          "1.1. Getting Started",
+          "1.2. Overview"
+        ],
+        "lessonIDs": [
+          "source.lean-interaction"
+        ],
+        "reading": {
+          "title": "Mathematics in Lean",
+          "url": "https://leanprover-community.github.io/mathematics_in_lean/C01_Introduction.html",
+          "section": "1. Introduction"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "lean-mil.section-002",
+        "title": "2. Basics",
+        "sections": [
+          "2.1. Calculating",
+          "2.2. Proving Identities in Algebraic Structures",
+          "2.3. Using Theorems and Lemmas",
+          "2.4. More examples using apply and rw",
+          "2.5. Proving Facts about Algebraic Structures"
+        ],
+        "lessonIDs": [
+          "lean.rewriting"
+        ],
+        "reading": {
+          "title": "Mathematics in Lean",
+          "url": "https://leanprover-community.github.io/mathematics_in_lean/C02_Basics.html",
+          "section": "2. Basics"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "lean-mil.section-003",
+        "title": "3. Logic",
+        "sections": [
+          "3.1. Implication and the Universal Quantifier",
+          "3.2. The Existential Quantifier",
+          "3.3. Negation",
+          "3.4. Conjunction and Iff",
+          "3.5. Disjunction",
+          "3.6. Sequences and Convergence"
+        ],
+        "lessonIDs": [
+          "lean.proofs",
+          "lean.quantifiers"
+        ],
+        "reading": {
+          "title": "Mathematics in Lean",
+          "url": "https://leanprover-community.github.io/mathematics_in_lean/C03_Logic.html",
+          "section": "3. Logic"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "lean-mil.section-004",
+        "title": "4. Sets and Functions",
+        "sections": [
+          "4.1. Sets",
+          "4.2. Functions",
+          "4.3. The Schröder-Bernstein Theorem"
+        ],
+        "lessonIDs": [
+          "source.lean-sets"
+        ],
+        "reading": {
+          "title": "Mathematics in Lean",
+          "url": "https://leanprover-community.github.io/mathematics_in_lean/C04_Sets_and_Functions.html",
+          "section": "4. Sets and Functions"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "lean-mil.section-005",
+        "title": "5. Elementary Number Theory",
+        "sections": [
+          "5.1. Irrational Roots",
+          "5.2. Induction and Recursion",
+          "5.3. Infinitely Many Primes",
+          "5.4. More Induction"
+        ],
+        "lessonIDs": [
+          "source.lean-number-theory"
+        ],
+        "reading": {
+          "title": "Mathematics in Lean",
+          "url": "https://leanprover-community.github.io/mathematics_in_lean/C05_Elementary_Number_Theory.html",
+          "section": "5. Elementary Number Theory"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "lean-mil.section-006",
+        "title": "6. Discrete Mathematics",
+        "sections": [
+          "6.1. Finsets and Fintypes",
+          "6.2. Counting Arguments",
+          "6.3. Inductively Defined Types"
+        ],
+        "lessonIDs": [
+          "source.lean-discrete"
+        ],
+        "reading": {
+          "title": "Mathematics in Lean",
+          "url": "https://leanprover-community.github.io/mathematics_in_lean/C06_Discrete_Mathematics.html",
+          "section": "6. Discrete Mathematics"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "lean-mil.section-007",
+        "title": "7. Structures",
+        "sections": [
+          "7.1. Defining structures",
+          "7.2. Algebraic Structures",
+          "7.3. Building the Gaussian Integers"
+        ],
+        "lessonIDs": [
+          "lean.structures"
+        ],
+        "reading": {
+          "title": "Mathematics in Lean",
+          "url": "https://leanprover-community.github.io/mathematics_in_lean/C07_Structures.html",
+          "section": "7. Structures"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "lean-mil.section-008",
+        "title": "8. Hierarchies",
+        "sections": [
+          "8.1. Basics",
+          "8.2. Morphisms",
+          "8.3. Sub-objects"
+        ],
+        "lessonIDs": [
+          "source.lean-classes",
+          "source.lean-algebra"
+        ],
+        "reading": {
+          "title": "Mathematics in Lean",
+          "url": "https://leanprover-community.github.io/mathematics_in_lean/C08_Hierarchies.html",
+          "section": "8. Hierarchies"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "lean-mil.section-009",
+        "title": "9. Groups and Rings",
+        "sections": [
+          "9.1. Monoids and Groups",
+          "9.2. Rings"
+        ],
+        "lessonIDs": [
+          "source.lean-algebra"
+        ],
+        "reading": {
+          "title": "Mathematics in Lean",
+          "url": "https://leanprover-community.github.io/mathematics_in_lean/C09_Groups_and_Rings.html",
+          "section": "9. Groups and Rings"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "lean-mil.section-010",
+        "title": "10. Linear algebra",
+        "sections": [
+          "10.1. Vector spaces and linear maps",
+          "10.2. Subspaces and quotients",
+          "10.3. Endomorphisms",
+          "10.4. Matrices, bases and dimension"
+        ],
+        "lessonIDs": [
+          "source.lean-linear-algebra"
+        ],
+        "reading": {
+          "title": "Mathematics in Lean",
+          "url": "https://leanprover-community.github.io/mathematics_in_lean/C10_Linear_Algebra.html",
+          "section": "10. Linear algebra"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "lean-mil.section-011",
+        "title": "11. Topology",
+        "sections": [
+          "11.1. Filters",
+          "11.2. Metric spaces",
+          "11.3. Topological spaces"
+        ],
+        "lessonIDs": [
+          "source.lean-filters",
+          "source.lean-topology"
+        ],
+        "reading": {
+          "title": "Mathematics in Lean",
+          "url": "https://leanprover-community.github.io/mathematics_in_lean/C11_Topology.html",
+          "section": "11. Topology"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "lean-mil.section-012",
+        "title": "12. Differential Calculus",
+        "sections": [
+          "12.1. Elementary Differential Calculus",
+          "12.2. Differential Calculus in Normed Spaces"
+        ],
+        "lessonIDs": [
+          "source.lean-calculus"
+        ],
+        "reading": {
+          "title": "Mathematics in Lean",
+          "url": "https://leanprover-community.github.io/mathematics_in_lean/C12_Differential_Calculus.html",
+          "section": "12. Differential Calculus"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      },
+      {
+        "id": "lean-mil.section-013",
+        "title": "13. Integration and Measure Theory",
+        "sections": [
+          "13.1. Elementary Integration",
+          "13.2. Measure Theory",
+          "13.3. Integration"
+        ],
+        "lessonIDs": [
+          "source.lean-calculus"
+        ],
+        "reading": {
+          "title": "Mathematics in Lean",
+          "url": "https://leanprover-community.github.io/mathematics_in_lean/C13_Integration_and_Measure_Theory.html",
+          "section": "13. Integration and Measure Theory"
+        },
+        "coverage": "guided",
+        "note": "Read or watch the assigned section, then use the related original practice to explain the central ideas and test your understanding."
+      }
+    ]
+  }
+]

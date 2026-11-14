@@ -1,0 +1,365 @@
+{
+  "schemaVersion": 1,
+  "sources": [
+    {
+      "pageID": "rust-book:ch12-05-working-with-environment-variables.html",
+      "originalSHA256": "e00298901d6b918303bed4bb340a0c287f7d20e09109902857a62304e6f00d7e",
+      "fullyAdapted": false,
+      "remaining": [
+        "PowerShell session commands are not adapted or tested",
+        "Advanced configuration layers and exhaustive source-wide exercises remain open"
+      ],
+      "units": [
+        {
+          "id": "rust-book.ch12-05.tdd",
+          "anchor": "writing-a-failing-test-for-case-insensitive-search",
+          "scope": "Red/green case-insensitive substring contract",
+          "lessonID": "guide.rust.environment-cli-project",
+          "checks": [
+            "environment TDD red example",
+            "environment presence unit/integration/doc tests"
+          ]
+        },
+        {
+          "id": "rust-book.ch12-05.normalization",
+          "anchor": "implementing-the-search_case_insensitive-function",
+          "scope": "Lowercase query/line allocation, borrowed original spelling and Unicode limits",
+          "lessonID": "guide.rust.environment-cli-project",
+          "checks": [
+            "environment presence unit/integration/doc tests"
+          ]
+        },
+        {
+          "id": "rust-book.ch12-05.environment",
+          "anchor": "working-with-environment-variables",
+          "scope": "One environment snapshot, presence semantics including zero, child-process isolation and Unix non-Unicode value",
+          "lessonID": "guide.rust.environment-cli-project",
+          "checks": [
+            "environment presence unit/integration/doc tests",
+            "environment presence actual zero value"
+          ]
+        },
+        {
+          "id": "rust-book.ch12-05.precedence",
+          "anchor": "working-with-environment-variables",
+          "scope": "Final source exercise: typed Boolean policy, last explicit flag wins, invalid environment rejected before overrides",
+          "lessonID": "guide.rust.environment-cli-project",
+          "checks": [
+            "environment boolean answer tests",
+            "environment answer explicit override output",
+            "environment answer rejects invalid despite override"
+          ]
+        }
+      ]
+    },
+    {
+      "pageID": "rust-book:ch12-06-writing-to-stderr-instead-of-stdout.html",
+      "originalSHA256": "3a0bf6743ba4327b073ab9a9c48c2fca92bc26c900d00b2e183a522c5b11deb9",
+      "fullyAdapted": false,
+      "remaining": [
+        "Broader chapter project variants and additional OS/shell portability are not certified",
+        "These bounded units do not establish exhaustive source exercise adaptation"
+      ],
+      "units": [
+        {
+          "id": "rust-book.ch12-06.routing",
+          "anchor": "redirecting-errors-to-standard-error",
+          "scope": "Distinct result/diagnostic streams and explicit exit status, with actual child captures",
+          "lessonID": "guide.rust.stdio-cli-project",
+          "checks": [
+            "stdio actual successful output",
+            "stdio actual usage failure"
+          ]
+        },
+        {
+          "id": "rust-book.ch12-06.redirection",
+          "anchor": "checking-where-errors-are-written",
+          "scope": "Deliberately wrong output macro fails; restored executable redirects only stdout to an owned file",
+          "lessonID": "guide.rust.stdio-cli-project",
+          "checks": [
+            "stdio TDD wrong stream rejection",
+            "stdio base unit and redirected binary tests"
+          ]
+        },
+        {
+          "id": "rust-book.ch12-06.fallible-output",
+          "anchor": "printing-errors-to-standard-error",
+          "scope": "Correct diagnostic macros, fallible writer/flush extension and explicit real closed-pipe answer policy",
+          "lessonID": "guide.rust.stdio-cli-project",
+          "checks": [
+            "stdio base unit and redirected binary tests",
+            "stdio answer unit and redirected binary tests"
+          ]
+        }
+      ]
+    },
+    {
+      "pageID": "rust-book:ch13-03-improving-our-io-project.html",
+      "originalSHA256": "a9b552a42547fafec9569b330ce7f7c6c7675661a541315b82446c4d94beb517",
+      "fullyAdapted": false,
+      "remaining": [
+        "Only one synthetic preloaded all-match timing observation; end-to-end file I/O, allocation accounting and varied workloads remain unmeasured",
+        "Full chapter and all source-specific exercise variants not certified",
+        "Cross-platform native argument behavior only locally checked on macOS/Unix"
+      ],
+      "units": [
+        {
+          "id": "rust-book.ch13-03.ownership",
+          "anchor": "removing-a-clone-using-an-iterator",
+          "scope": "Owned fields replace slice-element cloning; no claim that platform conversion allocates nothing",
+          "lessonID": "guide.rust.iterator-cli-project",
+          "checks": [
+            "iterator base ownership/laziness/binary tests"
+          ]
+        },
+        {
+          "id": "rust-book.ch13-03.direct-input",
+          "anchor": "using-the-returned-iterator-directly",
+          "scope": "Consume actual args_os directly rather than collecting the complete command line",
+          "lessonID": "guide.rust.iterator-cli-project",
+          "checks": [
+            "iterator base actual output",
+            "iterator base ownership/laziness/binary tests"
+          ]
+        },
+        {
+          "id": "rust-book.ch13-03.next",
+          "anchor": "using-iterator-trait-methods",
+          "scope": "Mutable next state, discarded program name, missing fields, strict extra argument and counted infinite-tail behavior",
+          "lessonID": "guide.rust.iterator-cli-project",
+          "checks": [
+            "iterator base ownership/laziness/binary tests"
+          ]
+        },
+        {
+          "id": "rust-book.ch13-03.adapters",
+          "anchor": "clarifying-code-with-iterator-adapters",
+          "scope": "Eager filter/collect base versus lazy return answer, precise query/text lifetime captures and insensitive extension",
+          "lessonID": "guide.rust.iterator-cli-project",
+          "checks": [
+            "iterator base ownership/laziness/binary tests",
+            "iterator lazy answer ownership/binary tests"
+          ]
+        },
+        {
+          "id": "rust-book.ch13-03.style",
+          "anchor": "choosing-between-loops-and-iterators",
+          "scope": "Preserved CLI output after eager/lazy refactor; style discussion without performance or parallelism claims",
+          "lessonID": "guide.rust.iterator-cli-project",
+          "checks": [
+            "iterator base actual output",
+            "iterator lazy answer actual output"
+          ]
+        }
+      ]
+    },
+    {
+      "pageID": "rust-example:std_misc/file/read_lines.html",
+      "originalSHA256": "26992b3194be8cebbe456518ea4200e8c54682928d1f033fa5ac90a70e76127b",
+      "fullyAdapted": false,
+      "remaining": [
+        "No exhaustive filesystem API or OS portability coverage",
+        "No end-to-end file throughput or exact allocation/peak-memory measurement",
+        "Atomic output replacement remains a separate extension"
+      ],
+      "units": [
+        {
+          "id": "rust-example.read-lines.whole-file",
+          "anchor": "a-naive-approach",
+          "scope": "Whole-file owned lines versus a reused bounded line buffer; distinguish full input allocation from iteration",
+          "lessonID": "guide.rust.streaming-file-project",
+          "checks": [
+            "streaming base bounds/error/UTF8/binary tests",
+            "streaming base actual file output"
+          ]
+        },
+        {
+          "id": "rust-example.read-lines.buffered-errors",
+          "anchor": "a-more-efficient-approach",
+          "scope": "Owned File/BufReader, fallible later reads versus map_while stop policy; original byte-bound/UTF8/partial-output and explicit early-stop reinforcement",
+          "lessonID": "guide.rust.streaming-file-project",
+          "checks": [
+            "streaming base bounds/error/UTF8/binary tests",
+            "streaming early-stop answer tests",
+            "streaming answer full-input compatibility"
+          ]
+        }
+      ]
+    },
+    {
+      "pageID": "rust-book:ch21-01-single-threaded.html",
+      "originalSHA256": "a650d99af128316449ce4872abc31333e536a42de4e8ee12dfa2b90720a35e75",
+      "fullyAdapted": false,
+      "remaining": [
+        "Full HTTP/protocol and all compiler-driven intermediate exercises remain open",
+        "Runtime asset root is trusted local Cargo project, not portable deployment resources"
+      ],
+      "units": [
+        {
+          "id": "rust-book.ch21-01-single-threaded.html",
+          "anchor": "returning-real-html",
+          "scope": "Compile-time HTML and capped fallible runtime-file answer; Content-Type, UTF-8 byte lengths and HEAD",
+          "lessonID": "guide.rust.html-server-project",
+          "checks": [
+            "HTML runtime-file answer tests",
+            "HTML base finite TCP self-check",
+            "HTML runtime-file finite TCP self-check"
+          ]
+        },
+        {
+          "id": "rust-book.ch21-01-single-threaded.routing",
+          "anchor": "validating-the-request-and-selectively-responding",
+          "scope": "Fixed root/404 routes, validation before slow hook and no request-path filesystem joins",
+          "lessonID": "guide.rust.html-server-project",
+          "checks": [
+            "HTML base routing/pool/transport/comparison tests",
+            "HTML base finite TCP self-check",
+            "HTML runtime-file finite TCP self-check"
+          ]
+        }
+      ]
+    },
+    {
+      "pageID": "rust-book:ch21-02-multithreaded.html",
+      "originalSHA256": "cafbfbaa2d08fb3ee7d70ea9c3f7acf67bc24f9d42040e816bc13e5038c8b48f",
+      "fullyAdapted": false,
+      "remaining": [
+        "Compiler-driven incremental build/diagnostic exercise family remains incomplete",
+        "No actual TCP throughput/latency comparison or production async capacity claim"
+      ],
+      "units": [
+        {
+          "id": "rust-book.ch21-02-multithreaded.slow",
+          "anchor": "simulating-a-slow-request",
+          "scope": "Validated /sleep route; gate-observed blocked callback instead of noisy timing ratios",
+          "lessonID": "guide.rust.html-server-project",
+          "checks": [
+            "HTML base routing/pool/transport/comparison tests",
+            "HTML base finite TCP self-check",
+            "HTML runtime-file finite TCP self-check"
+          ]
+        },
+        {
+          "id": "rust-book.ch21-02-multithreaded.pool-comparison",
+          "anchor": "improving-throughput-with-a-thread-pool",
+          "scope": "One versus two bounded workers: fast callback queues or finishes before slow release",
+          "lessonID": "guide.rust.html-server-project",
+          "checks": [
+            "HTML base routing/pool/transport/comparison tests",
+            "HTML base finite TCP self-check",
+            "HTML runtime-file finite TCP self-check"
+          ]
+        }
+      ]
+    },
+    {
+      "pageID": "rust-book:ch21-03-graceful-shutdown-and-cleanup.html",
+      "originalSHA256": "1d041af5c5a4e11c089601045cc6fb6c90c08239640f53f267c84227e706ba93",
+      "fullyAdapted": false,
+      "remaining": [
+        "No sustained pressure/backpressure campaign or forced OS interruption proof",
+        "Original full source walkthrough/practice family not exhaustively certified",
+        "Listener remains bound during draining; stop does not interrupt active I/O"
+      ],
+      "units": [
+        {
+          "id": "rust-book.ch21-03.owned-drop",
+          "anchor": "implementing-the-drop-trait-on-threadpool",
+          "scope": "Option join-handle consumption, Drop fallback, controller/state weak release and explicit finish error reporting",
+          "lessonID": "guide.rust.owned-server-project",
+          "checks": [
+            "owned server base lifecycle/deadline/TCP tests",
+            "owned server base finite controller self-check"
+          ]
+        },
+        {
+          "id": "rust-book.ch21-03.signal-drain",
+          "anchor": "signaling-to-the-threads-to-stop-listening-for-jobs",
+          "scope": "Final sender closes before worker joins; original reinforcement adds run-scoped stop tokens, idle cancellation, stale-token isolation and stalled-peer draining",
+          "lessonID": "guide.rust.owned-server-project",
+          "checks": [
+            "owned server base lifecycle/deadline/TCP tests",
+            "owned server IO-result answer tests",
+            "owned server answer finite controller self-check"
+          ]
+        }
+      ]
+    },
+    {
+      "pageID": "rust-reference:names/preludes.html",
+      "originalSHA256": "0cf9b7296478ca9defdc157112c9d37631d976a728b4374bd960fb066cc94b5d",
+      "fullyAdapted": false,
+      "remaining": [
+        "Other prelude kinds, edition-specific name-resolution subtleties and exhaustive source exercises remain open",
+        "Final allocator, startup and firmware linking are not established by a target library build"
+      ],
+      "units": [
+        {
+          "id": "rust-reference.preludes.nostd",
+          "anchor": "the-no_std-attribute",
+          "scope": "Core prelude and automatic std linkage, positive embedded library build and missing-attribute rejection",
+          "lessonID": "guide.rust.nostd-ring-project",
+          "checks": [
+            "no_std rejects accidental standard library dependency",
+            "no_std base embedded library compilation",
+            "no_std answer embedded library compilation"
+          ]
+        },
+        {
+          "id": "rust-reference.preludes.alloc-import",
+          "anchor": "extern-prelude",
+          "scope": "Explicit alloc import with additive core/alloc/std feature matrix; no final allocator claim",
+          "lessonID": "guide.rust.nostd-ring-project",
+          "checks": [
+            "no_std base core ownership and iterator tests",
+            "no_std base alloc ownership and iterator tests",
+            "no_std answer alloc ownership and iterator tests"
+          ]
+        }
+      ]
+    },
+    {
+      "pageID": "rust-nomicon:ffi.html",
+      "originalSHA256": "31e6a4e9aaf2b00eb802f64887f1e2319537b8e890f6bd89901eaa093dafc554",
+      "fullyAdapted": false,
+      "remaining": [
+        "Original Snappy API and source-specific compression exercises remain unadapted",
+        "Callbacks, asynchronous registration teardown, foreign globals, variadics, nullable function pointers, unwind ABIs and exhaustive platform coverage remain open",
+        "Allocation failure injection and full Rust/C sanitizer profiling remain unverified"
+      ],
+      "units": [
+        {
+          "id": "rust-nomicon.ffi.safe-interface",
+          "anchor": "creating-a-safe-interface",
+          "scope": "Original binary buffer copy and lifetime-bound Rust slice wrapper with actual linked C code; not Snappy adaptation",
+          "lessonID": "guide.rust.ffi-buffer-project",
+          "checks": [
+            "FFI base debug ownership lifetime and C sanitizer tests",
+            "FFI answer debug ownership lifetime and C sanitizer tests"
+          ]
+        },
+        {
+          "id": "rust-nomicon.ffi.destructors",
+          "anchor": "destructors",
+          "scope": "Matching foreign destructor, partial-error cleanup, Rust-side unwind and output-preserving answer",
+          "lessonID": "guide.rust.ffi-buffer-project",
+          "checks": [
+            "FFI rejects omitted foreign destructor",
+            "FFI base release ownership lifetime and C sanitizer tests",
+            "FFI answer release ownership lifetime and C sanitizer tests"
+          ]
+        },
+        {
+          "id": "rust-nomicon.ffi.opaque",
+          "anchor": "representing-opaque-structs",
+          "scope": "Private opaque C handle, exclusive context lifetime and non-Send handle compile rejections",
+          "lessonID": "guide.rust.ffi-buffer-project",
+          "checks": [
+            "FFI base debug ownership lifetime and C sanitizer tests",
+            "FFI base actual foreign buffer example"
+          ]
+        }
+      ]
+    }
+  ]
+}

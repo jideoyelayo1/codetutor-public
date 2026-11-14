@@ -1,0 +1,29 @@
+{
+ "key": "arrays-and-ranges",
+ "title": "Arrays, indices and ranges",
+ "body": [
+  "An array is a fixed-length, zero-indexed block of elements of one type: `int[] scores = new int[3];` creates three zeros, because new arrays hold each element type's default value (0, false, null). A collection expression `int[] primes = [2, 3, 5];` creates and fills one. Arrays are reference types, so assigning an array variable aliases it.",
+  "Indexing checks bounds at runtime: `scores[3]` on a three-element array throws `IndexOutOfRangeException`. `Length` gives the element count. `^1` is an index from the end, so `primes[^1]` is the last element. A range `a[1..3]` creates a new array containing indices 1 and 2; the end is exclusive.",
+  "Multidimensional arrays `int[,] grid = new int[2, 3];` are rectangular and indexed `grid[row, col]`, with `GetLength(0)` and `GetLength(1)` for sizes. Jagged arrays `int[][]` are arrays of arrays whose rows may differ in length; each row must be created separately.",
+  "`Array.Sort`, `Array.Reverse`, `Array.IndexOf` and `Array.Fill` work in place. `Array.Copy` and `CopyTo` duplicate elements; `Clone()` makes a shallow copy (the elements of a reference-type array still alias the same objects). Use `List<T>` (stage 6) when the size changes.",
+  "A range on an array copies, while a range on a span (stage 10) is a view without copying. Before slicing, check whether you need an independent copy or a view of the same memory, and remember that an out-of-range index is a runtime failure, not a compile error."
+ ],
+ "expectedStdout": "0,80,0\n2 11 5\n99,5,7 | 2,3,5,7,11\n12\n1 2 3 \n1,4,5\nindex 3 is out of range\n",
+ "challenge": "Given int[] values = [3, 8, 1, 9, 4], print the last two elements using a range from the end, then rotate the array left by one in place and print it.",
+ "solutionStdout": "9,4\n8,1,9,4,3\n",
+ "question": "What does `primes[1..4]` produce for an int[] in C#?",
+ "correct": "A new array with the elements at indices 1, 2 and 3",
+ "wrong": [
+  "A view sharing the original array's storage",
+  "Elements at indices 1 through 4 inclusive"
+ ],
+ "reasoning": "Range ends are exclusive, and slicing an array allocates a copy; use AsSpan() for a non-copying view.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/arrays",
+ "additionalReadings": [
+  {
+   "title": "Indices and ranges",
+   "url": "https://learn.microsoft.com/en-us/dotnet/csharp/tutorials/ranges-indexes",
+   "section": "^ and .."
+  }
+ ]
+}

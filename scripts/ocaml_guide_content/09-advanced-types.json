@@ -1,0 +1,160 @@
+[
+  {
+    "key": "labelled-and-optional-arguments",
+    "stage": "09 · Advanced types",
+    "title": "Labelled and optional arguments",
+    "body": [
+      "A labelled argument is written `~name` in a definition and at the call site: `let area ~width ~height = width * height` is called as `area ~height:2 ~width:5`. Labels make long parameter lists readable and let callers pass arguments in any order.",
+      "An optional argument has a default: `let greet ?(greeting = \"Hello\") name = ...`. Callers may omit it, or supply it with `~greeting:\"Hi\"`. Inside the function it is a plain value when you give a default, or an `option` when you write `?greeting` without one.",
+      "An optional argument needs a following positional argument so the compiler knows the call is complete. Put it before a required, unlabelled parameter. Excess optional arguments are a common source of confusing warnings, so use them for genuine options and not for every flag."
+    ],
+    "code": "let area ~width ~height = width * height\nlet greet ?(greeting = \"Hello\") name = greeting ^ \", \" ^ name\nlet describe ?prefix name =\n  match prefix with None -> name | Some p -> p ^ name\n\nlet () =\n  Printf.printf \"%d\\n\" (area ~height:2 ~width:5);\n  print_endline (greet \"Ada\");\n  print_endline (greet ~greeting:\"Hi\" \"Ada\");\n  print_endline (describe \"x\");\n  print_endline (describe ~prefix:\"pre-\" \"x\");\n  let tall = area ~height:10 in\n  Printf.printf \"%d\\n\" (tall ~width:3)\n",
+    "expectedStdout": "10\nHello, Ada\nHi, Ada\nx\npre-x\n30\n",
+    "challenge": "Write `repeat ?(sep = \" \") ~times s` that joins `times` copies of `s` with the separator, and print `repeat ~times:3 \"ab\"` with default and `\"-\"` separators.",
+    "solution": "let repeat ?(sep = \" \") ~times s = String.concat sep (List.init times (fun _ -> s))\n\nlet () =\n  print_endline (repeat ~times:3 \"ab\");\n  print_endline (repeat ~sep:\"-\" ~times:3 \"ab\")\n",
+    "solutionStdout": "ab ab ab\nab-ab-ab\n",
+    "question": "Why must an optional argument be followed by a positional argument?",
+    "correct": "Otherwise the compiler cannot tell whether the call is finished and the default should apply",
+    "wrong": [
+      "Optional arguments only work on the last parameter",
+      "It improves performance"
+    ],
+    "reasoning": "A function whose last parameter is optional could always accept more arguments, so the application would never be considered complete.",
+    "sourceURL": "https://dev.realworldocaml.org/variables-and-functions.html",
+    "project": null,
+    "additionalReadings": [
+      {
+        "title": "4. Labeled arguments",
+        "url": "https://ocaml.org/manual/5.5/lablexamples.html",
+        "section": "4. Labeled arguments"
+      }
+    ]
+  },
+  {
+    "key": "polymorphic-variants",
+    "stage": "09 · Advanced types",
+    "title": "Polymorphic variants",
+    "body": [
+      "A polymorphic variant is written with a backtick: `` `Red `` or `` `Rgb of int * int * int ``. It needs no type declaration, and the inferred type lists the tags, such as `[> `Red | `Green ]`. The `>` means 'at least these', so the value can be used wherever more tags are allowed.",
+      "Matching infers a closed upper bound `[< `Red | `Green ]`, 'at most these'. This makes it easy to share cases between types: a function handling `` [`Red | `Green] `` can be applied to a value known to be only `` `Red ``. Ordinary variants cannot overlap like this.",
+      "The price is weaker error messages and a risk of typos creating new tags silently. Use polymorphic variants for open-ended event types and for composing subsets of cases, and ordinary variants when you want the strictest checking."
+    ],
+    "code": "let name = function `Red -> \"red\" | `Green -> \"green\"\nlet more = function `Red -> \"r\" | `Green -> \"g\" | `Blue -> \"b\"\n\ntype basic = [ `Red | `Green ]\ntype extended = [ basic | `Blue ]\n\nlet describe (c : extended) =\n  match c with\n  | #basic as b -> \"basic \" ^ name b\n  | `Blue -> \"blue\"\n\nlet () =\n  print_endline (name `Red);\n  print_endline (more `Blue);\n  print_endline (describe `Green);\n  print_endline (describe `Blue);\n  let c = `Rgb (255, 0, 0) in\n  match c with `Rgb (r, _, _) -> Printf.printf \"%d\\n\" r\n",
+    "expectedStdout": "red\nb\nbasic green\nblue\n255\n",
+    "challenge": "Define `type shape = [ `Circle of float | `Square of float ]` and `area`, then print the area of `Square 3.0` using 3.0 *. 3.0 and `Circle 1.0` with pi as 3.0.",
+    "solution": "type shape = [ `Circle of float | `Square of float ]\n\nlet area : shape -> float = function\n  | `Circle r -> 3.0 *. r *. r\n  | `Square s -> s *. s\n\nlet () = Printf.printf \"%.1f %.1f\\n\" (area (`Square 3.0)) (area (`Circle 1.0))\n",
+    "solutionStdout": "9.0 3.0\n",
+    "question": "What does the type `[> `Red | `Green ]` mean?",
+    "correct": "A value that has at least the tags Red and Green and may have more",
+    "wrong": [
+      "A value that can only be Red or Green",
+      "A function from Red to Green"
+    ],
+    "reasoning": "The > bound is open, so extra tags are allowed; < would close the type to at most the listed tags.",
+    "sourceURL": "https://dev.realworldocaml.org/variants.html",
+    "project": null,
+    "additionalReadings": [
+      {
+        "title": "5. Polymorphic variants",
+        "url": "https://ocaml.org/manual/5.5/polyvariant.html",
+        "section": "5. Polymorphic variants"
+      }
+    ]
+  },
+  {
+    "key": "phantom-types",
+    "stage": "09 · Advanced types",
+    "title": "Phantom types for compile-time tags",
+    "body": [
+      "A phantom type parameter appears in a type's definition but not in its representation. `type 'unit_ length = Length of float` is just a float at runtime, but `meters length` and `feet length` are different types, so you cannot add them by mistake.",
+      "Keep the tag types abstract or empty and hide the constructor behind a signature, so only your conversion functions create values. The compiler then rejects mixing units, or using an unvalidated string where a validated one is required, without any runtime cost.",
+      "Phantom types model a state machine too: a `closed handle` has no `read`, and `close` returns `closed handle`. This turns whole classes of misuse into type errors, as long as the abstraction boundary stays sealed."
+    ],
+    "code": "module Length : sig\n  type 'u t\n  type meters\n  type feet\n  val meters : float -> meters t\n  val feet : float -> feet t\n  val add : 'u t -> 'u t -> 'u t\n  val to_meters : feet t -> meters t\n  val value : 'u t -> float\nend = struct\n  type 'u t = float\n  type meters\n  type feet\n  let meters x = x\n  let feet x = x\n  let add = ( +. )\n  let to_meters f = f *. 0.5\n  let value x = x\nend\n\nlet () =\n  let a = Length.meters 3.0 and b = Length.meters 4.0 in\n  Printf.printf \"%.1f\\n\" (Length.value (Length.add a b));\n  Printf.printf \"%.1f\\n\" (Length.value (Length.to_meters (Length.feet 10.0)))\n",
+    "expectedStdout": "7.0\n5.0\n",
+    "challenge": "Try `Length.add (Length.meters 1.0) (Length.feet 1.0)` and read the compile error, then explain in one line why it is a type error. Restore the valid program afterwards and print `Length.value (Length.meters 2.5)`.",
+    "solution": "module Length : sig\n  type 'u t\n  type meters\n  val meters : float -> meters t\n  val value : 'u t -> float\nend = struct\n  type 'u t = float\n  type meters\n  let meters x = x\n  let value x = x\nend\n\nlet () = Printf.printf \"%.1f\\n\" (Length.value (Length.meters 2.5))\n",
+    "solutionStdout": "2.5\n",
+    "question": "What is the runtime cost of a phantom type parameter?",
+    "correct": "None, because the parameter exists only in the type system",
+    "wrong": [
+      "One extra word per value",
+      "A dynamic check on every operation"
+    ],
+    "reasoning": "The phantom tag is erased after type checking, so the representation is just the underlying value.",
+    "sourceURL": "https://dev.realworldocaml.org/gadts.html",
+    "project": null
+  },
+  {
+    "key": "gadts",
+    "stage": "09 · Advanced types",
+    "title": "GADTs: types that depend on the constructor",
+    "body": [
+      "A generalised algebraic data type lets each constructor choose its own result type. `type _ expr = Int : int -> int expr | Bool : bool -> bool expr | Add : int expr * int expr -> int expr | If : bool expr * 'a expr * 'a expr -> 'a expr` encodes the typing rules of a small language in OCaml's types.",
+      "An evaluator `eval : type a. a expr -> a` then returns an `int` for integer expressions and a `bool` for boolean ones, with no tags to check at runtime. Ill-typed expressions such as `Add (Bool true, Int 1)` are rejected when you write them, not when you run them.",
+      "Two details matter. A function that matches on a GADT usually needs an explicit polymorphic annotation, `type a. a expr -> a`, because the result type varies by case. And pattern matching refines types per branch, so the compiler can prove that some cases are impossible."
+    ],
+    "code": "type _ expr =\n  | Int : int -> int expr\n  | Bool : bool -> bool expr\n  | Add : int expr * int expr -> int expr\n  | Less : int expr * int expr -> bool expr\n  | If : bool expr * 'a expr * 'a expr -> 'a expr\n\nlet rec eval : type a. a expr -> a = function\n  | Int n -> n\n  | Bool b -> b\n  | Add (a, b) -> eval a + eval b\n  | Less (a, b) -> eval a < eval b\n  | If (c, t, e) -> if eval c then eval t else eval e\n\nlet () =\n  let e = If (Less (Int 2, Add (Int 1, Int 3)), Int 10, Int 20) in\n  Printf.printf \"%d\\n\" (eval e);\n  Printf.printf \"%b\\n\" (eval (Less (Int 5, Int 1)))\n",
+    "expectedStdout": "10\nfalse\n",
+    "challenge": "Add a `Not : bool expr -> bool expr` constructor and extend `eval`, then print `eval (Not (Bool false))`.",
+    "solution": "type _ expr =\n  | Bool : bool -> bool expr\n  | Not : bool expr -> bool expr\n\nlet rec eval : type a. a expr -> a = function\n  | Bool b -> b\n  | Not e -> not (eval e)\n\nlet () = Printf.printf \"%b\\n\" (eval (Not (Bool false)))\n",
+    "solutionStdout": "true\n",
+    "question": "What does a GADT constructor like `Add : int expr * int expr -> int expr` express?",
+    "correct": "The constructor builds an int expr and requires int expr arguments, so ill-typed terms cannot be built",
+    "wrong": [
+      "That Add is evaluated lazily",
+      "That Add may take expressions of any type"
+    ],
+    "reasoning": "Each constructor fixes its own result index, so the type checker enforces the object language's typing rules.",
+    "sourceURL": "https://dev.realworldocaml.org/gadts.html",
+    "project": null
+  },
+  {
+    "key": "existential-types",
+    "stage": "09 · Advanced types",
+    "title": "Existential types: hiding a type behind a value",
+    "body": [
+      "Sometimes you want a list of things that can each be printed, but of different types. An existential packs a value together with the operations to use it and hides the value's type: `type showable = Show : 'a * ('a -> string) -> showable`. The `'a` appears on the right of the arrow only, so it is existentially quantified.",
+      "Consumers can unpack with a match and use the operations, but cannot learn what the hidden type is. This is the type-theory form of an object: data plus methods with a private representation, available without classes.",
+      "The type variable cannot escape the match. Returning the hidden value from the function is a type error, which is exactly the guarantee you wanted. If you need to return something, return the result of the packed operation."
+    ],
+    "code": "type showable = Show : 'a * ('a -> string) -> showable\n\nlet render (Show (v, f)) = f v\n\nlet items =\n  [ Show (42, string_of_int)\n  ; Show (\"hi\", fun s -> \"\\\"\" ^ s ^ \"\\\"\")\n  ; Show ([1; 2; 3], fun l -> String.concat \"+\" (List.map string_of_int l))\n  ; Show (true, string_of_bool) ]\n\nlet () = List.iter (fun x -> print_endline (render x)) items\n",
+    "expectedStdout": "42\n\"hi\"\n1+2+3\ntrue\n",
+    "challenge": "Add a pair of floats with a printer to the list and print the whole list on one line separated by \" | \".",
+    "solution": "type showable = Show : 'a * ('a -> string) -> showable\nlet render (Show (v, f)) = f v\nlet items = [ Show (1, string_of_int); Show ((1.5, 2.5), fun (a, b) -> Printf.sprintf \"(%.1f,%.1f)\" a b) ]\nlet () = print_endline (String.concat \" | \" (List.map render items))\n",
+    "solutionStdout": "1 | (1.5,2.5)\n",
+    "question": "Why can't an unpacked existential value be returned from the function?",
+    "correct": "Its type is hidden and local to the match, so letting it escape would break type safety",
+    "wrong": [
+      "Existentials can only be printed",
+      "Because the value is garbage collected after the match"
+    ],
+    "reasoning": "The compiler gives the hidden type a fresh name valid only inside the match; it cannot appear in the result type.",
+    "sourceURL": "https://ocaml.org/manual/5.5/gadts-tutorial.html",
+    "project": null
+  },
+  {
+    "key": "objects-and-classes",
+    "stage": "09 · Advanced types",
+    "title": "Objects and classes: the O in OCaml",
+    "body": [
+      "OCaml has structural objects. An immediate object, `object method area = 12 end`, has the type `< area : int >`, and any object with at least that method can be used where the type is expected. This is subtyping by structure, with no class needed.",
+      "Classes add constructors, inheritance and instance variables. `class counter = object val mutable n = 0 method incr = n <- n + 1 method get = n end` defines a type and a constructor, and `new counter` builds a fresh object. Instance variables are private; only methods can reach them.",
+      "Most OCaml code uses modules and records instead, and objects appear in GUI bindings and where open recursion is valuable. Reach for them when you need structural subtyping or inheritance with late binding, and use explicit upcasts, `(o :> shape)`, when a more specific object is passed as a more general one."
+    ],
+    "code": "class counter =\n  object\n    val mutable n = 0\n    method incr = n <- n + 1\n    method get = n\n  end\n\nclass type shape = object method area : float end\n\nclass square side = object method area = side *. side end\nclass circle r = object method area = 3.0 *. r *. r end\n\nlet total (shapes : shape list) = List.fold_left (fun acc s -> acc +. s#area) 0.0 shapes\n\nlet () =\n  let c = new counter in\n  c#incr; c#incr;\n  Printf.printf \"%d\\n\" c#get;\n  let o = object method area = 12.0 end in\n  Printf.printf \"%.1f\\n\" (total [ (new square 2.0 :> shape); (new circle 1.0 :> shape); (o :> shape) ])\n",
+    "expectedStdout": "2\n19.0\n",
+    "challenge": "Define `class rect w h` with an `area` method and include a 2 by 5 rectangle in the total, printing the new total.",
+    "solution": "class type shape = object method area : float end\nclass square side = object method area = side *. side end\nclass rect w h = object method area = w *. h end\n\nlet total (shapes : shape list) = List.fold_left (fun acc s -> acc +. s#area) 0.0 shapes\nlet () = Printf.printf \"%.1f\\n\" (total [ (new square 2.0 :> shape); (new rect 2.0 5.0 :> shape) ])\n",
+    "solutionStdout": "14.0\n",
+    "question": "How do OCaml objects relate to each other for substitution?",
+    "correct": "By structure: an object with at least the needed methods can be used, via an explicit upcast where required",
+    "wrong": [
+      "Only through class inheritance",
+      "By matching their class names"
+    ],
+    "reasoning": "Object types are structural, so compatibility depends on the methods rather than on declared class names.",
+    "sourceURL": "https://dev.realworldocaml.org/objects.html",
+    "project": null
+  }
+]

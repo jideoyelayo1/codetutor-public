@@ -1,0 +1,93 @@
+{
+  "key": "merlin-editor-support",
+  "stage": "21 · Tools, libraries and the compiler",
+  "n": 12,
+  "title": "Merlin: how editors understand OCaml",
+  "minutes": 30,
+  "body": [
+    "Editor support for OCaml, such as error squiggles, type-on-hover and jump-to-definition, comes from Merlin. `ocamlmerlin` is a small server that holds a parsed and typed view of a file and answers queries about it. An editor plug-in sends a query, with the buffer on standard input, and receives JSON, so any editor can use it by speaking the same protocol.",
+    "You can speak the protocol yourself. `ocamlmerlin single errors -filename example/bad.ml < example/bad.ml` type-checks the buffer and reports each error with its position and message; an empty list means the file is fine. `type-enclosing -position 1:4` asks for the type at a position, which is what powers hover. Merlin reads the project's build settings from a configuration, which Dune generates for you with `dune ocaml merlin dump-config`, so the editor sees the same libraries and flags as the build.",
+    "Together with `dune` (build), `opam` (packages), `ocamlformat` (layout), `odoc` (documentation) and `utop` (a better toplevel), Merlin makes up the *OCaml Platform* that the Real World OCaml chapter describes. When your editor shows no information, run Merlin by hand: an error here usually points to a missing library in the build file or a file that Dune does not know about."
+  ],
+  "challenge": "example/bad.ml has a type error, so Merlin reports a typer error. Fix it so Merlin reports no errors for the file, and the type of `answer` at line 1 column 4 is reported as `int`.",
+  "projectInstructions": "Run `dune build --root . @check` so Dune writes Merlin's configuration, then `ocamlmerlin single errors -filename example/bad.ml < example/bad.ml` before and after your change. Ask for the type at a position with `ocamlmerlin single type-enclosing -position 1:4 -filename example/bad.ml < example/bad.ml`. Edit only example/bad.ml.",
+  "question": "How does an editor get type information from Merlin?",
+  "correct": "It sends a query with the buffer on standard input and reads a JSON answer",
+  "wrong": [
+    "It links the Merlin library into the editor and calls it directly",
+    "It runs the program and reads the values at run time"
+  ],
+  "reasoning": "Merlin is a separate server with a text protocol, which lets every editor use the same analysis.",
+  "sourceURL": "https://dev.realworldocaml.org/platform.html",
+  "projectChecks": [
+    {
+      "name": "starter: the type error stops the build",
+      "command": [
+        "dune",
+        "build",
+        "--root",
+        ".",
+        "@check"
+      ],
+      "exit": 1,
+      "stderrContains": "forty-two"
+    },
+    {
+      "name": "starter: Merlin reports a typing error",
+      "command": [
+        "sh",
+        "-c",
+        "ocamlmerlin single errors -filename example/bad.ml < example/bad.ml"
+      ],
+      "exit": 0,
+      "stdoutContains": [
+        "typer"
+      ]
+    },
+    {
+      "name": "solution: the build is clean",
+      "command": [
+        "dune",
+        "build",
+        "--root",
+        ".",
+        "@check"
+      ],
+      "exit": 0,
+      "useSolution": true
+    },
+    {
+      "name": "solution: Merlin reports no errors",
+      "command": [
+        "sh",
+        "-c",
+        "ocamlmerlin single errors -filename example/bad.ml < example/bad.ml"
+      ],
+      "exit": 0,
+      "stdoutContains": [
+        "\"value\":[]"
+      ],
+      "useSolution": true
+    },
+    {
+      "name": "solution: Merlin reports the type at a position",
+      "command": [
+        "sh",
+        "-c",
+        "ocamlmerlin single type-enclosing -position 1:4 -filename example/bad.ml < example/bad.ml"
+      ],
+      "exit": 0,
+      "stdoutContains": [
+        "int"
+      ],
+      "useSolution": true
+    }
+  ],
+  "additionalReadings": [
+    {
+      "title": "Merlin",
+      "url": "https://ocaml.github.io/merlin/",
+      "section": "Overview"
+    }
+  ]
+}

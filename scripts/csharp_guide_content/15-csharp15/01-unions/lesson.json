@@ -1,0 +1,41 @@
+{
+ "key": "union-types",
+ "title": "Union types",
+ "sdk": "11",
+ "body": [
+  "C# 15 ships with .NET 11, whose release candidates carry a go-live licence; general availability is expected in November 2026. These examples are checked with SDK 11.0.100-rc.2. Details can still change before release, so re-check the What's new page after GA.",
+  "A union type holds a value that is exactly one of several case types: `public union Pet(Cat, Dog, Bird);`. Each case type converts implicitly to the union, so `Pet pet = new Dog(\"Rex\");` just works. Case types can be classes, records, structs or built-in types such as `int`.",
+  "The compiler knows the complete list of cases, so a `switch` over a union is exhaustive when it handles every case type: no discard arm is needed, and leaving a case out produces warning CS8509 (an error when warnings are errors). Adding a case later makes every incomplete switch light up, which is the main safety benefit.",
+  "Before C# 15 the same idea needed a closed class hierarchy you maintained by convention, a `OneOf`-style library, or the `Result<T>` record from stage 5. Unions express 'one of these' directly, including for types you do not own and value types, without a shared base class.",
+  "The runtime support types (`UnionAttribute`, `IUnion`) arrived in .NET 11 Preview 5, and Microsoft notes that some parts of the specification are still being implemented. Use unions for closed sets of alternatives such as results, messages and parse outcomes, and check new releases for additions to the feature."
+ ],
+ "expectedStdout": "ok: 42\nerror: disk full\ncancelled\n7.93\n",
+ "challenge": "Define union Token(int, string, char) for a tiny tokenizer and write Render(Token t) with an exhaustive switch. Convert \"x = 42 ;\" into tokens (numbers as int, single symbols as char, other words as string) and print them.",
+ "solutionStdout": "word x\nsymbol =\nnumber 42\nsymbol ;\n",
+ "question": "What happens when a switch over a union omits one of its case types?",
+ "correct": "The compiler warns that the switch is not exhaustive (CS8509)",
+ "wrong": [
+  "The missing case silently matches the first arm",
+  "The union removes that case type"
+ ],
+ "reasoning": "The compiler knows every case of a union, so incomplete switches are reported; with warnings as errors they fail the build.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/whats-new/csharp-15",
+ "additionalReadings": [
+  {
+   "title": "Union types (language reference)",
+   "url": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/union",
+   "section": "Union types"
+  },
+  {
+   "title": "Unions proposal",
+   "url": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/proposals/csharp-15.0/unions",
+   "section": "Specification"
+  }
+ ],
+ "rejected": [
+  {
+   "file": "rejected.cs",
+   "diagnostic": "CS8509"
+  }
+ ]
+}

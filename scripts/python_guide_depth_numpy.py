@@ -1,0 +1,246 @@
+"""Original Stage 11 NumPy foundations depth: NumPy 2.2 sections with executed transfer practice."""
+from python_guide_depth import add, task
+
+NP = "import numpy as np"
+
+add('array-shape', 'ndarray.shape: dimensions, size and rejected ragged input',
+    'https://numpy.org/doc/2.2/reference/generated/numpy.ndarray.shape.html#numpy.ndarray.shape', [
+    "An ndarray is a grid of values of one dtype. ndim is the number of axes, shape gives the length along each axis and size is their product, the total number of elements. A table of 3 rows and 2 features has shape (3, 2); a batch of 1 image with 2 rows and 1 column has shape (1, 2, 1).",
+    "Every row along an axis must have the same length. Since NumPy 1.24, np.asarray of ragged nested lists with a numeric dtype raises ValueError instead of quietly creating an array of Python list objects. That error is useful: it reports malformed input at the boundary.",
+    "Asking for dtype=object accepts ragged input, but it produces a 1-D array of list objects that loses vectorized arithmetic. Use it deliberately, not as a way to silence the error. An empty list becomes shape (0,), a valid one-dimensional array with no elements.",
+    "The transfer describes several inputs, including a ragged one that must be reported rather than converted."
+    ],
+    ("What does np.asarray([[1, 2], [3]], dtype=float) do in NumPy 2.2?",
+     "Raises ValueError because the rows have different lengths.",
+     ["Pads the short row with NaN.", "Returns shape (2, 2) with a zero filled in.", "Returns a 1-D float array [1, 2, 3]."],
+     "Ragged nested sequences cannot form a regular numeric array; NumPy rejects them."),
+    task("Transfer: describe or reject array input",
+         "data is a list of nested lists. For each, build np.asarray(rows, dtype=float) and return [ndim, shape, size], or 'ragged' when NumPy raises ValueError.",
+         "def describe(rows):\n    try:\n        a = np.asarray(rows, dtype=float)\n    except ValueError:\n        return 'ragged'\n    return [a.ndim, list(a.shape), int(a.size)]\nresult = [describe(r) for r in data]",
+         [([[[1,2],[3,4],[5,6]],[[1,2],[3]],[],[[[1],[2]]]],[[2,[3,2],6],'ragged',[1,[0],0],[3,[1,2,1],2]]),([[1,2,3]],[[1,[3],3]]),([[[0]]],[[2,[1,1],1]])],
+         ("np.asarray(rows, dtype=float)","np.asarray(rows, dtype=object)"),
+         ["shape lists each axis length; size is their product.", "Ragged rows raise ValueError with a numeric dtype.", "An empty list is a valid shape (0,) array."],
+         "Three rows of two give shape (3, 2) and size 6. The ragged input is rejected. dtype=object would accept it as a 1-D array of lists, hiding the malformed rows.",
+         [[[2,[2,3],6],'ragged',[1,[0],0],[3,[1,2,1],2]],[[2,[3,2],6],[1,[2],2],[1,[0],0],[3,[1,2,1],2]],[[2,[3,2],5],'ragged',[0,[],0],[3,[1,2,1],2]]],
+         NP),
+    ("What do ndim, shape and size report?", "Number of axes, the length of each axis, and the total element count (product of shape)."))
+
+add('array-dtype', 'Data types: truncating casts, half-to-even rounding and float32 precision',
+    'https://numpy.org/doc/2.2/user/basics.types.html#numerical-data-types', [
+    "An array's dtype fixes how every element is stored. Converting float to integer with astype truncates toward zero: 1.7 becomes 1 and -1.7 becomes -1. It does not round, and it does not warn.",
+    "np.rint and np.round round to the nearest integer and send exact halves to the nearest even number, so 2.5 becomes 2 and 3.5 becomes 4. This half-to-even rule avoids systematic upward bias when many values are rounded. Python's built-in round uses the same rule.",
+    "Lower precision changes values. float32 has about seven significant decimal digits, so float(np.float32(0.1)) is not equal to the float64 value 0.1. Models are often trained in float32 to save memory; compare with tolerances and never assume a cast round-trips exactly.",
+    "The transfer contrasts truncation, half-to-even rounding and single precision on the same inputs."
+    ],
+    ("What does np.asarray([1.7, -1.7]).astype(np.int64) produce?",
+     "[1, -1], because the cast truncates toward zero.",
+     ["[2, -2], because the cast rounds.", "[1, -2], because the cast floors.", "It raises a casting error."],
+     "Float-to-integer astype discards the fractional part; use np.rint first when rounding is intended."),
+    task("Transfer: truncate, round and lose precision",
+         "data is a list of floats. Return [astype(int64) values, np.rint(...).astype(int64) values, float(np.float32(0.1)) == 0.1, the dtype name of the float64 array].",
+         "a = np.asarray(data, dtype=np.float64)\ntruncated = a.astype(np.int64).tolist()\nrounded = np.rint(a).astype(np.int64).tolist()\nsingle = float(np.float32(0.1))\nresult = [truncated, rounded, single == 0.1, a.dtype.name]",
+         [([1.7,-1.7,2.5],[[1,-1,2],[2,-2,2],False,'float64']),([],[[],[],False,'float64']),([0.4,3.5],[[0,3],[0,4],False,'float64'])],
+         ("rounded = np.rint(a).astype(np.int64).tolist()","rounded = np.floor(a).astype(np.int64).tolist()"),
+         ["astype truncates toward zero.", "rint sends exact halves to the even neighbour.", "float32 cannot represent 0.1 as precisely as float64."],
+         "1.7 and -1.7 truncate to 1 and -1 but round to 2 and -2; 2.5 rounds to 2 and 3.5 to 4. Flooring would give -2 for -1.7 and 3 for 3.5. The float32 value of 0.1 differs from the float64 one.",
+         [[[1,-2,2],[2,-2,2],False,'float64'],[[2,-2,3],[2,-2,3],False,'float64'],[[1,-1,2],[2,-2,3],True,'float64']],
+         NP),
+    ("How does np.rint round 2.5 and 3.5?", "Half to even: 2.5 → 2 and 3.5 → 4."))
+
+add('array-broadcast', 'Broadcasting: general rules, column standardization and incompatible shapes',
+    'https://numpy.org/doc/2.2/user/basics.broadcasting.html#general-broadcasting-rules', [
+    "Broadcasting compares shapes from the last axis backwards. Two dimensions are compatible when they are equal or one of them is 1; a missing leading dimension counts as 1. The smaller array is then treated as repeated along those axes without copying data.",
+    "A (rows, features) matrix minus a (features,) vector of column means subtracts each column's mean from that column. This is how feature standardization, z = (x - mean) / std, is written without loops. np.broadcast_shapes reports the result shape or raises if the shapes are incompatible.",
+    "Guard against a zero standard deviation: a constant column has no spread, and dividing by zero produces NaN or infinity. Replacing zero with one leaves that column at zero after centring. Shapes like (4, 1) and (3, 1) are incompatible and raise ValueError, which is better than silently aligning the wrong axis.",
+    "The transfer standardizes columns, reports the broadcast shape and confirms that a mismatched row count is rejected."
+    ],
+    ("Can arrays of shape (3, 1) and (2,) be broadcast together?",
+     "Yes, to shape (3, 2): the trailing 1 stretches to 2 and the missing leading axis becomes 3.",
+     ["No, because 3 and 2 differ.", "Yes, to shape (3, 1).", "Only if both are converted to float."],
+     "Compare from the right: 1 vs 2 is compatible, and the missing axis vs 3 is compatible."),
+    task("Transfer: standardize columns by broadcasting",
+         "data is a 2-D list. Standardize each column with its mean and population std (axis 0), treating a zero std as 1. Return [z rounded to 6 places, broadcast shape of x and the mean, 'error' or 'broadcast' when adding an array with one extra row].",
+         "x = np.asarray(data, dtype=float)\nmean = x.mean(axis=0)\nstd = x.std(axis=0)\nz = (x - mean) / np.where(std == 0, 1.0, std)\ntry:\n    x + np.ones((x.shape[0] + 1, x.shape[1]))\n    mismatch = 'broadcast'\nexcept ValueError:\n    mismatch = 'error'\nresult = [z.round(6).tolist(), list(np.broadcast_shapes(x.shape, mean.shape)), mismatch]",
+         [([[1,10],[3,10]],[[[-1.0,0.0],[1.0,0.0]],[2,2],'error']),([[0,0,0]],[[[0.0,0.0,0.0]],[1,3],'broadcast']),([[2],[4],[6]],[[[-1.224745],[0.0],[1.224745]],[3,1],'error'])],
+         ("mean = x.mean(axis=0)","mean = x.mean(axis=1, keepdims=True)"),
+         ["axis=0 averages down each column.", "A constant column has zero std; divide by 1 instead.", "Row counts 2 and 3 are incompatible, but a single row stretches to any count."],
+         "Column one has mean 2 and std 1, giving -1 and 1; column two is constant and becomes 0. Row counts 2 and 3 cannot broadcast, but a one-row matrix stretches against two rows, so that case reports 'broadcast'. Using row means would centre each row instead of each feature.",
+         [[[[-1.0,-1.0],[1.0,1.0]],[2,2],'error'],[[[-1.0,0.0],[1.0,0.0]],[2,2],'broadcast'],[[[-1.0,0.0],[1.0,0.0]],[2],'error']],
+         NP),
+    ("What are NumPy's broadcasting rules?", "Compare shapes from the right; each pair must be equal or contain a 1; missing leading axes count as 1."))
+
+add('array-basic-view', 'Copies and views: slices share memory, .copy() does not',
+    'https://numpy.org/doc/2.2/user/basics.copies.html#view', [
+    "A basic slice such as a[1:3] creates a view: a new array object describing part of the same memory. Writing through the view changes the original array. view.base points at the array that owns the memory.",
+    "Views make slicing cheap, even for huge arrays, but they cause surprising bugs when a function modifies a slice it received. If independent data is required, call .copy() explicitly. np.shares_memory(a, b) checks whether two arrays overlap.",
+    "Augmented assignments such as window *= 10 operate in place on the view. Plain assignment, window = window * 10, creates a new array and leaves the original untouched. Code review should check which one is intended whenever a slice is modified.",
+    "The transfer modifies a view and a copy of the same region and observes the effect on the original."
+    ],
+    ("b = a[1:3]; b *= 10. What happens to a?",
+     "Its elements at positions 1 and 2 are multiplied by 10, because b is a view of a's memory.",
+     ["Nothing; slicing always copies.", "All of a is multiplied by 10.", "It raises an error because views are read-only."],
+     "Basic slices are views; in-place operations on them write to the original array."),
+    task("Transfer: view versus copy",
+         "data is a list of at least two numbers. Take window = a[1:3] (a view) and safe = a[1:3].copy(). Multiply window by 10 and safe by 100 in place. Return [a as a list, window.base is a, np.shares_memory(a, safe)].",
+         "a = np.asarray(data, dtype=float)\nwindow = a[1:3]\nsafe = a[1:3].copy()\nwindow *= 10\nsafe *= 100\nresult = [a.tolist(), window.base is a, bool(np.shares_memory(a, safe))]",
+         [([1,2,3,4],[[1.0,20.0,30.0,4.0],True,False]),([5,6],[[5.0,60.0],True,False]),([0,1,2],[[0.0,10.0,20.0],True,False])],
+         ("window = a[1:3]","window = a[[1, 2]]"),
+         ["A basic slice is a view of the same memory.", "*= modifies in place.", ".copy() allocates independent memory."],
+         "The view's change appears in a, while the copy's change does not. Fancy indexing with a list would create a copy and leave a unchanged.",
+         [[[1.0,2.0,3.0,4.0],False,False],[[1.0,20.0,30.0,4.0],True,True],[[1.0,2000.0,3000.0,4.0],True,False]],
+         NP),
+    ("How do you get independent data from a slice?", "Call .copy(); a basic slice is a view that shares memory with its base."))
+
+add('advanced-index-copy', 'Advanced indexing: repeated indices, buffered assignment and np.add.at',
+    'https://numpy.org/doc/2.2/user/basics.indexing.html#advanced-indexing', [
+    "Indexing with an integer array selects elements into a new array, a copy. Assigning through an index array, a[idx] = values, writes to the original. These are different operations with the same bracket syntax.",
+    "With repeated indices, a[idx] += 1 does not accumulate. It reads all selected values, adds one, then writes them back, so an index that appears twice is incremented once. This is a classic bug when counting or scattering gradients.",
+    "np.add.at(a, idx, 1) performs an unbuffered addition, applying every occurrence. For counting non-negative integers, np.bincount(idx, minlength=k) is simpler and faster. Choose the operation from the required semantics and test it with duplicates.",
+    "The transfer counts occurrences three ways, showing which ones handle repeated indices correctly."
+    ],
+    ("counts = np.zeros(3); counts[[1, 1]] += 1. What is counts[1]?",
+     "1.0; buffered fancy assignment applies the repeated index only once.",
+     ["2.0; each occurrence is added.", "It raises IndexError for the duplicate.", "0.0; the assignment is to a copy."],
+     "Use np.add.at or np.bincount when duplicates must accumulate."),
+    task("Transfer: accumulate with repeated indices",
+         "data is a list of indices in 0..3. Return [result of zeros(4)[idx] += 1, result of np.add.at(zeros(4), idx, 1), np.bincount(idx, minlength=4)] as lists.",
+         "counts = np.zeros(4, dtype=np.int64)\nbuffered = np.zeros(4, dtype=np.int64)\nidx = np.asarray(data, dtype=np.int64)\nbuffered[idx] += 1\nnp.add.at(counts, idx, 1)\nresult = [buffered.tolist(), counts.tolist(), np.bincount(idx, minlength=4).tolist()]",
+         [([0,2,2,3],[[1,0,1,1],[1,0,2,1],[1,0,2,1]]),([],[[0,0,0,0],[0,0,0,0],[0,0,0,0]]),([1,1,1],[[0,1,0,0],[0,3,0,0],[0,3,0,0]])],
+         ("np.add.at(counts, idx, 1)","counts[idx] += 1"),
+         ["Buffered assignment writes each selected position once.", "np.add.at applies every occurrence.", "bincount counts occurrences of each integer."],
+         "Index 2 appears twice: buffered assignment records 1, while add.at and bincount record 2. Replacing add.at with buffered assignment loses the duplicates.",
+         [[[1,0,2,1],[1,0,2,1],[1,0,2,1]],[[1,0,1,1],[1,0,1,1],[1,0,2,1]],[[1,0,2,1],[1,0,1,1],[1,0,2,1]]],
+         NP),
+    ("How do you accumulate values at repeated indices?", "np.add.at(a, idx, v) (unbuffered) or np.bincount for counts; a[idx] += v applies duplicates once."))
+
+add('array-mask', 'Boolean array indexing: combining masks with & and np.where',
+    'https://numpy.org/doc/2.2/user/basics.indexing.html#boolean-array-indexing', [
+    "A comparison such as a > 0 produces a Boolean array of the same shape. Indexing with it, a[mask], selects the elements where the mask is True, returning a 1-D copy.",
+    "Combine masks with the elementwise operators &, | and ~, and parenthesize each comparison: (a >= 0) & (a <= 10). Python's and, or and not ask for a single truth value, which is ambiguous for a multi-element array and raises ValueError. The & operator binds more tightly than comparisons, which is why the parentheses are required.",
+    "np.where(mask, a, fallback) keeps the shape and replaces unselected positions, which suits feature pipelines that must preserve row alignment. mask.sum() counts selected elements because True counts as 1.",
+    "The transfer filters a range, replaces out-of-range values and demonstrates why Python's and fails on arrays."
+    ],
+    ("Why does (a >= 0) and (a <= 10) raise for a multi-element array?",
+     "Python's and needs one truth value, and the truth of a multi-element Boolean array is ambiguous.",
+     ["Because and is not defined for numbers.", "Because comparisons return integers.", "It does not raise; it is the same as &."],
+     "Use & with parenthesized comparisons for elementwise logic."),
+    task("Transfer: range masks and replacement",
+         "data is a non-empty list of numbers. Build inside = (a >= 0) & (a <= 10). Return [selected values, np.where(inside, a, -1.0), count selected, 'allowed' or 'ambiguous' for Python's and on the two comparisons].",
+         "a = np.asarray(data, dtype=float)\ninside = (a >= 0) & (a <= 10)\ntry:\n    (a >= 0) and (a <= 10)\n    python_and = 'allowed'\nexcept ValueError:\n    python_and = 'ambiguous'\nresult = [a[inside].tolist(), np.where(inside, a, -1.0).tolist(), int(inside.sum()), python_and]",
+         [([-1,5,12,10],[[5.0,10.0],[-1.0,5.0,-1.0,10.0],2,'ambiguous']),([3],[[3.0],[3.0],1,'allowed']),([0,20],[[0.0],[0.0,-1.0],1,'ambiguous'])],
+         ("inside = (a >= 0) & (a <= 10)","inside = (a >= 0) | (a <= 10)"),
+         ["Parenthesize each comparison before combining.", "np.where keeps the original shape.", "A single-element array has an unambiguous truth value."],
+         "5 and 10 are inside the inclusive range; -1 and 12 are replaced by -1. Python's and fails for several elements but works for one. Using | would accept every value.",
+         [[[-1.0,5.0,12.0,10.0],[-1.0,5.0,12.0,10.0],4,'ambiguous'],[[5.0,10.0],[-1.0,5.0,-1.0,10.0],2,'allowed'],[[5.0],[-1.0,5.0,-1.0,-1.0],1,'ambiguous']],
+         NP),
+    ("How do you combine two array conditions?", "With & / | / ~ and parentheses around each comparison, never Python's and/or/not."))
+
+add('reduction-axis', 'numpy.sum and friends: which axis disappears',
+    'https://numpy.org/doc/2.2/reference/generated/numpy.sum.html#numpy.sum', [
+    "A reduction along an axis removes that axis. For a (samples, features) matrix, axis=0 reduces over samples and leaves one value per feature; axis=1 reduces over features and leaves one value per sample. axis=None reduces everything to a scalar.",
+    "argmax follows the same rule. argmax(axis=1) gives, for each sample, the index of its largest feature, which is exactly how predicted classes are read from a matrix of class scores. Using the wrong axis returns plausible integers of the wrong meaning and length.",
+    "Name axes in comments or variable names, such as per_feature_mean, and check result shapes in tests. Reductions return NumPy scalars; convert with float() or int() at JSON or API boundaries.",
+    "The transfer computes per-feature means, per-sample sums, per-sample argmax and the grand total."
+    ],
+    ("A score matrix has shape (samples, classes). Which call gives each sample's predicted class?",
+     "scores.argmax(axis=1), which reduces over the class axis.",
+     ["scores.argmax(axis=0)", "scores.argmax()", "scores.max(axis=1)"],
+     "axis=1 removes the class axis, leaving one index per sample; max returns the score, not its index."),
+    task("Transfer: reduce along named axes",
+         "data is a 2-D list with rows as samples. Return [per-feature mean (axis 0), per-sample sum (axis 1), per-sample argmax, grand total].",
+         "x = np.asarray(data, dtype=float)\nresult = [x.mean(axis=0).tolist(), x.sum(axis=1).tolist(), x.argmax(axis=1).tolist(), float(x.sum())]",
+         [([[1,5],[3,1]],[[2.0,3.0],[6.0,4.0],[1,0],10.0]),([[0,0,1]],[[0.0,0.0,1.0],[1.0],[2],1.0]),([[2],[4],[9]],[[5.0],[2.0,4.0,9.0],[0,0,0],15.0])],
+         ("x.argmax(axis=1)","x.argmax(axis=0)"),
+         ["axis=0 leaves one value per column.", "axis=1 leaves one value per row.", "argmax returns indices, not values."],
+         "Feature means are 2 and 3; sample sums are 6 and 4; the first sample's largest feature is index 1. argmax over axis 0 would return one index per feature instead.",
+         [[[3.0,3.0],[6.0,4.0],[1,0],10.0],[[2.0,3.0],[4.0,6.0],[1,0],10.0],[[2.0,3.0],[6.0,4.0],[1,1],10.0]],
+         NP),
+    ("Which axis remains after x.sum(axis=0) on a (samples, features) array?", "The feature axis: one sum per feature."))
+
+add('keepdims-contract', 'numpy.mean keepdims: row normalization that broadcasts correctly',
+    'https://numpy.org/doc/2.2/reference/generated/numpy.mean.html#numpy.mean', [
+    "keepdims=True keeps a reduced axis with length 1. Summing a (rows, cols) array over axis 1 with keepdims gives shape (rows, 1) instead of (rows,). The kept axis lines the result up with the axis it came from.",
+    "That matters for broadcasting. x / x.sum(axis=1, keepdims=True) divides each row by its own total. Without keepdims, the (rows,) result aligns with the last axis, columns, so a square matrix is silently divided by the wrong totals and a non-square one raises an error.",
+    "Row normalization appears in softmax, probability tables and attention weights. Check that each normalized row sums to one, and handle all-zero rows, whose total of zero cannot be divided by.",
+    "The transfer normalizes rows and reports the shape of the totals, the normalized values and the row sums."
+    ],
+    ("x has shape (3, 3). Why is x / x.sum(axis=1) a silent bug for row normalization?",
+     "The (3,) totals broadcast along columns, dividing each column by a row's total.",
+     ["It raises an error for square arrays.", "It normalizes columns correctly.", "It is correct; keepdims only changes printing."],
+     "keepdims=True gives shape (3, 1), which broadcasts across each row."),
+    task("Transfer: normalize rows with keepdims",
+         "data is a 2-D list with positive row sums. Divide each row by its total using sum(axis=1, keepdims=True). Return [shape of the totals, normalized values rounded to 6 places, normalized row sums rounded to 6 places].",
+         "x = np.asarray(data, dtype=float)\nrow_totals = x.sum(axis=1, keepdims=True)\nnormalized = x / row_totals\nresult = [list(row_totals.shape), normalized.round(6).tolist(), normalized.sum(axis=1).round(6).tolist()]",
+         [([[1,3],[2,2]],[[2,1],[[0.25,0.75],[0.5,0.5]],[1.0,1.0]]),([[5]],[[1,1],[[1.0]],[1.0]]),([[1,1,2]],[[1,1],[[0.25,0.25,0.5]],[1.0]])],
+         ("x.sum(axis=1, keepdims=True)","x.sum(axis=1)"),
+         ["keepdims keeps the reduced axis with length one.", "A (rows, 1) array broadcasts across columns.", "Check that every normalized row sums to one."],
+         "The totals have shape (2, 1), so each row is divided by its own sum. Without keepdims the totals have shape (2,), which only happens to give the same numbers here because both rows sum to 4.",
+         [[[2],[[0.25,0.75],[0.5,0.5]],[1.0,1.0]],[[2,1],[[0.25,0.5],[0.5,0.5]],[0.75,1.0]],[[1,2],[[0.25,0.75],[0.5,0.5]],[1.0,1.0]]],
+         NP),
+    ("What does keepdims=True preserve?", "The reduced axis with length 1, so the result broadcasts back against the original array."))
+
+add('ufunc-out', 'numpy ufuncs: out buffers, casting rules and where=',
+    'https://numpy.org/doc/2.2/reference/generated/numpy.divide.html#numpy.divide', [
+    "Universal functions such as np.add and np.divide accept out= to write into an existing array, avoiding a new allocation in tight loops. The output must be able to hold the result type under the same_kind casting rule.",
+    "Dividing integers produces floats, so writing the result into an integer array would discard fractions. NumPy refuses and raises a UFuncTypeError, a subclass of TypeError. That is a feature: the alternative is silent truncation.",
+    "where= computes only at positions where a condition holds, such as non-zero denominators. Positions where it is false are left untouched, so out must be initialized; with np.empty they would contain arbitrary memory. Safe division is therefore np.divide(a, b, out=np.zeros(...), where=b != 0).",
+    "The transfer writes a float result into a buffer, shows that an integer output is rejected and divides safely around zeros."
+    ],
+    ("np.divide(int_array, 2, out=int_array) is called. What happens?",
+     "It raises a casting error, because float results cannot be written into an int array under same_kind casting.",
+     ["The results are truncated to integers.", "The array's dtype is changed to float.", "The call is ignored."],
+     "Ufuncs check that out can hold the result type; they do not silently truncate."),
+    task("Transfer: buffers, casting and masked division",
+         "data is a list of integers. Write a / 2 into a float64 buffer; try writing it into the integer array itself; compute a / a with out=np.zeros(...) and where=a != 0. Return [buffer, 'allowed' or 'casting-error', safe division result].",
+         "a = np.asarray(data, dtype=np.int64)\nbuffer = np.zeros(a.shape, dtype=np.float64)\nnp.divide(a, 2, out=buffer)\ntry:\n    np.divide(a, 2, out=a)\n    int_out = 'allowed'\nexcept TypeError:\n    int_out = 'casting-error'\nsafe = np.divide(a, a, out=np.zeros(a.shape), where=a != 0)\nresult = [buffer.tolist(), int_out, safe.tolist()]",
+         [([1,4,0],[[0.5,2.0,0.0],'casting-error',[1.0,1.0,0.0]]),([2],[[1.0],'casting-error',[1.0]]),([0,0],[[0.0,0.0],'casting-error',[0.0,0.0]])],
+         ("np.zeros(a.shape), where","np.ones(a.shape), where"),
+         ["out must be able to hold a float result.", "UFuncTypeError is a TypeError.", "where= leaves masked positions with out's initial values."],
+         "Halving writes fractions into the float buffer, while the integer output is rejected. Safe division gives 1 where a is non-zero and keeps 0 elsewhere. Initializing out with ones would leave 1 at the masked zero positions.",
+         [[[0,2,0],'casting-error',[1.0,1.0,0.0]],[[0.5,2.0,0.0],'allowed',[1.0,1.0,0.0]],[[0.5,2.0,0.0],'casting-error',[1.0,1.0,1.0]]],
+         NP),
+    ("Why must out be initialized when using where=?", "Positions where the condition is false are not written, so they keep out's existing contents."))
+
+add('random-generator', 'numpy.random.Generator: reproducible draws and spawned independent streams',
+    'https://numpy.org/doc/2.2/reference/random/generator.html#numpy.random.default_rng', [
+    "np.random.default_rng(seed) creates a Generator with its own state. The same seed reproduces the same sequence in the same NumPy version, which makes data splits and initialization repeatable. Avoid the legacy global np.random functions, whose shared state couples unrelated code.",
+    "Each draw advances the generator. Two calls on one generator give different results; recreating a generator from the same seed restarts the sequence. Pass a Generator into functions instead of reseeding inside them.",
+    "Parallel workers need independent streams. Generator.spawn(n) creates child generators whose streams are statistically independent, which is safer than seeding workers with seed, seed + 1 and so on. Reproducibility is guaranteed within a NumPy version, not across versions.",
+    "The transfer reproduces a permutation from a seed and checks that spawned child streams differ."
+    ],
+    ("You call rng.permutation(5) twice on the same Generator. Are the two results equal?",
+     "Generally not, because the first call advanced the generator's state.",
+     ["Always, because the seed is fixed.", "Always, because permutation does not use randomness.", "Only if the seed is zero."],
+     "Recreate the generator from the seed, or store the first result, to reproduce a draw."),
+    task("Transfer: reproducible and independent randomness",
+         "data is a seed. Compare rng.permutation(5) with a fresh default_rng(seed).permutation(5); spawn two children from a fresh generator and draw three integers from each. Return [permutations_equal, sorted permutation, child_streams_differ].",
+         "parent = np.random.default_rng(data)\nfirst = parent.permutation(5).tolist()\nagain = np.random.default_rng(data).permutation(5).tolist()\nchildren = np.random.default_rng(data).spawn(2)\nstreams = [c.integers(0, 1000, size=3).tolist() for c in children]\nresult = [first == again, sorted(first), streams[0] != streams[1]]",
+         [(7,[True,[0,1,2,3,4],True]),(0,[True,[0,1,2,3,4],True]),(123,[True,[0,1,2,3,4],True])],
+         ("again = np.random.default_rng(data).permutation(5).tolist()","again = parent.permutation(5).tolist()"),
+         ["A fresh generator with the same seed restarts the sequence.", "A second draw from the same generator continues it.", "spawn gives independent child streams."],
+         "A fresh generator reproduces the permutation, which always contains 0 to 4, and the two spawned children produce different streams. Drawing again from the same parent continues the sequence, so the permutations generally differ.",
+         [[False,[0,1,2,3,4],True],[True,[4,3,2,1,0],True],[True,[0,1,2,3,4],False]],
+         NP),
+    ("How should parallel workers get random streams?", "From Generator.spawn (or SeedSequence.spawn), not from consecutive integer seeds."))
+
+add('finite-values', 'numpy.isfinite: NaN, infinity and statistics over finite values',
+    'https://numpy.org/doc/2.2/reference/generated/numpy.isfinite.html#numpy.isfinite', [
+    "Floating-point data can contain NaN (not a number) and positive or negative infinity. np.isnan detects only NaN; np.isfinite is False for NaN and both infinities. Choose the predicate that matches the data contract; a NaN check alone lets infinities through.",
+    "NaN is not equal to anything, including itself, so x == np.nan is always False. Test with np.isnan. A single NaN or infinity makes an ordinary mean NaN or infinite, and one bad sensor reading can corrupt a whole feature.",
+    "Count and report non-finite values before deciding a policy: drop, impute or reject the record. Strict JSON cannot represent NaN or infinity, so they must be handled before data leaves a numeric pipeline. Textual 'nan' and 'inf' can be parsed by NumPy with dtype=float.",
+    "The transfer parses text values, counts non-finite and NaN entries and averages only the finite ones."
+    ],
+    ("Does np.isnan detect positive infinity?",
+     "No; np.isnan is False for infinity. np.isfinite rejects both NaN and infinities.",
+     ["Yes, isnan covers every non-finite value.", "Only for float32 arrays.", "Yes, because infinity is not a number."],
+     "Use np.isfinite when every non-finite value must be excluded."),
+    task("Transfer: separate finite from non-finite values",
+         "data is a list of numeric strings, possibly 'nan', 'inf' or '-inf'. Return [count of non-finite values, count of NaN values, mean of finite values or None, np.nan == np.nan].",
+         "a = np.asarray(data, dtype=float)\nfinite = a[np.isfinite(a)]\nresult = [int((~np.isfinite(a)).sum()), int(np.isnan(a).sum()), float(finite.mean()) if finite.size else None, bool(np.nan == np.nan)]",
+         [(['1','nan','inf','3'],[2,1,2.0,False]),(['nan'],[1,1,None,False]),(['-inf','2'],[1,0,2.0,False])],
+         ("finite = a[np.isfinite(a)]","finite = a[~np.isnan(a)]"),
+         ["isfinite excludes NaN and both infinities.", "Count NaN separately with isnan.", "NaN never compares equal, even to itself."],
+         "Two values are non-finite, one of them NaN, and the finite values 1 and 3 average to 2. Filtering only NaN would leave infinity in the mean.",
+         [[1,1,2.0,False],[2,1,1.333333,False],[2,1,2.0,True]],
+         NP),
+    ("Which NumPy predicate rejects NaN, inf and -inf?", "np.isfinite; np.isnan detects only NaN."))

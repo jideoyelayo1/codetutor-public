@@ -1,0 +1,77 @@
+{
+ "key": "bounded-pipeline-project",
+ "title": "Project: a bounded async pipeline with cancellation",
+ "minutes": 45,
+ "body": [
+  "This project builds a reusable producer/worker pipeline on `System.Threading.Channels`. `BoundedPipeline.RunAsync` writes items into a bounded channel, starts a fixed number of workers that read and process them, and returns the sum of their results. It combines stages 11 and 12: bounded capacity for backpressure, cooperative cancellation and `Task.WhenAll` for completion.",
+  "The tests check behaviour rather than implementation: every result is summed, no more than `workers` items run at once, the producer stops early when the channel is full (backpressure), cancellation surfaces as `OperationCanceledException`, and bad arguments fail before any work starts.",
+  "Concurrency tests need care to stay deterministic. The backpressure test blocks the worker on a `TaskCompletionSource` and asserts a range rather than an exact count; the concurrency test records the peak with `Interlocked.CompareExchange`. `TestContext.Current.CancellationToken` (xUnit v3) cancels tests that hang when the run is aborted.",
+  "The base version has a lifetime flaw: if one worker throws, the other workers and the producer keep waiting for items or space, so `RunAsync` can hang and work outlives the failed call. The validator also injects a different bug (ignoring the capacity) to show the backpressure test catches it.",
+  "Practice: make a worker failure cancel the whole run. Own a linked `CancellationTokenSource` for the duration of `RunAsync`, cancel it when a worker fails, wait for every task to finish, and rethrow the original exception rather than a sibling's cancellation. Any task that exits by exception, including a worker whose own timeout cancels it and a source that throws mid-iteration, must cancel the run. The answer's new tests prove no worker is still running when `RunAsync` completes and that neither case hangs.",
+  "This ownership rule (work started by a call finishes, or is cancelled, before the call returns) is what prevents leaked tasks, captured state and unobserved exceptions in long-running services."
+ ],
+ "projectInstructions": "Run dotnet test from the solution folder. Practice: make a worker failure cancel the producer and other workers, wait for them all, and rethrow the original exception.",
+ "projectChecks": [
+  {
+   "name": "start: dotnet test",
+   "args": [
+    "test"
+   ],
+   "stdoutContains": [
+    "succeeded: 5",
+    "failed: 0"
+   ]
+  },
+  {
+   "name": "start: injected capacity bug is caught",
+   "args": [
+    "test"
+   ],
+   "exit": 2,
+   "stdoutContains": [
+    "ProducerWaitsWhenChannelIsFull"
+   ],
+   "mutations": [
+    {
+     "path": "src/Pipeline/BoundedPipeline.cs",
+     "find": "Channel.CreateBounded<T>(new BoundedChannelOptions(capacity) { SingleWriter = true })",
+     "replace": "Channel.CreateUnbounded<T>()"
+    }
+   ]
+  },
+  {
+   "name": "answer: dotnet test",
+   "args": [
+    "test"
+   ],
+   "useSolution": true,
+   "stdoutContains": [
+    "succeeded: 8",
+    "failed: 0"
+   ]
+  }
+ ],
+ "expectedStdout": "",
+ "solutionStdout": "",
+ "challenge": "Make a worker failure cancel the whole run, wait for every task and rethrow the original exception; prove no worker outlives RunAsync.",
+ "question": "In the base pipeline, what can happen when one worker throws?",
+ "correct": "Other workers and the producer keep waiting, so the call can hang and work outlives it",
+ "wrong": [
+  "The channel automatically cancels every other worker",
+  "The exception is swallowed and the sum is returned"
+ ],
+ "reasoning": "Nothing links the failure to the others. Owning a linked CancellationTokenSource lets the failure stop all work before the call returns.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/core/extensions/channels",
+ "additionalReadings": [
+  {
+   "title": "Cancellation in managed threads",
+   "url": "https://learn.microsoft.com/en-us/dotnet/standard/threading/cancellation-in-managed-threads",
+   "section": "Linked tokens"
+  },
+  {
+   "title": "xUnit v3 TestContext",
+   "url": "https://xunit.net/docs/getting-started/v3/whats-new",
+   "section": "TestContext"
+  }
+ ]
+}

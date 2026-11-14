@@ -1,0 +1,35 @@
+{
+ "key": "cancellation",
+ "title": "Cancellation tokens and timeouts",
+ "minutes": 25,
+ "body": [
+  "Cancellation in .NET is cooperative. A `CancellationTokenSource` (CTS) creates a `CancellationToken`; the caller passes the token down, and code that does the work checks it (`token.ThrowIfCancellationRequested()`) or passes it on to APIs that accept one (`Task.Delay(ms, token)`, `ReadAsync(buffer, token)`). Calling `cts.Cancel()` only signals; nothing is aborted forcibly.",
+  "Cancelled work ends by throwing `OperationCanceledException` (or the derived `TaskCanceledException`), and the task's status becomes `Canceled`. Catch it where cancellation is an expected outcome, and check that the exception's token is yours if you need to distinguish your own cancellation from an inner timeout.",
+  "`cts.CancelAfter(timeout)` or `new CancellationTokenSource(timeout)` gives a timeout. `CancellationTokenSource.CreateLinkedTokenSource(a, b)` cancels when either source does, which combines a caller's token with a local timeout. A CTS owns a timer and registrations, so dispose it (`using var cts = ...`).",
+  "`token.Register(callback)` runs code on cancellation and returns a registration you should dispose when the operation finishes, otherwise the callback, and anything it captures, stays alive as long as the token's source. When bridging callbacks to tasks with `TaskCompletionSource`, use the `Try...` methods so a result and a cancellation racing each other complete the task exactly once, and create it with `RunContinuationsAsynchronously` so awaiting code does not run inline inside the completing callback.",
+  "Accept a `CancellationToken cancellationToken = default` as the last parameter of public async methods and pass it to everything you call. Check that every registration is disposed, every CTS is disposed, and that cancellation leaves shared state consistent."
+ ],
+ "expectedStdout": "cancelled, status Canceled\ntimed out\nlinked cancelled by either: True\nfirst result\nregistrations left: 0\n",
+ "challenge": "Write ProcessAsync(int[] items, CancellationToken token) that adds items one at a time with await Task.Yield() between them and returns the partial sum when cancelled after the third item (catch the cancellation inside and return what was summed). Cancel from inside a progress callback.",
+ "solutionStdout": "partial total 6 after 3 items\n",
+ "question": "What does calling CancellationTokenSource.Cancel() do to running work?",
+ "correct": "It signals the token; the work must observe it and stop itself",
+ "wrong": [
+  "It aborts the threads running the work",
+  "It immediately completes all related tasks as Canceled"
+ ],
+ "reasoning": "Cancellation is cooperative: code checks the token or passes it to APIs that do.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/standard/threading/cancellation-in-managed-threads",
+ "additionalReadings": [
+  {
+   "title": "Cancel async tasks after a period of time",
+   "url": "https://learn.microsoft.com/en-us/dotnet/csharp/asynchronous-programming/cancel-async-tasks-after-a-period-of-time",
+   "section": "CancelAfter"
+  },
+  {
+   "title": "TaskCompletionSource",
+   "url": "https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.taskcompletionsource-1",
+   "section": "TrySetResult"
+  }
+ ]
+}

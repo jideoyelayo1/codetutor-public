@@ -1,0 +1,88 @@
+{
+  "key": "alcotest-suite",
+  "stage": "10 · Tooling",
+  "n": 3,
+  "title": "Unit tests with Alcotest and a test stanza",
+  "minutes": 35,
+  "body": [
+    "Alcotest is a small, readable unit-test framework. A test is a function returning `unit` that calls `Alcotest.check` with a *testable* (a printer plus an equality), a message, the expected value and the actual value. Tests are grouped into named suites and run by `Alcotest.run`.",
+    "In Dune a separate executable is declared with `(test (name test_rpn) (libraries rpn alcotest))`. `dune test` builds and runs it, and a non-zero exit fails the build, which is what you want in continuous integration. The library under test stays free of test dependencies.",
+    "Write the failure cases as carefully as the success cases. For a calculator that means empty input, a missing operand and unknown tokens. Return a typed error variant from the library so that tests assert on a case rather than on message text."
+  ],
+  "challenge": "src/rpn.ml defines the error type but `eval` always fails. Implement a reverse-polish calculator over `+`, `-` and `*` that returns `Ok n` for a valid expression, and the matching `Error` for empty input, stack underflow, a bad token, or leftover operands.",
+  "projectInstructions": "Run `dune test --root .` and read the first failing case. Change only src/rpn.ml. The expected errors are Empty, Stack_underflow, Bad_token and Leftover.",
+  "question": "Why define a typed error variant rather than returning error strings?",
+  "correct": "Tests and callers can match on the case, and the compiler checks every case is handled",
+  "wrong": [
+    "Strings cannot be compared in tests",
+    "Variants make the code run faster"
+  ],
+  "reasoning": "A variant is part of the API: it is stable, exhaustive-checked and independent of message wording.",
+  "sourceURL": "https://github.com/mirage/alcotest",
+  "projectChecks": [
+    {
+      "name": "starter compiles",
+      "command": [
+        "dune",
+        "build",
+        "--root",
+        "."
+      ],
+      "exit": 0
+    },
+    {
+      "name": "starter tests fail",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "[FAIL]"
+    },
+    {
+      "name": "solution tests pass",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 0,
+      "stderrContains": "Test Successful",
+      "useSolution": true
+    },
+    {
+      "name": "regression is caught",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "[FAIL]",
+      "useSolution": true,
+      "mutations": [
+        {
+          "path": "src/rpn.ml",
+          "find": "apply ( + ) stack",
+          "replace": "apply ( - ) stack"
+        }
+      ]
+    }
+  ],
+  "additionalReadings": [
+    {
+      "title": "Alcotest",
+      "url": "https://github.com/mirage/alcotest",
+      "section": "Usage"
+    },
+    {
+      "title": "Real World OCaml: Testing",
+      "url": "https://dev.realworldocaml.org/testing.html",
+      "section": "Unit tests"
+    }
+  ]
+}

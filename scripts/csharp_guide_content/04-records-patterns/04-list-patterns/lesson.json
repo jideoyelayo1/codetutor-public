@@ -1,0 +1,22 @@
+{
+ "key": "list-patterns",
+ "title": "List patterns and slices",
+ "body": [
+  "List patterns (C# 11) match sequences by element: `[1, 2, 3]` matches exactly that array, `[first, ..]` captures the first element of a non-empty list, `[.., last]` the last, and `[_, _]` any two-element list. They work on arrays, lists, spans and any type with an indexer and a `Length` or `Count`.",
+  "The slice pattern `..` matches zero or more elements and can capture them with a `var` pattern: `[var head, .. var tail]` binds `tail` to the remaining elements (a new array for arrays, a slice for spans). Only one slice pattern is allowed per list pattern.",
+  "Elements are patterns themselves, so you can nest: `[> 0, .., < 0]` matches lists that start positive and end negative, and `[string cmd, .. var rest]` is a neat way to parse command-line style input.",
+  "List patterns combine well with recursion for teaching: `Sum([]) = 0`, `Sum([var x, .. var rest]) = x + Sum(rest)`. Be aware that capturing the slice of an array allocates each time, so production code over large arrays should use spans or indexes.",
+  "Check the empty case first and remember the compiler's exhaustiveness analysis for list patterns is limited; keep a discard arm for inputs you did not anticipate."
+ ],
+ "expectedStdout": "empty\none: 7\n1..2 with 0 between\nstarts positive, ends negative\nexactly 1,2,3\n10\n5\n-8\nunknown command oops\n",
+ "challenge": "Write IsPalindrome(char[] cs) using list patterns recursively: empty and single-element arrays are palindromes; otherwise compare first and last and recurse on the middle.",
+ "solutionStdout": "level: True\nabca: False\na: True\n: True\n",
+ "question": "In `[var first, .. var rest]` applied to an int[], what is rest?",
+ "correct": "A new array holding every element after the first",
+ "wrong": [
+  "The second element only",
+  "A live view that changes with the original array"
+ ],
+ "reasoning": "Slices of arrays are copies; use spans if you need a non-allocating view.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/patterns#list-patterns"
+}

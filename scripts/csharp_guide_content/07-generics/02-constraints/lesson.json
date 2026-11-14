@@ -1,0 +1,29 @@
+{
+ "key": "generic-constraints",
+ "title": "Constraints",
+ "body": [
+  "A constraint restricts which types may be used for a type parameter and, in exchange, lets the generic code use their members. `where T : IComparable<T>` allows `a.CompareTo(b)`. Without constraints, only members of `object` are available on a `T`.",
+  "The common constraints: `class` (reference type), `class?` (nullable reference type allowed), `struct` (non-nullable value type), `notnull`, `unmanaged` (a value type with no references, usable with pointers and spans of bytes), `new()` (has a public parameterless constructor), a base class, one or more interfaces, and another type parameter (`where TDerived : TBase`).",
+  "`where T : allows ref struct` (C# 13) lets a generic method accept ref struct types such as `Span<T>`; the compiler then forbids operations that would box or store `T` on the heap. The BCL uses it for APIs like `IEnumerable`-style helpers over spans.",
+  "Constraints are checked at compile time where the generic is used: `Max(new object(), new object())` is rejected because `object` does not implement `IComparable<object>` (CS0311). Nothing is checked at runtime, so constraints cost nothing.",
+  "Add the weakest constraints that let the code compile, and prefer interface constraints to base-class constraints. Check that a `new()` constraint really is needed; a factory delegate is often more flexible."
+ ],
+ "unsafe": true,
+ "expectedStdout": "9\nkiwi\nreused\n8 2\nada\n",
+ "challenge": "Write a generic method Clamp<T>(T value, T min, T max) constrained to IComparable<T> and use it with ints and strings.",
+ "solutionStdout": "10\nk\n5\n",
+ "question": "Why does a generic method need `where T : IComparable<T>` before calling `a.CompareTo(b)`?",
+ "correct": "Without the constraint the compiler only knows T has object's members",
+ "wrong": [
+  "Because CompareTo is checked at runtime",
+  "Because value types cannot implement interfaces otherwise"
+ ],
+ "reasoning": "Constraints are the compiler's evidence about what T can do; they cost nothing at runtime.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/generics/constraints-on-type-parameters",
+ "rejected": [
+  {
+   "file": "rejected.cs",
+   "diagnostic": "CS0311"
+  }
+ ]
+}

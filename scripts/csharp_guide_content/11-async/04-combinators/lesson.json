@@ -1,0 +1,34 @@
+{
+ "key": "task-combinators",
+ "title": "WhenAll, WhenAny, WhenEach and timeouts",
+ "body": [
+  "`Task.WhenAll(tasks)` completes when every task has completed. If any failed, awaiting it rethrows the first exception, but the returned task's `Exception` property is an `AggregateException` holding all of them; inspect it when you need every failure. If any was cancelled and none failed, it ends cancelled.",
+  "`Task.WhenAny(tasks)` completes when the first task does and returns that task (it never throws itself); await the returned task to get its result or exception. It is the building block for 'first response wins' and for racing work against a timeout. The losing tasks keep running unless you cancel them.",
+  "`Task.WhenEach(tasks)` (.NET 9) is an `IAsyncEnumerable<Task<T>>` that yields tasks in completion order, replacing the old loop of `WhenAny` plus `Remove`, which was O(n²).",
+  "`task.WaitAsync(timeout)` or `WaitAsync(token)` (.NET 6) stops waiting after a timeout by throwing `TimeoutException`, but it does not cancel the underlying operation. Pass a cancellation token to the operation itself when you want it to stop.",
+  "Throttle large fan-outs: starting ten thousand HTTP requests at once can exhaust sockets. `Parallel.ForEachAsync` with `MaxDegreeOfParallelism` or a `SemaphoreSlim` bounds concurrency. Check what happens to the tasks that lose a race or exceed a timeout."
+ ],
+ "expectedStdout": "await rethrows: first\nall failures: first, second\nfast wins\ncompletion order: 2,0,1\ngave up waiting; task still WaitingForActivation\nnever more than 3 at once: True\n",
+ "challenge": "Write FirstSuccessfulAsync(IEnumerable<Task<int>> tasks) that returns the result of the first task to succeed, ignoring failures, and throws InvalidOperationException if all fail. Use Task.WhenEach.",
+ "solutionStdout": "42\nEvery task failed.\n",
+ "question": "What does `await Task.WhenAll(a, b)` throw when both a and b fail?",
+ "correct": "The first exception; the task's Exception property holds both",
+ "wrong": [
+  "An AggregateException directly",
+  "Nothing; WhenAll swallows failures"
+ ],
+ "reasoning": "await unwraps to the first inner exception. Inspect the WhenAll task's Exception.InnerExceptions for all failures.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task.whenall",
+ "additionalReadings": [
+  {
+   "title": "Task.WhenEach",
+   "url": "https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task.wheneach",
+   "section": "WhenEach"
+  },
+  {
+   "title": "Task.WaitAsync",
+   "url": "https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task.waitasync",
+   "section": "WaitAsync"
+  }
+ ]
+}

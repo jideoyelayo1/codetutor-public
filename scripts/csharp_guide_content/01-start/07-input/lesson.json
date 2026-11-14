@@ -1,0 +1,30 @@
+{
+ "key": "console-input",
+ "title": "Reading input safely",
+ "body": [
+  "`Console.ReadLine()` returns the next line of standard input without its newline, or `null` when input has ended. Its return type is `string?`, so with nullable reference types enabled the compiler warns if you use the result as if it were never null. Handling the null case is part of a correct program, not boilerplate.",
+  "Convert text to numbers with `int.TryParse(text, out int value)`, which returns false instead of throwing on bad input. `int.Parse` throws `FormatException` for malformed text and `OverflowException` for out-of-range values; reserve it for input you have already validated. Parsing honours culture, so pass `CultureInfo.InvariantCulture` for machine-readable data like `3.14`.",
+  "A typical input loop reads until null: `while (Console.ReadLine() is string line) { ... }`. The `is string line` pattern both checks for null and declares a non-null variable. Trim whitespace with `line.Trim()` and skip empty lines explicitly. The example is shown with the input lines 4, x, an empty line and 10, followed by end of input.",
+  "Command-line arguments arrive in `args`, which top-level statements expose as a `string[]`. Environment variables come from `Environment.GetEnvironmentVariable`, which also returns `string?`. Exit codes are set by returning an int from top-level statements or by `Environment.ExitCode`.",
+  "Treat all input as untrusted: check for end of input, empty lines, bad numbers and out-of-range values, and report problems on `Console.Error` so they do not mix with normal output."
+ ],
+ "stdin": "4\nx\n\n10\n",
+ "expectedStdout": "read 4\nread 10\ncount 2, total 14\n",
+ "challenge": "Read lines until end of input and print the longest non-empty line after trimming. Print (none) if there were no non-empty lines.",
+ "solutionStdout": "10\n",
+ "question": "What does `Console.ReadLine()` return when standard input has ended?",
+ "correct": "null",
+ "wrong": [
+  "An empty string",
+  "It throws EndOfStreamException"
+ ],
+ "reasoning": "End of input is null; an empty line is the empty string. Code that confuses the two either loops forever or crashes.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/api/system.console.readline",
+ "additionalReadings": [
+  {
+   "title": "Int32.TryParse",
+   "url": "https://learn.microsoft.com/en-us/dotnet/api/system.int32.tryparse",
+   "section": "TryParse"
+  }
+ ]
+}

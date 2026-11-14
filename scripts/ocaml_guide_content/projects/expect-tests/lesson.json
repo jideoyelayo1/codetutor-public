@@ -1,0 +1,87 @@
+{
+  "key": "expect-tests",
+  "stage": "10 · Tooling",
+  "n": 2,
+  "title": "Expect tests: tests that show their output",
+  "minutes": 30,
+  "body": [
+    "An expect test prints values and records the output next to the code. With `ppx_expect` you write `let%expect_test \"name\" = print_endline (f x); [%expect {| result |}]`, and `dune test` fails if the real output differs. The expected text is part of the source, so a reviewer sees behaviour and test together.",
+    "When output legitimately changes, run `dune promote` and Dune rewrites the expected blocks to match; you then review the diff in version control. That workflow makes exploratory testing cheap, which is why Jane Street uses it widely, but the promotion step is a review step, not a rubber stamp.",
+    "Enable the tests by adding `(inline_tests)` and `(preprocess (pps ppx_expect))` to a library stanza. Keep tests deterministic: avoid timestamps, hash-table iteration order and absolute paths in the printed output."
+  ],
+  "challenge": "The tests in test/slug_tests.ml fail because `Slug.slugify` returns its input unchanged. Implement it so it lowercases letters and digits, turns every run of other characters into one hyphen, and never starts or ends with a hyphen.",
+  "projectInstructions": "Run `dune test --root .` to see the failing expectations. Edit only src/slug.ml. When all three tests pass, try changing a hyphen to an underscore to watch the test fail.",
+  "question": "What does `dune promote` do after an expect test fails?",
+  "correct": "It rewrites the expected blocks in the source to match the actual output, which you then review",
+  "wrong": [
+    "It deletes the failing tests",
+    "It re-runs the tests with a longer timeout"
+  ],
+  "reasoning": "Expect tests store output in the source, so promotion updates those blocks; the human step is reviewing the resulting diff.",
+  "sourceURL": "https://github.com/janestreet/ppx_expect",
+  "projectChecks": [
+    {
+      "name": "starter compiles",
+      "command": [
+        "dune",
+        "build",
+        "--root",
+        "."
+      ],
+      "exit": 0
+    },
+    {
+      "name": "starter tests fail",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "hello-world"
+    },
+    {
+      "name": "solution tests pass",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 0,
+      "useSolution": true
+    },
+    {
+      "name": "regression is caught",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "hello_world",
+      "useSolution": true,
+      "mutations": [
+        {
+          "path": "src/slug.ml",
+          "find": "Buffer.add_char buf '-'",
+          "replace": "Buffer.add_char buf '_'"
+        }
+      ]
+    }
+  ],
+  "additionalReadings": [
+    {
+      "title": "ppx_expect",
+      "url": "https://github.com/janestreet/ppx_expect",
+      "section": "Overview"
+    },
+    {
+      "title": "Real World OCaml: Testing",
+      "url": "https://dev.realworldocaml.org/testing.html",
+      "section": "Expect tests"
+    }
+  ]
+}

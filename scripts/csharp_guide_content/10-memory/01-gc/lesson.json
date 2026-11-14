@@ -1,0 +1,34 @@
+{
+ "key": "garbage-collection",
+ "title": "The managed heap and garbage collection",
+ "body": [
+  "Objects of reference types are allocated on the managed heap. You never free them; the garbage collector (GC) periodically finds objects that are no longer reachable from roots (static fields, local variables of running methods, CPU registers, GC handles) and reclaims their memory. Reachability, not scope or reference counting, decides lifetime, so cycles of objects that reference each other are still collected.",
+  "The heap is generational. New objects start in generation 0, which is collected often and cheaply because most objects die young. Survivors are promoted to generation 1 and then 2. Objects of 85,000 bytes or more go to the large object heap, collected with generation 2. `GC.GetGeneration(obj)` shows where an object currently lives.",
+  "Collections compact memory by moving surviving objects, which is why ordinary code cannot hold raw addresses of managed objects without pinning them (`fixed`, stage 13). Allocation itself is cheap (a pointer bump); the cost comes from collections, which scale with surviving objects and generation-2 activity.",
+  "Memory problems in managed code are usually unintended reachability (a static cache, an event subscription, a captured closure) or excessive allocation in hot paths. Tools: `dotnet-counters` for live GC statistics, `dotnet-gcdump` and `dotnet-trace` for heap and allocation analysis. `GC.GetAllocatedBytesForCurrentThread()` measures allocations in a test.",
+  "Do not call `GC.Collect()` in production code to fix memory issues; find what keeps objects reachable instead. Check long-lived roots first: statics, singletons, caches and events."
+ ],
+ "expectedStdout": "new object generation: 0\nafter one collection: 1\nafter two collections: 2\nlarge array generation: 2\nunreachable cycle collected: True\nsum 6: zero allocations=True; join allocated=True\n",
+ "challenge": "Show that a static cache keeps objects alive: add an object to a static List, drop your local reference inside a non-inlined method, force a collection and print whether a WeakReference to it is alive; then clear the cache and check again.",
+ "solutionStdout": "cached: True\nafter clear: False\n",
+ "question": "Two objects reference only each other and nothing else references them. What does the .NET GC do?",
+ "correct": "Collects both, because neither is reachable from a root",
+ "wrong": [
+  "Keeps both forever because their reference counts are non-zero",
+  "Collects only the newer one"
+ ],
+ "reasoning": "The GC traces reachability from roots; it does not use reference counts, so cycles are not leaks.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/fundamentals",
+ "additionalReadings": [
+  {
+   "title": "Large object heap",
+   "url": "https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/large-object-heap",
+   "section": "LOH"
+  },
+  {
+   "title": "dotnet-counters",
+   "url": "https://learn.microsoft.com/en-us/dotnet/core/diagnostics/dotnet-counters",
+   "section": "GC counters"
+  }
+ ]
+}

@@ -1,0 +1,35 @@
+{
+ "key": "control-flow",
+ "title": "Decisions and loops",
+ "body": [
+  "`if (condition) { ... } else if (...) { ... } else { ... }` runs the first branch whose condition is true. The condition must be a `bool`; C# does not treat 0 or null as false, so `if (count)` is a compile error. Always use braces for multi-line branches.",
+  "A `switch` statement selects a section by matching a value against `case` labels; each section ends with `break`, `return`, `throw` or `goto case` because C# forbids silent fall-through between non-empty sections. Several labels may share one section. Later stages replace many switch statements with switch expressions and patterns.",
+  "`while (condition)` checks before each iteration and may run zero times. `do { ... } while (condition);` checks after, so the body runs at least once. `for (init; condition; step)` packages a counter loop. `foreach (var item in collection)` visits each element of anything enumerable without manual indexing.",
+  "`break` leaves the innermost loop or switch; `continue` skips to the next iteration of the innermost loop. To leave nested loops in C# 14, extract a method and `return`, or use a flag. C# 15 adds labeled break/continue, covered in the final stage.",
+  "A `foreach` loop variable is read-only, and the collection must not be modified while it is being enumerated (a List throws InvalidOperationException). Before writing a loop, check the termination condition, whether the body may run zero times and whether anything mutates the collection being walked."
+ ],
+ "expectedStdout": "C\n1 2 Fizz 4 Buzz Fizz 7 8 Fizz Buzz 11 Fizz 13 14 FizzBuzz \nweekend\nfirst pair summing to 10: 1 + 9\ncountdown: 3 2 1 \n",
+ "challenge": "Print the sum of all even numbers from 1 to 100 using a for loop and continue to skip odd numbers.",
+ "solutionStdout": "2550\n",
+ "question": "Which loop always executes its body at least once?",
+ "correct": "do ... while",
+ "wrong": [
+  "while",
+  "foreach over an empty array"
+ ],
+ "reasoning": "do ... while tests its condition after the body, so the first iteration always runs.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/iteration-statements",
+ "additionalReadings": [
+  {
+   "title": "Selection statements",
+   "url": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/selection-statements",
+   "section": "if and switch"
+  }
+ ],
+ "rejected": [
+  {
+   "file": "rejected.cs",
+   "diagnostic": "CS0029"
+  }
+ ]
+}

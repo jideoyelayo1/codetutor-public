@@ -1,0 +1,17 @@
+{"key": "variables-and-types", "title": "Variables and built-in types",
+"body": [
+"A variable is a named storage location with a fixed type. `int count = 3;` declares an `int` and initializes it. `var count = 3;` asks the compiler to infer the type from the initializer; the variable is still statically an `int` and cannot later hold a string. Use `var` when the type is obvious from the right-hand side and spell the type out when it is not.",
+"The everyday numeric types are `int` (32-bit signed), `long` (64-bit), `double` (64-bit binary floating point) and `decimal` (128-bit base-10, used for money because 0.1 is exact). `bool` holds true or false, `char` holds one UTF-16 code unit such as 'A', and `string` holds immutable text. Literal suffixes choose a type: `10L` is long, `1.5` is double, `1.5m` is decimal, `1.5f` is float.",
+"C# never implicitly narrows. Assigning a `long` to an `int` or a `double` to an `int` needs an explicit cast such as `(int)3.9`, which truncates toward zero to 3. Widening conversions, such as `int` to `long` or `int` to `double`, are implicit because they cannot lose the magnitude.",
+"Integer arithmetic silently wraps on overflow by default: `int.MaxValue + 1` becomes `int.MinValue`. Wrap the expression in `checked(...)` or enable the CheckForOverflowUnderflow project option to throw `OverflowException` instead. Floating-point arithmetic does not throw; it produces infinity or NaN.",
+"`const` declares a compile-time constant, such as `const int Days = 7;`. A local variable must be definitely assigned before it is read; the compiler rejects reads of a variable that might be unassigned (CS0165). Before relying on a number, check its type, its range and whether overflow should wrap or throw."],
+"expectedStdout": "System.Int32\n0.30000000000000004\n0.3\n3\n-2147483648\nOverflow detected\n",
+"challenge": "Store a price of 19.99 as a decimal and a quantity of 3 as an int, then print the total price and the total as an int after an explicit cast.",
+"solutionStdout": "59.97\n59\n",
+"question": "Why is `decimal` preferred over `double` for currency amounts?",
+"correct": "It stores base-10 fractions such as 0.1 exactly",
+"wrong": ["It is faster than double on every CPU", "It can store larger exponents than double"],
+"reasoning": "double is binary floating point, so 0.1 + 0.2 is not exactly 0.3. decimal uses base 10, so typical money values are exact.",
+"sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/built-in-types",
+"additionalReadings": [{"title": "checked and unchecked", "url": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/checked-and-unchecked", "section": "Overflow"}],
+"rejected": [{"file": "rejected.cs", "diagnostic": "CS0266"}]}

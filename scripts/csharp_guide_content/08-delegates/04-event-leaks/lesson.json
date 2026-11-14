@@ -1,0 +1,35 @@
+{
+ "key": "event-lifetime-leaks",
+ "title": "Event subscriptions and object lifetime",
+ "minutes": 25,
+ "body": [
+  "A publisher's event holds a delegate, and the delegate holds a strong reference to the subscriber object whose method it calls. If a long-lived publisher (a static event, an application-wide service, a timer) keeps that subscription, the subscriber can never be garbage collected, even after everything else has forgotten it. This is the most common managed-memory leak in C# programs.",
+  "The example shows it deterministically. A `Window` subscribes to a long-lived `Clock` and is then dropped. A `WeakReference` observes whether the window object is still alive after a full, blocking garbage collection. While subscribed, it survives; after unsubscribing, it is collected.",
+  "The window is created inside a separate non-inlined method so no local variable in the caller keeps it reachable; debug builds otherwise extend local lifetimes to the end of a method. `GC.Collect()` and `GC.WaitForPendingFinalizers()` are used only to make the demonstration observable; production code should not call them.",
+  "Fixes, in order of preference: unsubscribe when the subscriber's lifetime ends, usually in `Dispose` (stage 10) so a `using` guarantees it; return an `IDisposable` subscription token from the publisher so callers cannot forget the matching `-=`; or use a weak-event pattern for frameworks where explicit unsubscription is impractical. Unsubscribing requires the same delegate instance, so store a lambda in a field if you need to remove it later.",
+  "When a subscriber lives shorter than its publisher, check where its subscription ends. Static events deserve special suspicion because their publisher lives for the whole process."
+ ],
+ "expectedStdout": "subscribed window alive: True\nunsubscribed window alive: False\nclock subscribers: 1\n",
+ "challenge": "Change the publisher so Subscribe(EventHandler handler) returns an IDisposable token whose Dispose removes the handler. Show subscriber counts before and after disposing the token with a using block.",
+ "solutionStdout": "1\n0\n",
+ "question": "Why can a subscriber stay in memory after the rest of the program drops it?",
+ "correct": "The publisher's event delegate still references the subscriber",
+ "wrong": [
+  "Events pin objects so the GC cannot move them",
+  "The finalizer queue keeps all subscribers"
+ ],
+ "reasoning": "Delegates hold their target strongly, so a longer-lived publisher keeps subscribers reachable until they unsubscribe.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/fundamentals",
+ "additionalReadings": [
+  {
+   "title": "Weak event patterns",
+   "url": "https://learn.microsoft.com/en-us/dotnet/desktop/wpf/events/weak-event-patterns",
+   "section": "Why weak events"
+  },
+  {
+   "title": "WeakReference",
+   "url": "https://learn.microsoft.com/en-us/dotnet/api/system.weakreference",
+   "section": "IsAlive"
+  }
+ ]
+}

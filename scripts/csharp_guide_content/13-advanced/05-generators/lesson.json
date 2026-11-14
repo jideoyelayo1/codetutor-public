@@ -1,0 +1,34 @@
+{
+ "key": "source-generators",
+ "title": "Source generators and compile-time code",
+ "body": [
+  "A source generator is a compiler plug-in that inspects your code during compilation and adds new C# source files to it. Generated code is ordinary code: it is type-checked, debuggable and AOT-friendly, which makes generators the modern replacement for many uses of reflection.",
+  "The BCL ships several. `[GeneratedRegex(\"pattern\")]` on a `partial` method or (since C# 13) a partial property produces an optimized regular-expression implementation at build time. `System.Text.Json` source generation (`JsonSerializerContext`) produces serializers without reflection. `[LibraryImport]` generates P/Invoke marshalling, and logging's `[LoggerMessage]` generates allocation-free log methods.",
+  "The pattern is always the same: you write a `partial` declaration plus an attribute, and the generator writes the other half. That is why partial methods, properties, constructors and events keep expanding in recent C# versions. Writing your own generator means an `IIncrementalGenerator` in a separate analyzer project targeting .NET Standard 2.0, referenced with `OutputItemType=\"Analyzer\"`.",
+  "Generated files can be inspected: set `EmitCompilerGeneratedFiles` to true in the project, or open the Analyzers node in an IDE. Generators must be incremental and deterministic so builds stay fast and reproducible.",
+  "Prefer a built-in generator when one exists (regex, JSON, logging, interop). Check that the generated code is what you expect and that the generator is pinned to a version, like any other dependency."
+ ],
+ "expectedStdout": "True\nFalse\n2025\n3\n{\"title\":\"Source generators\",\"stage\":13}\nTrue\n",
+ "challenge": "Use [GeneratedRegex] to write a partial method Hex() matching a # followed by exactly six hex digits (ignore case), and print which of #A1B2C3, #12345, abc123 match.",
+ "solutionStdout": "#A1B2C3 True\n#12345 False\nabc123 False\n",
+ "question": "What does a source generator add to a compilation?",
+ "correct": "New C# source code that is compiled with your project",
+ "wrong": [
+  "IL patched into the binary after compilation",
+  "Reflection calls executed at startup"
+ ],
+ "reasoning": "Generators emit ordinary source during the build, so the result is type-checked and works with trimming and AOT.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/roslyn-sdk/source-generators-overview",
+ "additionalReadings": [
+  {
+   "title": "Regular expression source generators",
+   "url": "https://learn.microsoft.com/en-us/dotnet/standard/base-types/regular-expression-source-generators",
+   "section": "GeneratedRegex"
+  },
+  {
+   "title": "JSON source generation",
+   "url": "https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/source-generation",
+   "section": "JsonSerializerContext"
+  }
+ ]
+}

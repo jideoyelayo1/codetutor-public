@@ -1,0 +1,672 @@
+{
+  "schemaVersion": 1,
+  "description": "Original new-language expansion. Expected outputs are development checks and are not bundled as grading rules.",
+  "lessons": [
+    {
+      "id": "rust.generics",
+      "trackID": "rust",
+      "slug": "generics",
+      "title": "A type parameter keeps relationships explicit",
+      "summary": "Reuse one definition without erasing its types.",
+      "body": [
+        "A generic definition names a type parameter instead of choosing one concrete type. The same parameter in several positions means those positions must agree for a particular call.",
+        "The body must work under the declared constraints. An unconstrained T cannot be compared or printed just because the eventual caller uses integers.",
+        "Returning Option<&T> lets this function borrow an element and represent an empty slice without copying it. The borrow still obeys the input's lifetime."
+      ],
+      "code": "fn first<T>(items: &[T]) -> Option<&T> {\n    items.first()\n}\nfn main() {\n    println!(\"{:?}\", first(&[8, 13]));\n    println!(\"{:?}\", first(&[\"oak\", \"elm\"]));\n}",
+      "challenge": "Write a generic second function that returns None when the slice has fewer than two elements.",
+      "solution": "fn second<T>(items: &[T]) -> Option<&T> {\n    items.get(1)\n}\nfn main() {\n    assert_eq!(second(&[8]), None);\n    println!(\"{:?}\", second(&[8, 13]));\n}",
+      "question": "Without a trait bound, what must the body of a generic function assume about T?",
+      "options": [
+        "Only the operations permitted by its declared constraints",
+        "That T is an integer",
+        "That every T can be printed",
+        "That T has a default constructor"
+      ],
+      "answerIndex": 0,
+      "explanation": "The compiler checks the generic definition under its declared constraints, rather than assuming the capabilities of a particular caller's type.",
+      "recall": [
+        [
+          "Why repeat the same type parameter in several positions?",
+          "It expresses a type relationship: those positions use the same chosen type in a particular call."
+        ],
+        [
+          "Why return Option<&T> from a slice lookup?",
+          "It represents absence and borrows the element without requiring it to be copied."
+        ]
+      ],
+      "sourceURL": "https://doc.rust-lang.org/book/ch10-01-syntax.html",
+      "expectedStdout": "Some(8)\nSome(\"oak\")\n",
+      "solutionStdout": "Some(13)\n"
+    },
+    {
+      "id": "rust.traits",
+      "trackID": "rust",
+      "slug": "traits",
+      "title": "A trait bound states the required behavior",
+      "summary": "Separate an interface from a particular representation.",
+      "body": [
+        "A trait names behavior that implementing types provide. Implementing the trait for a type supplies those methods; it does not require that the type inherit a data layout.",
+        "A generic trait bound such as T: Weight allows the body to call the trait's methods. This is a useful bridge from C# interfaces and C++ constrained templates.",
+        "The function below borrows each parcel. Computing its weight does not consume the parcel, and different implementations can supply the same interface."
+      ],
+      "code": "trait Weight { fn weight(&self) -> u32; }\nstruct Parcel { grams: u32 }\nimpl Weight for Parcel {\n    fn weight(&self) -> u32 { self.grams }\n}\nfn total<T: Weight>(items: &[T]) -> u32 {\n    items.iter().map(|item| item.weight()).sum()\n}\nfn main() {\n    println!(\"{}\", total(&[Parcel { grams: 3 }, Parcel { grams: 4 }]));\n}",
+      "challenge": "Implement Weight for a Crate whose weight includes both its contents and its packaging.",
+      "solution": "trait Weight { fn weight(&self) -> u32; }\nstruct Crate { contents: u32, packaging: u32 }\nimpl Weight for Crate {\n    fn weight(&self) -> u32 { self.contents + self.packaging }\n}\nfn main() {\n    let item = Crate { contents: 7, packaging: 2 };\n    assert_eq!(item.weight(), 9);\n    println!(\"{}\", item.weight());\n}",
+      "question": "What does T: Weight allow the generic total function to do?",
+      "options": [
+        "Read every private field of T",
+        "Call the behavior required by Weight",
+        "Treat T as a subclass of Parcel",
+        "Skip borrow checking"
+      ],
+      "answerIndex": 1,
+      "explanation": "The bound supplies the trait contract; it does not expose an implementing type's fields or bypass ownership rules.",
+      "recall": [
+        [
+          "What does a trait bound give a generic function?",
+          "A declared set of capabilities that the function can rely on."
+        ],
+        [
+          "Does implementing a Rust trait imply shared field layout?",
+          "No. Types can implement the same behavior with different representations."
+        ]
+      ],
+      "sourceURL": "https://doc.rust-lang.org/book/ch10-02-traits.html",
+      "expectedStdout": "7\n",
+      "solutionStdout": "9\n"
+    },
+    {
+      "id": "rust.iterators",
+      "trackID": "rust",
+      "slug": "iterators",
+      "title": "Iterator adapters wait for a consumer",
+      "summary": "Choose borrowing, mutation, or ownership before chaining.",
+      "body": [
+        "Iterator adapters such as map and filter build a lazy computation. A consumer such as collect or sum asks it to produce results.",
+        "For a Vec, iter borrows elements, iter_mut borrows them mutably, and into_iter takes ownership of the vector's elements. Choose that relationship before writing a pipeline.",
+        "Here copied turns borrowed integers into copied values. The original vector remains available because the pipeline began with iter."
+      ],
+      "code": "fn main() {\n    let values = vec![1, 2, 3, 4];\n    let squares: Vec<i32> = values.iter().copied()\n        .filter(|n| n % 2 == 0)\n        .map(|n| n * n)\n        .collect();\n    println!(\"{:?}\", squares);\n    println!(\"{}\", values.len());\n}",
+      "challenge": "Use iter_mut to double every element in place, then print the updated vector.",
+      "solution": "fn main() {\n    let mut values = vec![1, 2, 3];\n    for value in values.iter_mut() {\n        *value *= 2;\n    }\n    assert_eq!(values, vec![2, 4, 6]);\n    println!(\"{:?}\", values);\n}",
+      "question": "For a Vec<T>, which iterator takes ownership of its elements?",
+      "options": [
+        "iter()",
+        "iter_mut()",
+        "into_iter()",
+        "All three always"
+      ],
+      "answerIndex": 2,
+      "explanation": "Calling into_iter on the owned vector consumes it; iter and iter_mut borrow instead.",
+      "recall": [
+        [
+          "What makes an iterator adapter run its computation?",
+          "A consumer requests elements, for example through collect, sum, or a loop."
+        ],
+        [
+          "How do Vec iter and into_iter differ?",
+          "iter borrows elements; into_iter on the owned vector consumes it and yields owned elements."
+        ]
+      ],
+      "sourceURL": "https://doc.rust-lang.org/book/ch13-02-iterators.html",
+      "expectedStdout": "[4, 16]\n4\n",
+      "solutionStdout": "[2, 4, 6]\n"
+    },
+    {
+      "id": "rust.lifetimes",
+      "trackID": "rust",
+      "slug": "lifetimes",
+      "title": "A lifetime annotation describes a borrow relationship",
+      "summary": "Describe validity without extending storage.",
+      "body": [
+        "A lifetime parameter relates references in a signature. It tells the checker which input borrows constrain an output borrow; it does not keep an object alive for longer.",
+        "When either input might be returned, the caller must be able to use both inputs for the lifetime required by the returned reference. The annotation expresses that shared constraint.",
+        "Many simple signatures use lifetime elision. Adding annotations cannot make a reference to a local temporary safe to return."
+      ],
+      "code": "fn choose<'a>(left: &'a str, right: &'a str, use_left: bool) -> &'a str {\n    if use_left { left } else { right }\n}\nfn main() {\n    let left = String::from(\"pine\");\n    let right = String::from(\"cedar\");\n    println!(\"{}\", choose(&left, &right, false));\n}",
+      "challenge": "Write a first_word function borrowing from one input. Let lifetime elision connect the result to that input.",
+      "solution": "fn first_word(text: &str) -> &str {\n    text.split_whitespace().next().unwrap_or(\"\")\n}\nfn main() {\n    let phrase = String::from(\"borrow safely\");\n    println!(\"{}\", first_word(&phrase));\n}",
+      "question": "Can a lifetime annotation extend the life of a local String so a reference to it can be returned?",
+      "options": [
+        "Yes, if named 'a",
+        "Yes, if the result is a string slice",
+        "No; it describes constraints rather than extending storage",
+        "Yes, with any generic parameter"
+      ],
+      "answerIndex": 2,
+      "explanation": "An annotation cannot prevent the local value from being dropped when its scope ends.",
+      "recall": [
+        [
+          "What does a Rust lifetime annotation describe?",
+          "Relationships and validity constraints between borrowed references."
+        ],
+        [
+          "Why can annotations not fix returning a reference to a local value?",
+          "The local value is dropped; annotations do not extend its storage lifetime."
+        ]
+      ],
+      "sourceURL": "https://doc.rust-lang.org/book/ch10-03-lifetime-syntax.html",
+      "expectedStdout": "cedar\n",
+      "solutionStdout": "borrow\n"
+    },
+    {
+      "id": "rust.threads",
+      "trackID": "rust",
+      "slug": "threads",
+      "title": "Move transfers data; join waits for work",
+      "summary": "Separate ownership transfer from synchronization.",
+      "body": [
+        "A spawned thread can outlive the scope that started it. An ordinary spawned closure therefore needs captures that meet the thread API's lifetime and Send requirements.",
+        "A move closure takes ownership of captures such as this vector. That solves the capture's ownership problem, but does not wait for the thread to finish.",
+        "Joining waits for completion and returns a Result containing the thread's returned value or panic information. Here the main thread prints only after joining, making the output deterministic."
+      ],
+      "code": "use std::thread;\nfn main() {\n    let values = vec![2, 3, 4];\n    let worker = thread::spawn(move || values.into_iter().sum::<i32>());\n    let total = worker.join().expect(\"worker panicked\");\n    println!(\"{}\", total);\n}",
+      "challenge": "Move a vector to a worker that counts even values. Join it and print the count.",
+      "solution": "use std::thread;\nfn main() {\n    let values = vec![1, 2, 3, 4, 6];\n    let worker = thread::spawn(move || {\n        values.into_iter().filter(|n| n % 2 == 0).count()\n    });\n    println!(\"{}\", worker.join().expect(\"worker panicked\"));\n}",
+      "question": "Which operation waits for the spawned thread's completion?",
+      "options": [
+        "The move keyword",
+        "Creating a Vec",
+        "Calling join on its handle",
+        "Importing std::thread"
+      ],
+      "answerIndex": 2,
+      "explanation": "move determines how captures enter the closure; join supplies the synchronization with completion.",
+      "recall": [
+        [
+          "Does a move closure wait for its thread?",
+          "No. It determines capture ownership; join waits for completion."
+        ],
+        [
+          "What does a thread JoinHandle's join return?",
+          "A Result with the returned value on success or panic information on failure."
+        ]
+      ],
+      "sourceURL": "https://doc.rust-lang.org/book/ch16-01-threads.html",
+      "expectedStdout": "9\n",
+      "solutionStdout": "3\n"
+    },
+    {
+      "id": "rust.assertions",
+      "trackID": "rust",
+      "slug": "assertions",
+      "title": "Turn an expected behavior into a check",
+      "summary": "Use assertions while keeping test scope honest.",
+      "body": [
+        "An assertion checks a concrete behavior and panics when the expectation fails. Check boundary cases as well as an ordinary happy path.",
+        "Rust's unit-test harness normally discovers functions marked #[test] through cargo test or rustc --test. Running a main program alone does not run those test functions.",
+        "The mobile lab currently runs a single program. These examples put assertions in main so the current execution contract actually exercises them. Passing selected cases still does not prove the function correct for every input."
+      ],
+      "code": "fn next_multiple_of_three(n: u32) -> u32 {\n    n + (3 - n % 3) % 3\n}\nfn main() {\n    assert_eq!(next_multiple_of_three(0), 0);\n    assert_eq!(next_multiple_of_three(4), 6);\n    assert_eq!(next_multiple_of_three(6), 6);\n    println!(\"checks passed\");\n}",
+      "challenge": "Write a slice total and check both an empty slice and a non-empty slice before printing success.",
+      "solution": "fn total(values: &[i32]) -> i32 {\n    values.iter().sum()\n}\nfn main() {\n    assert_eq!(total(&[]), 0);\n    assert_eq!(total(&[2, -3, 5]), 4);\n    println!(\"checks passed\");\n}",
+      "question": "Does running a normal main program automatically execute every #[test] function?",
+      "options": [
+        "Always",
+        "Only if main returns zero",
+        "No; the test harness must be used",
+        "Only for tests in the same file"
+      ],
+      "answerIndex": 2,
+      "explanation": "The ordinary program entry point and Rust's test harness are separate execution paths.",
+      "recall": [
+        [
+          "Why include boundary cases in tests?",
+          "They check behavior where ordinary inputs may miss bugs, such as empty collections or exact thresholds."
+        ],
+        [
+          "What is the difference between passing tests and a general proof?",
+          "Tests check selected cases; a proof establishes a stated proposition under its definitions and assumptions."
+        ]
+      ],
+      "sourceURL": "https://doc.rust-lang.org/book/ch11-01-writing-tests.html",
+      "expectedStdout": "checks passed\n",
+      "solutionStdout": "checks passed\n"
+    },
+    {
+      "id": "ocaml.records",
+      "trackID": "ocaml",
+      "slug": "records",
+      "title": "Record update creates a new value",
+      "summary": "Name fields while making changes explicit.",
+      "body": [
+        "A record groups named fields with declared types. Fields are immutable unless their declaration explicitly marks them mutable.",
+        "The with syntax constructs a new record using existing fields as defaults. It does not mutate the original record.",
+        "This is a shallow update: if a field refers to mutable storage, that storage can still be shared. Here both the integer and string fields are immutable values."
+      ],
+      "code": "type session = { topic : string; minutes : int }\nlet original = { topic = \"Rust\"; minutes = 10 }\nlet extended = { original with minutes = 15 }\nlet () = Printf.printf \"%d %d\\n\" original.minutes extended.minutes",
+      "challenge": "Write extend that returns a session with five extra minutes, leaving the input value unchanged.",
+      "solution": "type session = { topic : string; minutes : int }\nlet extend session = { session with minutes = session.minutes + 5 }\nlet () =\n  let start = { topic = \"OCaml\"; minutes = 8 } in\n  let finish = extend start in\n  assert (start.minutes = 8);\n  Printf.printf \"%d\\n\" finish.minutes",
+      "question": "What does { original with minutes = 15 } do for this immutable record?",
+      "options": [
+        "Mutate original",
+        "Create a new record with that field replaced",
+        "Deep-copy every reachable object",
+        "Convert it to a variant"
+      ],
+      "answerIndex": 1,
+      "explanation": "Record update builds a new record; it does not promise a deep copy of any referenced mutable values.",
+      "recall": [
+        [
+          "Are OCaml record fields mutable by default?",
+          "No. A field must explicitly be declared mutable."
+        ],
+        [
+          "Does an OCaml record update deep-copy referenced storage?",
+          "No. It constructs a new record while retaining the other field values, which may refer to shared storage."
+        ]
+      ],
+      "sourceURL": "https://dev.realworldocaml.org/records.html",
+      "expectedStdout": "10 15\n",
+      "solutionStdout": "13\n"
+    },
+    {
+      "id": "ocaml.polymorphism",
+      "trackID": "ocaml",
+      "slug": "polymorphism",
+      "title": "A type variable connects a function's positions",
+      "summary": "Read inferred higher-order types.",
+      "body": [
+        "A polymorphic function can be used with different concrete types at different calls. Repeating a type variable within one function type records a relationship between positions.",
+        "For apply_twice, the argument function must return the same type that it accepts, because its first result becomes its next input.",
+        "Type inference is static checking, not a request to treat values as dynamically typed. Some definitions, particularly those involving mutable state, face restrictions on generalization."
+      ],
+      "code": "let apply_twice f x = f (f x)\nlet () =\n  Printf.printf \"%d\\n\" (apply_twice (fun n -> n + 3) 1);\n  print_endline (apply_twice (fun s -> s ^ \"!\") \"hi\")",
+      "challenge": "Write compose f g x = f (g x), then compose String.length with String.uppercase_ascii.",
+      "solution": "let compose f g x = f (g x)\nlet () =\n  let length_after_uppercase = compose String.length String.uppercase_ascii in\n  Printf.printf \"%d\\n\" (length_after_uppercase \"oak\")",
+      "question": "Which type fits apply_twice f x = f (f x)?",
+      "options": [
+        "('a -> 'a) -> 'a -> 'a",
+        "('a -> 'b) -> 'c -> int",
+        "int -> string",
+        "Every argument has an unrelated type"
+      ],
+      "answerIndex": 0,
+      "explanation": "The output of f is used as another input to f, so those two types must agree.",
+      "recall": [
+        [
+          "What does a repeated OCaml type variable express?",
+          "The corresponding positions share the same chosen type within that use of the function."
+        ],
+        [
+          "Why must f accept and return the same type in apply_twice?",
+          "The first result is passed to f again."
+        ]
+      ],
+      "sourceURL": "https://cs3110.github.io/textbook/chapters/basics/functions.html",
+      "expectedStdout": "7\nhi!!\n",
+      "solutionStdout": "3\n"
+    },
+    {
+      "id": "ocaml.folds",
+      "trackID": "ocaml",
+      "slug": "folds",
+      "title": "The accumulator carries the computation",
+      "summary": "Trace a fold instead of guessing its order.",
+      "body": [
+        "A fold combines each list element with an accumulator. fold_left passes the current accumulator first; fold_right passes the current element first.",
+        "For non-associative operations such as subtraction, direction and argument order change the result. Write out the nested calls when reasoning about them.",
+        "Building a list by prepending to a fold_left accumulator reverses the order. Use that deliberately rather than assuming every fold preserves order."
+      ],
+      "code": "let values = [1; 2; 3]\nlet left = List.fold_left ( - ) 0 values\nlet right = List.fold_right ( - ) values 0\nlet () = Printf.printf \"%d %d\\n\" left right",
+      "challenge": "Implement reverse with List.fold_left and ::, then print the reversed values separated by commas.",
+      "solution": "let reverse xs = List.fold_left (fun acc x -> x :: acc) [] xs\nlet () =\n  let values = reverse [1; 2; 3] in\n  assert (values = [3; 2; 1]);\n  print_endline (String.concat \",\" (List.map string_of_int values))",
+      "question": "Which calculation describes List.fold_left ( - ) 0 [1; 2; 3]?",
+      "options": [
+        "1 - (2 - (3 - 0))",
+        "((0 - 1) - 2) - 3",
+        "0 - (1 + (2 - 3))",
+        "3 - 2 - 1"
+      ],
+      "answerIndex": 1,
+      "explanation": "fold_left threads the accumulator from the left, making each intermediate result the next first argument.",
+      "recall": [
+        [
+          "Which argument receives the accumulator in fold_left's combining function?",
+          "The first argument."
+        ],
+        [
+          "Why can fold_left and fold_right differ for subtraction?",
+          "Their nesting and argument order differ, and subtraction is not associative."
+        ]
+      ],
+      "sourceURL": "https://cs3110.github.io/textbook/chapters/hop/fold.html",
+      "expectedStdout": "-6 2\n",
+      "solutionStdout": "3,2,1\n"
+    },
+    {
+      "id": "ocaml.modules",
+      "trackID": "ocaml",
+      "slug": "modules",
+      "title": "A signature can hide a representation",
+      "summary": "Expose operations while keeping a type abstract.",
+      "body": [
+        "A module groups types and values. A signature describes what clients may see and use.",
+        "Writing type t in a signature without revealing its definition makes the representation abstract outside that interface. Clients must use the exported constructors and operations.",
+        "The implementation below uses int, but a client cannot assume Counter.t is int. This lets the implementation change while preserving its public contract."
+      ],
+      "code": "module Counter : sig\n  type t\n  val zero : t\n  val next : t -> t\n  val value : t -> int\nend = struct\n  type t = int\n  let zero = 0\n  let next n = n + 1\n  let value n = n\nend\nlet () = Printf.printf \"%d\\n\" (Counter.value (Counter.next Counter.zero))",
+      "challenge": "Add a reset operation to the signature and implementation, then reset an incremented counter.",
+      "solution": "module Counter : sig\n  type t\n  val zero : t\n  val next : t -> t\n  val reset : t -> t\n  val value : t -> int\nend = struct\n  type t = int\n  let zero = 0\n  let next n = n + 1\n  let reset _ = zero\n  let value n = n\nend\nlet () =\n  let count = Counter.next (Counter.next Counter.zero) in\n  Printf.printf \"%d\\n\" (Counter.value (Counter.reset count))",
+      "question": "Can a client pass the integer 3 directly to Counter.value through this abstract signature?",
+      "options": [
+        "Yes, because the implementation uses int",
+        "No, because Counter.t is abstract to the client",
+        "Only when compiled",
+        "Only when 3 is positive"
+      ],
+      "answerIndex": 1,
+      "explanation": "The exported signature hides the equality between Counter.t and int.",
+      "recall": [
+        [
+          "What does an abstract type in a module signature hide?",
+          "Its concrete representation and any type equality that has not been exposed."
+        ],
+        [
+          "How can clients create values of an abstract type?",
+          "Through operations exported by the signature, such as zero or a constructor function."
+        ]
+      ],
+      "sourceURL": "https://ocaml.org/docs/modules",
+      "expectedStdout": "1\n",
+      "solutionStdout": "0\n"
+    },
+    {
+      "id": "ocaml.functors",
+      "trackID": "ocaml",
+      "slug": "functors",
+      "title": "A functor takes a module as its input",
+      "summary": "Parameterize a group of definitions.",
+      "body": [
+        "An OCaml functor maps a module satisfying an input signature to a result module. This is different from a map operation on a collection.",
+        "Use a functor when several definitions should depend on the same supplied types or operations. The module signature specifies the required dependency.",
+        "Here two applications can provide different offsets while reusing the implementation. The returned modules have their own exported names."
+      ],
+      "code": "module type Offset = sig val amount : int end\nmodule Shift (O : Offset) = struct\n  let apply n = n + O.amount\nend\nmodule PlusFive = Shift (struct let amount = 5 end)\nlet () = Printf.printf \"%d\\n\" (PlusFive.apply 7)",
+      "challenge": "Apply Shift twice to produce PlusTwo and PlusTen, then apply both to 7.",
+      "solution": "module type Offset = sig val amount : int end\nmodule Shift (O : Offset) = struct\n  let apply n = n + O.amount\nend\nmodule PlusTwo = Shift (struct let amount = 2 end)\nmodule PlusTen = Shift (struct let amount = 10 end)\nlet () = Printf.printf \"%d %d\\n\" (PlusTwo.apply 7) (PlusTen.apply 7)",
+      "question": "What is the input to Shift in this example?",
+      "options": [
+        "A single integer argument",
+        "A list of integers",
+        "A module satisfying Offset",
+        "A string naming a file"
+      ],
+      "answerIndex": 2,
+      "explanation": "Shift is a functor whose parameter is a module exposing amount : int.",
+      "recall": [
+        [
+          "What does an OCaml functor accept and return?",
+          "It accepts a module matching a signature and produces a module."
+        ],
+        [
+          "Why use a module parameter rather than pass one value to every function?",
+          "It groups shared type/operation dependencies so several definitions can use the same contract."
+        ]
+      ],
+      "sourceURL": "https://ocaml.org/docs/functors",
+      "expectedStdout": "12\n",
+      "solutionStdout": "9 17\n"
+    },
+    {
+      "id": "ocaml.results",
+      "trackID": "ocaml",
+      "slug": "results",
+      "title": "Expected failures can travel as values",
+      "summary": "Handle success and failure explicitly.",
+      "body": [
+        "The result type distinguishes Ok carrying a success value from Error carrying a failure value. Pattern matching makes the two paths visible.",
+        "For an expected validation failure, returning a result lets a caller choose how to report or recover. Exceptions remain useful for other error-handling designs.",
+        "Result.map changes the successful value and preserves an Error. Result.bind is for a next operation that can itself return a result."
+      ],
+      "code": "let parse_positive text =\n  match int_of_string_opt text with\n  | Some n when n > 0 -> Ok n\n  | _ -> Error \"positive integer required\"\nlet show = function\n  | Ok n -> Printf.printf \"%d\\n\" n\n  | Error message -> print_endline message\nlet () =\n  show (parse_positive \"3\");\n  show (parse_positive \"-2\")",
+      "challenge": "Double a valid parsed number using Result.map while preserving an invalid input's Error.",
+      "solution": "let parse_positive text =\n  match int_of_string_opt text with\n  | Some n when n > 0 -> Ok n\n  | _ -> Error \"positive integer required\"\nlet double_input text = Result.map (fun n -> n * 2) (parse_positive text)\nlet show = function\n  | Ok n -> Printf.printf \"%d\\n\" n\n  | Error message -> print_endline message\nlet () =\n  show (double_input \"4\");\n  show (double_input \"bad\")",
+      "question": "What does Result.map do when its input is Error message?",
+      "options": [
+        "Run the mapping function on message",
+        "Preserve the Error without mapping the success value",
+        "Throw an exception automatically",
+        "Replace it with Ok 0"
+      ],
+      "answerIndex": 1,
+      "explanation": "The mapping function applies only to the Ok branch.",
+      "recall": [
+        [
+          "How do result's two constructors differ?",
+          "Ok carries a success value; Error carries a failure value."
+        ],
+        [
+          "When use Result.bind rather than Result.map?",
+          "Use bind when the next successful step can itself return a result and fail."
+        ]
+      ],
+      "sourceURL": "https://dev.realworldocaml.org/error-handling.html",
+      "expectedStdout": "3\npositive integer required\n",
+      "solutionStdout": "8\npositive integer required\n"
+    },
+    {
+      "id": "lean.patterns",
+      "trackID": "lean",
+      "slug": "patterns",
+      "title": "Pattern matching follows the constructors",
+      "summary": "Compute by handling every shape of an input.",
+      "body": [
+        "An inductive type describes values through constructors. Nat has zero and successor cases; pattern matching gives the computation for each case.",
+        "The successor pattern n + 1 binds the predecessor n. It is a pattern for a natural number's constructor shape, not a general equation solver.",
+        "Recursive calls must satisfy Lean's termination requirements. Structural recursion on the predecessor is a natural starting point before proving properties about a recursive definition."
+      ],
+      "code": "def remaining : Nat → Nat\n  | 0 => 0\n  | n + 1 => n\n#eval remaining 4",
+      "challenge": "Define twiceBySteps recursively: return 0 at zero and add 2 for each successor. Evaluate it at 3.",
+      "solution": "def twiceBySteps : Nat → Nat\n  | 0 => 0\n  | n + 1 => 2 + twiceBySteps n\n#eval twiceBySteps 3",
+      "question": "In the successor pattern n + 1, what does n represent?",
+      "options": [
+        "A proof of addition",
+        "The predecessor of the matched natural number",
+        "Any unrelated natural number",
+        "Only the constant zero"
+      ],
+      "answerIndex": 1,
+      "explanation": "The branch receives the predecessor from the successor constructor.",
+      "recall": [
+        [
+          "What cases are needed to pattern-match on Nat?",
+          "Zero and successor."
+        ],
+        [
+          "Why is recursion on the predecessor a useful Lean starting point?",
+          "It follows the inductive structure and supplies a structurally smaller recursive argument."
+        ]
+      ],
+      "sourceURL": "https://lean-lang.org/theorem_proving_in_lean4/Inductive-Types/",
+      "expectedStdout": "3\n",
+      "solutionStdout": "6\n"
+    },
+    {
+      "id": "lean.conjunction",
+      "trackID": "lean",
+      "slug": "conjunction",
+      "title": "Conjunction needs evidence for both sides",
+      "summary": "Build and use a pair of proofs.",
+      "body": [
+        "A proof of P ∧ Q contains evidence for P and evidence for Q. Given h : P ∧ Q, h.1 and h.2 select those two proofs.",
+        "To construct a conjunction, supply both components, for example ⟨hp, hq⟩. In tactic mode, constructor creates the corresponding subgoals.",
+        "A conjunction differs from a disjunction: proving P ∨ Q requires choosing and proving one side, while a conjunction needs both."
+      ],
+      "code": "theorem swapBoth (P Q : Prop) : P ∧ Q → Q ∧ P := by\n  intro h\n  exact ⟨h.2, h.1⟩",
+      "challenge": "Prove P → Q → P ∧ Q by introducing both assumptions and constructing the conjunction.",
+      "solution": "theorem keepBoth (P Q : Prop) : P → Q → P ∧ Q := by\n  intro hp hq\n  exact ⟨hp, hq⟩",
+      "question": "Given h : P ∧ Q, which term proves Q?",
+      "options": [
+        "h.1",
+        "h.2",
+        "P itself",
+        "A proof of either side chosen at random"
+      ],
+      "answerIndex": 1,
+      "explanation": "The second projection selects the proof of Q from the conjunction.",
+      "recall": [
+        [
+          "What evidence is needed to prove P ∧ Q?",
+          "A proof of P and a proof of Q."
+        ],
+        [
+          "How does conjunction differ from disjunction when constructing evidence?",
+          "Conjunction needs both sides; disjunction needs a selected side and its proof."
+        ]
+      ],
+      "sourceURL": "https://lean-lang.org/theorem_proving_in_lean4/Propositions-and-Proofs/",
+      "expectedStdout": "",
+      "solutionStdout": ""
+    },
+    {
+      "id": "lean.quantifiers",
+      "trackID": "lean",
+      "slug": "quantifiers",
+      "title": "A universal proof can be applied",
+      "summary": "Distinguish evidence for every input from one witness.",
+      "body": [
+        "A proof of ∀ n, P n behaves like a function taking n and returning evidence for P n. Apply it to a particular argument to get the corresponding proof.",
+        "An existential proof, ∃ n, P n, instead packages one witness together with evidence that the witness satisfies P.",
+        "When introducing a universal variable, it is arbitrary: checking a few numerical examples does not establish the universally quantified proposition."
+      ],
+      "code": "theorem atFive (P : Nat → Prop) (hEvery : ∀ n, P n) : P 5 := by\n  exact hEvery 5",
+      "challenge": "From h : P 4, construct a proof that there exists a natural number satisfying P.",
+      "solution": "theorem hasWitness (P : Nat → Prop) (h : P 4) : ∃ n, P n := by\n  exact ⟨4, h⟩",
+      "question": "What must be supplied to construct a proof of ∃ n, P n?",
+      "options": [
+        "A witness n and evidence for P n",
+        "Evidence only for ∀ n, False",
+        "The type Nat without a value",
+        "A list of tested values without proofs"
+      ],
+      "answerIndex": 0,
+      "explanation": "The existential constructor packages a particular witness with the proof of its property.",
+      "recall": [
+        [
+          "How do you use h : ∀ n, P n to prove P 5?",
+          "Apply h to 5."
+        ],
+        [
+          "What does evidence for an existential proposition contain?",
+          "A witness and a proof that the witness satisfies the stated property."
+        ]
+      ],
+      "sourceURL": "https://lean-lang.org/theorem_proving_in_lean4/Quantifiers-and-Equality/",
+      "expectedStdout": "",
+      "solutionStdout": ""
+    },
+    {
+      "id": "lean.rewriting",
+      "trackID": "lean",
+      "slug": "rewriting",
+      "title": "An equality can change the current goal",
+      "summary": "Choose the direction of a rewrite.",
+      "body": [
+        "Given h : a = b, rw [h] rewrites matching occurrences of a to b. The reverse direction, rw [← h], uses b = a.",
+        "Inspect the goal before and after a rewrite. Rewriting uses an equality theorem; it does not assert that every mathematically equal expression is definitionally identical.",
+        "If the transformed sides coincide, reflexivity can close the goal. For larger expressions, more rewrites or simplification may still be needed."
+      ],
+      "code": "example (a b : Nat) (h : a = b) : a + 2 = b + 2 := by\n  rw [h]",
+      "challenge": "Use h : a = b in the reverse direction to prove b + 3 = a + 3.",
+      "solution": "example (a b : Nat) (h : a = b) : b + 3 = a + 3 := by\n  rw [← h]",
+      "question": "What is the direction of rw [← h] when h : a = b?",
+      "options": [
+        "a to b",
+        "b to a",
+        "Both directions simultaneously",
+        "It changes h to False"
+      ],
+      "answerIndex": 1,
+      "explanation": "The left arrow requests the symmetric direction of the supplied equality.",
+      "recall": [
+        [
+          "How do you request the reverse direction of a Lean rewrite?",
+          "Use rw [← h] for the equality h."
+        ],
+        [
+          "How does rewriting differ from definitional equality?",
+          "Rewriting uses an equality proof; definitional equality comes from Lean's reductions."
+        ]
+      ],
+      "sourceURL": "https://lean-lang.org/theorem_proving_in_lean4/Tactics/",
+      "expectedStdout": "",
+      "solutionStdout": ""
+    },
+    {
+      "id": "lean.induction",
+      "trackID": "lean",
+      "slug": "induction",
+      "title": "Induction mirrors a recursive definition",
+      "summary": "Use a smaller case to prove the next case.",
+      "body": [
+        "Induction on a natural number creates a zero case and a successor case. In the successor case, the induction hypothesis describes the proposition for the predecessor.",
+        "A recursive function's defining equations often determine the proof steps: unfold the current case, use the induction hypothesis, and simplify.",
+        "The induction hypothesis is a proof for the smaller case, not permission to assume the final theorem for every value. Check the exact hypothesis and remaining goal."
+      ],
+      "code": "def tally : Nat → Nat\n  | 0 => 0\n  | n + 1 => tally n + 1\ntheorem tallySelf (n : Nat) : tally n = n := by\n  induction n with\n  | zero => rfl\n  | succ n ih => simp [tally, ih]\n#eval tally 4",
+      "challenge": "Define zeros n as a list of n zeroes and prove that its length is n by induction.",
+      "solution": "def zeros : Nat → List Nat\n  | 0 => []\n  | n + 1 => 0 :: zeros n\ntheorem zerosLength (n : Nat) : (zeros n).length = n := by\n  induction n with\n  | zero => rfl\n  | succ n ih => simp [zeros, ih]\n#eval (zeros 3).length",
+      "question": "In the successor case of this induction, what does ih describe?",
+      "options": [
+        "The proposition for the predecessor n",
+        "The final result without conditions",
+        "Only the zero case",
+        "A runtime test output"
+      ],
+      "answerIndex": 0,
+      "explanation": "The induction principle supplies evidence for the smaller case, which is used to prove the successor case.",
+      "recall": [
+        [
+          "What two cases arise from induction on Nat?",
+          "Zero and successor, with an induction hypothesis for the predecessor in the successor case."
+        ],
+        [
+          "Why can a recursive definition guide an induction proof?",
+          "Its cases identify how to reduce the expression and where the smaller-case hypothesis applies."
+        ]
+      ],
+      "sourceURL": "https://lean-lang.org/theorem_proving_in_lean4/Induction-and-Recursion/",
+      "expectedStdout": "4\n",
+      "solutionStdout": "3\n"
+    },
+    {
+      "id": "lean.structures",
+      "trackID": "lean",
+      "slug": "structures",
+      "title": "A structure groups named fields",
+      "summary": "Build a value and project its components.",
+      "body": [
+        "A structure groups fields under a named type. Lean generates a constructor and field projections; dot notation lets you access fields from a value.",
+        "Record update constructs a new structure value with selected fields replaced. The original immutable value remains available.",
+        "Fields can also include proof obligations, but plain Nat fields do not automatically enforce a relationship such as completed ≤ total. State and prove an invariant when your design requires it."
+      ],
+      "code": "structure Progress where\n  completed : Nat\n  total : Nat\ndef start : Progress := { completed := 2, total := 5 }\n#eval start.completed",
+      "challenge": "Define advance returning a new Progress with completed incremented. Check the old and new counts.",
+      "solution": "structure Progress where\n  completed : Nat\n  total : Nat\ndef advance (p : Progress) : Progress :=\n  { p with completed := p.completed + 1 }\ndef start : Progress := { completed := 2, total := 5 }\n#eval start.completed\n#eval (advance start).completed",
+      "question": "Does this Progress declaration by itself guarantee completed ≤ total?",
+      "options": [
+        "Yes, because both fields are Nat",
+        "No; the relationship needs its own constraint or proof",
+        "Yes, because it is a structure",
+        "Only after #eval"
+      ],
+      "answerIndex": 1,
+      "explanation": "The field types restrict each value individually but do not impose the relationship between the fields.",
+      "recall": [
+        [
+          "What does Lean generate for a structure declaration?",
+          "A constructor, field projections, and supporting eliminators/theorems."
+        ],
+        [
+          "How can a Lean structure express an invariant beyond field types?",
+          "Include a corresponding proof field or establish the invariant through separate definitions and theorems."
+        ]
+      ],
+      "sourceURL": "https://lean-lang.org/theorem_proving_in_lean4/Structures-and-Records/",
+      "expectedStdout": "2\n",
+      "solutionStdout": "2\n3\n"
+    }
+  ]
+}

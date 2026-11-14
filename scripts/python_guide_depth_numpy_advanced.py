@@ -1,0 +1,246 @@
+"""Original Stage 12 NumPy advanced depth: NumPy 2.2 sections with executed transfer practice."""
+from python_guide_depth import add, task
+
+NP = "import numpy as np"
+
+add('reshape-size', 'numpy.reshape: C versus Fortran order, transpose and invalid sizes',
+    'https://numpy.org/doc/2.2/reference/generated/numpy.reshape.html#numpy.reshape', [
+    "reshape changes how a fixed sequence of elements is grouped into axes; it never reorders the underlying sequence. The default order='C' reads and writes the last axis fastest (row-major). order='F' reads the first axis fastest (column-major).",
+    "Transposing is different from reshaping. a.T swaps axes, so flattening a.T walks the original columns, which equals flattening a in Fortran order. Confusing reshape with transpose is a common bug when converting (batch, channels) to (channels, batch): the shape looks right while the values are scrambled.",
+    "A -1 dimension is inferred from the element count. If the requested sizes cannot divide the count, reshape raises ValueError instead of padding or truncating. Check shapes and a few values whenever a reshape crosses a semantic boundary such as images, sequences or channels.",
+    "The transfer flattens a small matrix in C order, in Fortran order and through its transpose, and confirms that an impossible shape is rejected."
+    ],
+    ("a has shape (2, 3). Is a.reshape(3, 2) the same as a.T?",
+     "No. Both have shape (3, 2), but reshape keeps row-major element order while a.T swaps the axes.",
+     ["Yes; transpose is reshape with the dimensions reversed.", "Yes, but only for integer arrays.", "No; reshape(3, 2) raises an error."],
+     "Shape alone does not determine meaning; check element order when converting layouts."),
+    task("Transfer: element order under reshape and transpose",
+         "data is [rows, cols]. Build a = arange(rows*cols).reshape(rows, cols). Return [a flattened in C order, a flattened in F order, a.T flattened in C order, 'error' or 'reshaped' for a.reshape(cols + 1, -1)].",
+         "rows, cols = data\na = np.arange(rows * cols).reshape(rows, cols)\ntry:\n    a.reshape(cols + 1, -1)\n    invalid = 'reshaped'\nexcept ValueError:\n    invalid = 'error'\nresult = [a.reshape(-1).tolist(), a.reshape(-1, order='F').tolist(), a.T.reshape(-1).tolist(), invalid]",
+         [([2,3],[[0,1,2,3,4,5],[0,3,1,4,2,5],[0,3,1,4,2,5],'error']),([1,1],[[0],[0],[0],'error']),([3,1],[[0,1,2],[0,1,2],[0,1,2],'error'])],
+         ("a.reshape(-1, order='F')","a.reshape(-1)"),
+         ["C order walks the last axis fastest.", "F order walks the first axis fastest, like flattening the transpose.", "Sizes that do not divide the element count raise ValueError."],
+         "Row-major order gives 0 through 5; column-major gives 0, 3, 1, 4, 2, 5, the same as flattening the transpose. Six elements cannot form four rows. Dropping order='F' would make the second result row-major.",
+         [[[0,1,2,3,4,5],[0,1,2,3,4,5],[0,3,1,4,2,5],'error'],[[0,1,2,3,4,5],[0,3,1,4,2,5],[0,1,2,3,4,5],'error'],[[0,1,2,3,4,5],[0,3,1,4,2,5],[0,3,1,4,2,5],'reshaped']],
+         NP),
+    ("Which flattening of a equals a.T.reshape(-1)?", "a.reshape(-1, order='F'), column-major order."))
+
+add('array-strides', 'ndarray.strides: transposed views and ascontiguousarray',
+    'https://numpy.org/doc/2.2/reference/generated/numpy.ndarray.strides.html#numpy.ndarray.strides', [
+    "strides gives the number of bytes to step in memory to move one position along each axis. A C-contiguous (rows, cols) int64 array has strides (cols*8, 8): moving across a row steps 8 bytes, moving down a column steps a whole row.",
+    "Transposing does not move data. a.T is a view with the shape and strides swapped, so it shares memory and is usually not C-contiguous. Many operations accept such views, but some libraries, file writers and GPU transfers require contiguous memory.",
+    "np.ascontiguousarray returns a C-contiguous array, copying only when necessary. When the input already is contiguous it may return the same memory, so do not rely on it to produce an independent copy; use .copy() for that. Axes of length one do not affect contiguity.",
+    "The transfer inspects strides, contiguity and memory sharing for an array, its transpose and a contiguous version."
+    ],
+    ("What does a.T do to an array's memory?",
+     "Nothing; it returns a view with swapped shape and strides that shares the same buffer.",
+     ["It copies the data into column order.", "It sorts the data.", "It converts the array to Fortran dtype."],
+     "Transpose is a stride trick; contiguity, not the values, changes."),
+    task("Transfer: strides of a transposed view",
+         "data is a shape [rows, cols]. Build an int64 arange array of that shape, its transpose t and c = np.ascontiguousarray(t). Return [a.strides, t.strides, t is C-contiguous, a shares memory with t, a shares memory with c, c.strides].",
+         "a = np.arange(data[0] * data[1], dtype=np.int64).reshape(data)\nt = a.T\nc = np.ascontiguousarray(t)\nresult = [list(a.strides), list(t.strides), bool(t.flags['C_CONTIGUOUS']), bool(np.shares_memory(a, t)), bool(np.shares_memory(a, c)), list(c.strides)]",
+         [([2,3],[[24,8],[8,24],False,True,False,[16,8]]),([1,4],[[32,8],[8,32],True,True,True,[8,32]]),([3,3],[[24,8],[8,24],False,True,False,[24,8]])],
+         ("c = np.ascontiguousarray(t)","c = t"),
+         ["int64 elements are 8 bytes.", "Transposing swaps the strides.", "ascontiguousarray copies only when the input is not already contiguous."],
+         "A (2, 3) int64 array has strides 24 and 8; its transpose swaps them and is not C-contiguous, so ascontiguousarray copies it into new memory with strides 16 and 8. A (1, 4) array's transpose has a length-one axis and is already contiguous, so no copy is made and the memory is shared. Skipping the call would leave the non-contiguous view.",
+         [[[24,8],[8,24],False,True,True,[8,24]],[[24,8],[24,8],True,False,False,[24,8]],[[8,24],[8,24],False,True,False,[16,8]]],
+         NP),
+    ("Does np.ascontiguousarray always copy?", "No. It copies only when needed; use .copy() when independent memory is required."))
+
+add('matrix-product', 'numpy.matmul: batches of rows times a weight matrix versus elementwise *',
+    'https://numpy.org/doc/2.2/reference/generated/numpy.matmul.html#numpy.matmul', [
+    "x @ W multiplies matrices: an (n, k) batch of inputs times a (k, m) weight matrix gives an (n, m) batch of outputs. The inner dimension k must match and is summed over. This is the core operation of a linear layer.",
+    "The * operator multiplies elementwise, pairing entries at the same positions and broadcasting shapes. It is a different operation that happens to agree with @ only in special cases such as 1 × 1 matrices. Mixing them up is a frequent bug when porting formulas.",
+    "Order matters: x @ W and W @ x are generally different, and one of them may not even be defined. Write the expected shapes beside matrix code and assert them in tests.",
+    "The transfer applies a weight matrix to a batch, reports the output shape and contrasts it with elementwise multiplication where the shapes allow it."
+    ],
+    ("x has shape (3, 2) and W has shape (2, 1). What is the shape of x @ W?",
+     "(3, 1): the shared inner dimension 2 is summed over.",
+     ["(2, 2)", "(3, 2)", "It raises because 3 ≠ 1."],
+     "matmul requires matching inner dimensions and keeps the outer ones."),
+    task("Transfer: apply weights to a batch",
+         "data is [weights, batch]. Compute out = batch @ weights. Return [out.shape, out values, batch * weights if their shapes are equal, otherwise 'shape-mismatch'].",
+         "weights, batch = (np.asarray(x, dtype=float) for x in data)\nout = batch @ weights\nelementwise_ok = batch.shape == weights.shape\nresult = [list(out.shape), out.tolist(), (batch * weights).tolist() if elementwise_ok else 'shape-mismatch']",
+         [([[[1,0],[0,2]],[[1,1],[2,3]]],[[2,2],[[1.0,2.0],[2.0,6.0]],[[1.0,0.0],[0.0,6.0]]]),([[[1],[1]],[[1,2],[3,4],[5,6]]],[[3,1],[[3.0],[7.0],[11.0]],'shape-mismatch']),([[[2]],[[3]]],[[1,1],[[6.0]],[[6.0]]])],
+         ("out = batch @ weights","out = weights @ batch"),
+         ["Rows of the batch are inputs; columns of the weights are outputs.", "The inner dimensions must match.", "Elementwise * pairs entries at the same position."],
+         "Each input row is combined with the weight columns: [1, 1] becomes [1, 2]. Summing a row against the single weight column gives 3, 7 and 11. Reversing the operand order computes a different product, or fails.",
+         [[[2,2],[[1.0,0.0],[0.0,6.0]],[[1.0,0.0],[0.0,6.0]]],[[2,2],[[1.0,1.0],[4.0,6.0]],[[1.0,0.0],[0.0,6.0]]],[[2],[[1.0,2.0],[2.0,6.0]],'shape-mismatch']],
+         NP),
+    ("What shape does (n, k) @ (k, m) produce?", "(n, m); k must match and is summed over."))
+
+add('einsum-contract', 'numpy.einsum: row-wise dots, Gram matrices and traces',
+    'https://numpy.org/doc/2.2/reference/generated/numpy.einsum.html#numpy.einsum', [
+    "einsum writes a computation as index labels. 'ij,ij->i' multiplies matching entries and sums over j, keeping i: one dot product per row. Labels missing from the output are summed; labels present are kept.",
+    "'ik,jk->ij' computes every pair of row dot products, the Gram matrix A Aᵀ, which underlies kernels and attention scores. 'ii->' sums the diagonal, the trace. One notation covers many contractions without temporary transposes.",
+    "Verify an einsum against an explicit expression such as a @ a.T with np.allclose in tests; a mistyped label silently computes a different contraction. For performance-critical code, compare with the equivalent matmul, which is often faster.",
+    "The transfer computes row-wise dot products, a Gram matrix and its trace, and checks the Gram matrix against matmul."
+    ],
+    ("In np.einsum('ij,ij->i', a, b), which axis is summed?",
+     "j, because it appears in the inputs but not in the output.",
+     ["i, because it is the first label.", "Both i and j.", "Neither; einsum only multiplies."],
+     "Output labels are kept; every other label is summed over."),
+    task("Transfer: contractions by label",
+         "data is [a, b], two equal-shape 2-D lists. Return [row-wise dots 'ij,ij->i', Gram matrix 'ik,jk->ij' of a, its trace 'ii->', whether the Gram matrix equals a @ a.T].",
+         "a, b = (np.asarray(x, dtype=float) for x in data)\nrow_dots = np.einsum('ij,ij->i', a, b)\ngram = np.einsum('ik,jk->ij', a, a)\ntrace = np.einsum('ii->', gram)\nresult = [row_dots.tolist(), gram.tolist(), float(trace), bool(np.allclose(gram, a @ a.T))]",
+         [([[[1,2],[3,4]],[[1,0],[0,1]]],[[1.0,4.0],[[5.0,11.0],[11.0,25.0]],30.0,True]),([[[1,1]],[[2,3]]],[[5.0],[[2.0]],2.0,True]),([[[0,0],[1,0]],[[5,5],[5,5]]],[[0.0,5.0],[[0.0,0.0],[0.0,1.0]],1.0,True])],
+         ("np.einsum('ij,ij->i', a, b)","np.einsum('ij,ij->j', a, b)"),
+         ["Labels absent from the output are summed.", "The Gram matrix pairs every row with every row.", "The trace sums the diagonal."],
+         "Row dots against the identity pick out 1 and 4. The Gram matrix of [[1, 2], [3, 4]] is [[5, 11], [11, 25]], with trace 30. Keeping j instead of i gives column sums, which coincide for the identity but not in general.",
+         [[[4.0,1.0],[[5.0,11.0],[11.0,25.0]],30.0,True],[[1.0,4.0],[[10.0,14.0],[14.0,20.0]],30.0,True],[[1.0,4.0],[[5.0,11.0],[11.0,25.0]],5.0,True]],
+         NP),
+    ("How does einsum decide what to sum?", "Labels that appear in the inputs but not after -> are summed; output labels are kept."))
+
+add('linear-solve', 'numpy.linalg.solve: residual checks, singular systems and conditioning',
+    'https://numpy.org/doc/2.2/reference/generated/numpy.linalg.solve.html#numpy.linalg.solve', [
+    "np.linalg.solve(A, b) finds x with A x = b for a square matrix. Solving directly is faster and more accurate than computing inv(A) @ b. Check the residual ‖A x - b‖ to confirm the solution.",
+    "A singular matrix, one whose rows are linearly dependent, has no unique solution, and solve raises LinAlgError. Do not swap in least squares to make the error disappear unless a least-squares answer is what the problem actually requires; it returns a number for an ill-posed question.",
+    "The condition number, np.linalg.cond(A), estimates how much errors in b are amplified in x. A value near 1 is benign; a large value means small input noise can change the answer substantially even when the residual looks fine.",
+    "The transfer solves well-conditioned, singular and diagonal systems, reporting the solution, the residual check and the condition number."
+    ],
+    ("What does a large condition number of A indicate?",
+     "Small errors in b or A can cause large changes in the solution x.",
+     ["The system has no solution.", "The solver will run slowly.", "The residual will always be large."],
+     "Conditioning measures sensitivity, separate from whether a solution exists or how well it satisfies the equations."),
+    task("Transfer: solve, verify and assess conditioning",
+         "data is [A, b]. Solve with np.linalg.solve. Return [solution rounded to 6 places, residual < 1e-9, condition number rounded to 3 places], or 'singular' on LinAlgError.",
+         "a, b = (np.asarray(x, dtype=float) for x in data)\ntry:\n    x = np.linalg.solve(a, b)\n    residual = float(np.linalg.norm(a @ x - b))\n    result = [np.round(x, 6).tolist(), residual < 1e-9, round(float(np.linalg.cond(a)), 3)]\nexcept np.linalg.LinAlgError:\n    result = 'singular'",
+         [([[[2,1],[1,3]],[3,5]],[[0.8,1.4],True,2.618]),([[[1,2],[2,4]],[1,2]],'singular'),([[[4,0],[0,0.5]],[2,1]],[[0.5,2.0],True,8.0])],
+         ("x = np.linalg.solve(a, b)","x = np.linalg.lstsq(a, b, rcond=None)[0]"),
+         ["Verify the solution through the residual.", "Dependent rows make the matrix singular.", "cond is the ratio of the largest to smallest singular value."],
+         "The symmetric system gives x = [0.8, 1.4] with condition number about 2.618. The second matrix's rows are multiples, so it is singular. Substituting least squares would return a number for the singular system and hide the problem.",
+         [[[1.4,0.8],True,2.618],[[0.8,1.4],False,2.618],[[0.8,1.4],True,1.0]],
+         NP),
+    ("Why prefer solve over inv(A) @ b?", "It is faster and more numerically accurate; check the residual and the condition number either way."))
+
+add('least-squares', 'numpy.linalg.lstsq: fitting a line with an intercept column and reading rank',
+    'https://numpy.org/doc/2.2/reference/generated/numpy.linalg.lstsq.html#numpy.linalg.lstsq', [
+    "Least squares finds coefficients minimizing the sum of squared residuals when there are more equations than unknowns. To fit y = m x + c, build a design matrix with an x column and a column of ones; the ones column estimates the intercept.",
+    "Leaving out the ones column forces the line through the origin. The fit still runs and returns a coefficient, but it answers a different question and usually has a larger error. This is one of the most common silent modelling mistakes.",
+    "lstsq also returns the rank of the design matrix. If all x values are equal, the x column is a multiple of the ones column, the rank drops, and the slope is not identifiable: many lines fit equally well. Check rank before interpreting coefficients.",
+    "The transfer fits lines with an intercept, reports the rank and the residual sum of squares, including a degenerate design."
+    ],
+    ("All x values in a regression are identical. What does lstsq's rank reveal?",
+     "The design matrix is rank-deficient, so the slope cannot be uniquely determined.",
+     ["The fit is perfect.", "The intercept is zero.", "Nothing; rank is always the number of columns."],
+     "Collinear columns lower the rank; the returned coefficients are then one of many equally good solutions."),
+    task("Transfer: fit a line with an intercept",
+         "data is [x, y]. Fit y ≈ m x + c with lstsq on the design [x, 1]. Return [[m, c] rounded to 6 places, rank, residual sum of squares rounded to 6 places].",
+         "x, y = (np.asarray(v, dtype=float) for v in data)\ndesign = np.column_stack([x, np.ones_like(x)])\ncoef, _, rank, _ = np.linalg.lstsq(design, y, rcond=None)\nfitted = design @ coef\nresult = [np.round(coef, 6).tolist(), int(rank), round(float(np.sum((y - fitted) ** 2)), 6)]",
+         [([[0,1,2],[1,3,5]],[[2.0,1.0],2,0.0]),([[0,1,2,3],[0,1,1,2]],[[0.6,0.1],2,0.2]),([[1,1,1],[1,2,3]],[[1.0,1.0],1,2.0])],
+         ("np.column_stack([x, np.ones_like(x)])","np.column_stack([x])"),
+         ["The ones column estimates the intercept.", "Check the rank of the design matrix.", "Compute residuals from the fitted values."],
+         "The points (0, 1), (1, 3), (2, 5) lie exactly on y = 2x + 1. The noisy points give slope 0.6 and intercept 0.1 with residual 0.2. With every x equal to 1 the rank is 1, so lstsq returns the minimum-norm split m = c = 1 of the mean 2, not a meaningful slope. Dropping the ones column forces the line through the origin: slope 2.6 with residual 1.2 for the first data set.",
+         [[[2.6],1,1.2],[[2.0,1.0],1,0.0],[[1.0,2.0],2,0.0]],
+         NP),
+    ("What does the ones column in a design matrix do?", "It estimates the intercept; without it the fitted line must pass through the origin."))
+
+add('svd-rank', 'numpy.linalg.svd: singular values, numerical rank and best low-rank approximation',
+    'https://numpy.org/doc/2.2/reference/generated/numpy.linalg.svd.html#numpy.linalg.svd', [
+    "The singular value decomposition writes A = U Σ Vᵀ, with orthonormal U and V and non-negative singular values σ₁ ≥ σ₂ ≥ … on Σ's diagonal. Each σ measures how strongly A stretches one direction.",
+    "Numerical rank counts singular values above a tolerance. A matrix whose rows are exactly proportional has a zero singular value and rank one; a nearly proportional one has a tiny but non-zero value, so its numerical rank depends on the tolerance chosen.",
+    "Keeping only the largest k singular values gives the best rank-k approximation, and its error in the spectral norm is exactly σ_{k+1} (the Eckart–Young theorem). This is the basis of PCA, compression and many recommender models.",
+    "The transfer computes singular values and rank and checks that the rank-one approximation error equals the second singular value."
+    ],
+    ("What is the spectral-norm error of the best rank-1 approximation of A?",
+     "σ₂, the second-largest singular value.",
+     ["σ₁, the largest singular value.", "The sum of all singular values.", "Always zero."],
+     "Truncated SVD is optimal, with error equal to the first discarded singular value."),
+    task("Transfer: rank-one approximation error",
+         "data is a 2-D list with at least two rows and columns. Return [singular values rounded to 6 places, matrix_rank, spectral-norm error of the rank-1 approximation rounded to 6 places, second singular value rounded to 6 places].",
+         "a = np.asarray(data, dtype=float)\nu, s, vt = np.linalg.svd(a, full_matrices=False)\nrank1 = s[0] * np.outer(u[:, 0], vt[0])\nerror = float(np.linalg.norm(a - rank1, 2))\nresult = [np.round(s, 6).tolist(), int(np.linalg.matrix_rank(a)), round(error, 6), round(float(s[1]), 6)]",
+         [([[3,0],[0,1]],[[3.0,1.0],2,1.0,1.0]),([[1,2],[2,4]],[[5.0,0.0],1,0.0,0.0]),([[2,0,0],[0,1,0]],[[2.0,1.0],2,1.0,1.0])],
+         ("rank1 = s[0] * np.outer(u[:, 0], vt[0])","rank1 = np.outer(u[:, 0], vt[0])"),
+         ["Singular values come sorted largest first.", "Scale the outer product by σ₁.", "The approximation error equals the first discarded singular value."],
+         "diag(3, 1) has singular values 3 and 1, and keeping only the first leaves an error of exactly 1 = σ₂. The proportional rows of [[1, 2], [2, 4]] give σ₂ = 0, rank 1 and an exact rank-one approximation. Forgetting the σ₁ scale leaves a large error that no longer matches σ₂.",
+         [[[3.0,1.0],2,2.0,1.0],[[3.0,1.0],1,1.0,1.0],[[1.0,3.0],2,1.0,3.0]],
+         NP),
+    ("What does numerical rank depend on?", "The number of singular values above a tolerance; near-zero values make rank tolerance-dependent."))
+
+add('fft-spectrum', 'numpy.fft.rfft and rfftfreq: finding a dominant frequency in Hz',
+    'https://numpy.org/doc/2.2/reference/generated/numpy.fft.rfft.html#numpy.fft.rfft', [
+    "The discrete Fourier transform expresses a sampled signal as a sum of frequencies. For real input, np.fft.rfft returns n // 2 + 1 complex coefficients, from zero frequency up to the Nyquist frequency, half the sampling rate.",
+    "np.fft.rfftfreq(n, d=1/rate) labels those coefficients in hertz. Without d it reports cycles per sample instead, a correct but differently scaled axis that is easy to misread. The magnitude of each coefficient measures how much of that frequency is present.",
+    "Coefficient 0 is the DC component: with NumPy's unnormalized forward convention, it equals the sum of the signal, so dividing by n gives the mean. Skip it when looking for the dominant oscillation. A frequency that falls between bins spreads into neighbouring bins (leakage); the fixtures use whole-bin frequencies.",
+    "The transfer samples a sine wave plus an offset and recovers its frequency in hertz and its mean."
+    ],
+    ("A real signal of length 64 is passed to np.fft.rfft. How many coefficients are returned?",
+     "33, from zero frequency to the Nyquist frequency.",
+     ["64, one per sample.", "32, half the length.", "128, real and imaginary parts."],
+     "rfft returns n // 2 + 1 coefficients for real input."),
+    task("Transfer: dominant frequency of a sampled signal",
+         "data is [n_samples, sample_rate_hz, frequency_hz]. Sample sin(2π f t) + 0.5. Return [number of rfft coefficients, dominant non-DC frequency in Hz from rfftfreq, DC coefficient / n rounded to 6 places].",
+         "n, rate, freq = data\nt = np.arange(n) / rate\nsignal = np.sin(2 * np.pi * freq * t) + 0.5\nspectrum = np.abs(np.fft.rfft(signal))\nfreqs = np.fft.rfftfreq(n, d=1 / rate)\npeak = float(freqs[1:][np.argmax(spectrum[1:])])\nresult = [len(spectrum), peak, round(float(spectrum[0] / n), 6)]",
+         [([64,64,5],[33,5.0,0.5]),([100,50,10],[51,10.0,0.5]),([32,32,1],[17,1.0,0.5])],
+         ("freqs = np.fft.rfftfreq(n, d=1 / rate)","freqs = np.fft.rfftfreq(n)"),
+         ["rfft returns n // 2 + 1 coefficients.", "Pass d = 1 / sample_rate to get hertz.", "Skip coefficient 0, the DC component."],
+         "A 5 Hz sine sampled at 64 Hz peaks at 5 Hz, and the DC term divided by n recovers the 0.5 offset. Without d, the peak would be reported as 5/64 cycles per sample.",
+         [[64,5.0,0.5],[33,0.078125,0.5],[33,5.0,32.0]],
+         NP),
+    ("Why pass d=1/rate to rfftfreq?", "So the frequency axis is in hertz rather than cycles per sample."))
+
+add('integer-overflow', 'Data types: uint8 wraparound and widening before arithmetic',
+    'https://numpy.org/doc/2.2/user/basics.types.html#overflow-errors', [
+    "Fixed-width integer arrays wrap around on overflow. uint8 holds 0 to 255, so 200 + 100 becomes 44 (300 - 256). Array arithmetic does this silently, without an exception, which is a classic image-processing bug when brightening pixels.",
+    "Widen first, compute, then clip and narrow: convert to int16, add, clip to [0, 255] and convert back to uint8. Clipping after the overflow has already happened is too late, because the wrapped values look valid.",
+    "Reductions are vulnerable too. Pass dtype=np.int64 to sum when totals can exceed the input type's range, and record the dtype used. The same reasoning applies to int32 indices on large datasets and to low-precision floats in mixed-precision training.",
+    "The transfer brightens uint8 pixel values with and without widening and computes a safe total."
+    ],
+    ("A uint8 array contains 200. What does adding np.uint8(100) produce?",
+     "44, because 300 wraps around modulo 256.",
+     ["255, because NumPy saturates.", "300, because NumPy upcasts automatically.", "An OverflowError."],
+     "Array arithmetic on fixed-width integers wraps; widen before computing when the true result must fit."),
+    task("Transfer: brighten pixels safely",
+         "data is a list of pixel values 0–255. Return [uint8 + 100 (wrapping), brightened by widening to int16, adding 100, clipping to 0–255 and converting back to uint8, the sum using dtype int64].",
+         "pixels = np.asarray(data, dtype=np.uint8)\nwrapped = (pixels + np.uint8(100)).tolist()\nbrightened = np.clip(pixels.astype(np.int16) + 100, 0, 255).astype(np.uint8).tolist()\ntotal = int(pixels.sum(dtype=np.int64))\nresult = [wrapped, brightened, total]",
+         [([10,200,255],[[110,44,99],[110,255,255],465]),([0],[[100],[100],0]),([156,155],[[0,255],[255,255],311])],
+         ("np.clip(pixels.astype(np.int16) + 100, 0, 255)","np.clip(pixels + np.uint8(100), 0, 255)"),
+         ["uint8 arithmetic wraps modulo 256.", "Widen before adding, then clip.", "Give sum a wide accumulator dtype."],
+         "200 + 100 wraps to 44 and 255 + 100 to 99, while the widened version saturates at 255. Clipping after uint8 addition is too late, because the wrapped values are already within range.",
+         [[[110,300,355],[110,255,255],465],[[110,44,99],[110,44,99],465],[[110,44,99],[110,255,255],209]],
+         NP),
+    ("How do you add to uint8 data without wraparound?", "Widen (e.g. int16), compute, clip to the valid range, then convert back."))
+
+add('masked-array', 'numpy.ma: masking sentinel values instead of averaging them',
+    'https://numpy.org/doc/2.2/reference/maskedarray.generic.html#what-is-a-masked-array', [
+    "Legacy data often marks missing values with a sentinel such as -999. Treating it as a real number corrupts statistics: one -999 drags the mean of 2 and 4 to -331.",
+    "np.ma.masked_equal(values, -999) builds a masked array in which those positions are excluded from reductions. count() reports the valid entries and mean() averages only them. filled(0) produces an ordinary array with a chosen replacement, for libraries that do not understand masks.",
+    "Filling before reducing changes the result: averaging after filling with zero divides by the full length and biases the mean. Decide the missing-value policy explicitly, and handle the case where every value is masked, which has no mean.",
+    "The transfer masks a sentinel, compares the clean and naive means and produces a filled array."
+    ],
+    ("Values are [2, -999, 4] where -999 means missing. What do the naive and masked means give?",
+     "The naive mean is -331; the masked mean is 3.",
+     ["Both give 3.", "The naive mean is 2; the masked mean is 3.", "Both give -331."],
+     "Sentinels must be masked or removed before computing statistics."),
+    task("Transfer: mask a missing-value sentinel",
+         "data is a list of numbers where -999 means missing. Return [count of valid values, masked mean or None if all are missing, naive mean, masked array filled with 0].",
+         "values = np.asarray(data, dtype=float)\nmasked = np.ma.masked_equal(values, -999)\nnaive = float(values.mean())\nclean = float(masked.mean()) if masked.count() else None\nresult = [int(masked.count()), clean, naive, masked.filled(0).tolist()]",
+         [([2,-999,4],[2,3.0,-331.0,[2.0,0.0,4.0]]),([-999],[0,None,-999.0,[0.0]]),([1,1],[2,1.0,1.0,[1.0,1.0]])],
+         ("np.ma.masked_equal(values, -999)","np.ma.masked_equal(values, 0)"),
+         ["Mask the sentinel value, not zero.", "count() reports unmasked entries.", "A fully masked array has no mean."],
+         "Masking -999 leaves 2 and 4 with mean 3, while the naive mean is -331. Masking zero instead would leave the sentinel in the statistics.",
+         [[3,-331.0,-331.0,[2.0,-999.0,4.0]],[2,2.0,-331.0,[2.0,0.0,4.0]],[2,3.0,3.0,[2.0,0.0,4.0]]],
+         NP),
+    ("Why mask sentinels instead of filling them with zero before averaging?", "Filling keeps them in the denominator and biases the mean; masking excludes them."))
+
+add('memmap-scope', 'numpy.memmap: write, reopen read-only and process in chunks',
+    'https://numpy.org/doc/2.2/reference/generated/numpy.memmap.html#numpy.memmap', [
+    "np.memmap maps a binary file into memory as an array. Pages are loaded on demand, so a file larger than memory can be processed in chunks. The file has no header: dtype and shape must be known, or recorded separately, to read it back.",
+    "Open with mode='w+' to create and write, call flush() to push changes to disk, and release the mapping before deleting or replacing the file. Reopening with mode='r' makes the array read-only, so an accidental write raises ValueError instead of altering the data.",
+    "Process a large map in fixed-size chunks and keep only small results. Holding slices of the map keeps it open. Note that an empty file cannot be mapped; handle zero-length data separately.",
+    "The transfer writes values to a memory-mapped file, reopens it read-only, sums it in chunks and checks the file size and write protection."
+    ],
+    ("A memmap is opened with mode='r'. What happens on reader[0] = 1?",
+     "ValueError, because the mapped array is read-only.",
+     ["The file is modified on disk.", "Only the in-memory copy changes.", "The write is silently ignored."],
+     "Read-only mode protects the file from accidental writes."),
+    task("Transfer: chunked reading of a mapped file",
+         "data is [values, chunk] with at least one value. Write float64 values through a 'w+' memmap, flush and release it, reopen with mode 'r' and sum it in chunks. Return [chunk sums, whether writing to the reader succeeded, file size in bytes].",
+         "with tempfile.TemporaryDirectory() as directory:\n    path = Path(directory) / 'values.f64'\n    values, chunk = data\n    writer = np.memmap(path, dtype='float64', mode='w+', shape=(len(values),))\n    writer[:] = values\n    writer.flush()\n    del writer\n    reader = np.memmap(path, dtype='float64', mode='r')\n    sums = [float(reader[i:i + chunk].sum()) for i in range(0, len(reader), chunk)]\n    try:\n        reader[0] = 1\n        writable = True\n    except ValueError:\n        writable = False\n    size = path.stat().st_size\n    del reader\nresult = [sums, writable, size]",
+         [([[1,2,3,4,5],2],[[3.0,7.0,5.0],False,40]),([[7],4],[[7.0],False,8]),([[1,1,1],3],[[3.0],False,24])],
+         ("range(0, len(reader), chunk)","range(0, len(reader) - 1, chunk)"),
+         ["Flush and release the writer before reopening.", "Chunk boundaries step by chunk up to the full length.", "Read-only maps reject assignment."],
+         "Five values in chunks of two sum to 3, 7 and 5, the file holds 5 × 8 bytes and the read-only map rejects the write. Stopping the range early drops the final partial chunk.",
+         [[[3.0,7.0],False,40],[[3.0,7.0,5.0],True,40],[[15.0],False,40]],
+         NP+"\nimport tempfile\nfrom pathlib import Path"),
+    ("What must you track alongside a raw memmap file?", "Its dtype and shape, because the file stores no header."))

@@ -1,0 +1,237 @@
+"""Original Stage 06 object/protocol depth: bounded Python 3.13 sections with executed transfer practice."""
+from python_guide_depth import add, task
+
+add('dataclass-values', 'dataclasses: frozen instances, replace() and shallow immutability',
+    'https://docs.python.org/3.13/library/dataclasses.html#frozen-instances', [
+    "A dataclass turns annotated class attributes into fields and generates __init__, __repr__ and __eq__ from them. Use it when an object is mainly a named bundle of values. The generated code is ordinary Python; reading the field list tells you exactly what initialization and equality consider.",
+    "frozen=True makes field assignment raise FrozenInstanceError after construction. That protects the binding between the instance and each field object. It does not copy or freeze those objects. A list stored in a frozen field can still be appended to, and every holder of that list observes the change.",
+    "dataclasses.replace builds a new instance from an existing one plus changed fields. It is the normal way to 'update' a frozen value. The copy is shallow: unchanged fields refer to the same objects as before. If a field must be independently mutable, copy it explicitly or store an immutable type such as a tuple.",
+    "The transfer task observes all three facts together: rebinding is rejected, a mutable member can still change, and replace() shares that member. Treat frozen as a guard against accidental rebinding, not as a deep-immutability guarantee."
+    ],
+    ("A frozen dataclass has a list field. What does frozen=True guarantee about that list?",
+     "Only that the field cannot be rebound to a different object; the list itself can still be mutated.",
+     ["The list is converted to a tuple automatically.", "Appending to the list raises FrozenInstanceError.", "replace() deep-copies the list into the new instance."],
+     "Frozen dataclasses block attribute assignment. They do not recursively freeze or copy field values, and replace() is shallow."),
+    task("Transfer: frozen is shallow",
+         "data is [rate, tags]. Build a frozen Config(rate, tags) with a copied list. Attempt to rebind rate, append 'seen' to tags, then create d = replace(c, rate=c.rate + 1). Return [rebind_succeeded, c.rate, d.rate, c.tags, d.tags is c.tags].",
+         "@dataclass(frozen=True)\nclass Config:\n    rate: int\n    tags: list\nc = Config(data[0], list(data[1]))\ntry:\n    c.rate = 0\n    rebound = True\nexcept FrozenInstanceError:\n    rebound = False\nc.tags.append('seen')\nd = replace(c, rate=c.rate + 1)\nresult = [rebound, c.rate, d.rate, c.tags, d.tags is c.tags]",
+         [([2,['a']],[False,2,3,['a','seen'],True]),([0,[]],[False,0,1,['seen'],True]),([-1,['x','y']],[False,-1,0,['x','y','seen'],True])],
+         ("rate=c.rate + 1","rate=c.rate"),
+         ["Catch FrozenInstanceError around the rebinding attempt.", "Appending mutates the list object; it is not a field assignment.", "replace() copies field references, so the unchanged tags field is the same list."],
+         "Rebinding rate fails, so c.rate stays 2 and d.rate becomes 3. The append succeeds because frozen does not freeze the list, and replace() shares that same list with the new instance.",
+         [[True,0,1,['a','seen'],True],[False,2,3,['a'],True],[False,2,3,['a','seen'],False]],
+         "from dataclasses import dataclass, replace, FrozenInstanceError"),
+    ("Is a frozen dataclass deeply immutable?", "No. It blocks field rebinding; mutable field values remain mutable and replace() shares them."))
+
+add('instance-state', 'Tutorial 9.3.5: class and instance variables / dataclass default_factory',
+    'https://docs.python.org/3.13/tutorial/classes.html#class-and-instance-variables', [
+    "Attribute lookup on an instance first checks the instance's own namespace, then its class. A list assigned in the class body therefore lives on the class and is found by every instance that has no attribute of that name. Calling append on it mutates the single shared list.",
+    "Assignment behaves differently from mutation. self.items = self.items + [x] creates a new list and binds it on the instance, shadowing the class attribute for that instance only. This explains why some 'shared state' bugs appear only with in-place operations such as append, extend or +=.",
+    "Dataclasses refuse a bare mutable default such as items: list = [] because it would be shared. field(default_factory=list) calls the factory once per instance during __init__. Use class attributes for genuinely shared constants or registries, and per-instance initialization for per-object state.",
+    "The transfer contrasts both designs with the same operations. Only by checking the untouched second instance can you see whether state leaked between instances."
+    ],
+    ("Two instances share a class attribute items = []. Instance a runs self.items.append(1). What does instance b see?",
+     "[1], because append mutated the one list stored on the class.",
+     ["[], because each instance receives a copy on first access.", "An AttributeError, because b never assigned items.", "[1] only if b was created after the append."],
+     "Lookup finds the class attribute for both instances; in-place mutation changes that shared object regardless of creation order."),
+    task("Transfer: shared versus owned state",
+         "data is a list of values. Add each value to s1 (a Shared instance whose items is a class attribute) and to o1 (an Owned dataclass using default_factory). Return [s2.items, o1.items, o2.items] for the untouched second instances.",
+         "class Shared:\n    items = []\n    def add(self, x):\n        self.items.append(x)\n@dataclass\nclass Owned:\n    items: list = field(default_factory=list)\n    def add(self, x):\n        self.items.append(x)\ns1, s2 = Shared(), Shared()\no1, o2 = Owned(), Owned()\nfor x in data:\n    s1.add(x)\n    o1.add(x)\nresult = [s2.items, o1.items, o2.items]",
+         [([3,4],[[3,4],[3,4],[]]),([],[[],[],[]]),([0],[[0],[0],[]])],
+         ("self.items.append(x)\n@dataclass","self.items = self.items + [x]\n@dataclass"),
+         ["s2 never had add called, so its items comes from the class.", "default_factory runs once per Owned instance.", "Rebinding with + would create an instance attribute instead of mutating the shared list."],
+         "Shared.add mutates the class list, so s2 sees [3, 4]. Owned instances each receive a new list, so o2 stays empty. Replacing append with rebinding shadows the class attribute on s1 and hides the shared-state effect.",
+         [[[],[3,4],[]],[[3,4],[3,4],[3,4]],[[3,4],[],[]]],
+         "from dataclasses import dataclass, field"),
+    ("Why does a dataclass reject items: list = []?", "Because one list would be shared by every instance; default_factory=list creates a fresh list per instance."))
+
+add('property-validation', 'Built-in property(): getter/setter and constructor invariants',
+    'https://docs.python.org/3.13/library/functions.html#property', [
+    "A property is a class attribute that routes reading, assignment and deletion through functions. Callers keep writing obj.value and obj.value = x, while the class enforces an invariant. The backing value needs a different name, conventionally _value, or the setter would call itself recursively.",
+    "An invariant is only as strong as its weakest entry point. If __init__ assigns self._value directly, construction bypasses the setter and an invalid object can exist from the start. Assign through the property in __init__ so creation and later updates share one validation rule.",
+    "Raise a specific exception such as ValueError for an invalid value and leave the previous state unchanged. Callers can then decide whether to report, skip or stop. A property cannot stop code that deliberately writes _value; the underscore is a convention communicating that the name is internal.",
+    "The transfer constructs several objects, counts rejections and keeps accepted values. Inclusive bounds are tested at both edges because off-by-one comparisons are a common validation defect."
+    ],
+    ("Why should __init__ assign self.value rather than self._value when value is a validating property?",
+     "So construction goes through the same setter validation as later assignments.",
+     ["Because assigning _value in __init__ raises AttributeError.", "Because properties only work after __init__ returns.", "Because self.value is faster than self._value."],
+     "Writing the backing attribute directly is legal but bypasses validation, allowing invalid objects to be constructed."),
+    task("Transfer: validate at construction",
+         "data is a list of numbers. Create Percent(x) for each; valid values satisfy 0 <= x <= 100. Return [accepted_values, rejected_count]. Validation must apply in the constructor.",
+         "class Percent:\n    def __init__(self, value):\n        self.value = value\n    @property\n    def value(self):\n        return self._value\n    @value.setter\n    def value(self, x):\n        if not 0 <= x <= 100:\n            raise ValueError(x)\n        self._value = x\naccepted, rejected = [], 0\nfor x in data:\n    try:\n        accepted.append(Percent(x).value)\n    except ValueError:\n        rejected += 1\nresult = [accepted, rejected]",
+         [([0,50,100],[[0,50,100],0]),([-1,101,7],[[7],2]),([],[[],0])],
+         ("self.value = value","self._value = value"),
+         ["Route the constructor through the property setter.", "Both 0 and 100 are valid; check the chained comparison.", "Count a rejection only when ValueError is raised."],
+         "0, 50 and 100 lie within the inclusive range. -1 and 101 raise ValueError and are counted. Writing _value in __init__ would accept every value silently.",
+         [[[0,50],1],[[50],2],[[],3]]),
+    ("Where must a property-enforced invariant also be enforced?", "At construction: assign through the property in __init__, or invalid instances can be created."))
+
+add('composition', 'Tutorial 9.5: inheritance, contrasted with composed collaborators',
+    'https://docs.python.org/3.13/tutorial/classes.html#inheritance', [
+    "Inheritance says an object is a specialized kind of its base class and reuses its methods. Composition says an object has collaborators and delegates part of its work to them. When behavior varies independently, such as where output goes or how time is read, composition keeps each concern replaceable.",
+    "Pass collaborators into the constructor rather than creating them inside methods. A reporter that receives a clock function and an output list can be tested with a deterministic fake clock and an in-memory sink. The same class runs in production with time.time and a file or logger, with no subclass needed.",
+    "Explicit dependencies also make ownership visible. The caller that created a collaborator decides its lifetime; the composed object uses it. This matters later for files, network sessions and model handles, where the owner must close them.",
+    "In the transfer, a counter-based clock makes timestamps predictable. Ordering is part of the contract: messages are recorded in the order reported."
+    ],
+    ("What testing advantage does injecting a clock function into a class provide?",
+     "Tests can pass a deterministic fake clock instead of depending on real time.",
+     ["It makes the class run faster in production.", "It removes the need for any assertions.", "It prevents the class from being subclassed."],
+     "Injected collaborators can be replaced with controlled fakes, making behavior repeatable without patching globals."),
+    task("Transfer: inject a clock and a sink",
+         "data is a list of messages. A Reporter receives clock and sink collaborators and appends f'{clock()}:{message}' for each report, in order. The fake clock yields 100, 101, ... Return the sink list.",
+         "class Reporter:\n    def __init__(self, clock, sink):\n        self.clock = clock\n        self.sink = sink\n    def report(self, message):\n        self.sink.append(f'{self.clock()}:{message}')\nticks = iter(range(100, 200))\nlines = []\nreporter = Reporter(lambda: next(ticks), lines)\nfor message in data:\n    reporter.report(message)\nresult = lines",
+         [(['a','b'],['100:a','101:b']),([],[]),(['x'],['100:x'])],
+         ("self.sink.append(","self.sink.insert(0, "),
+         ["The clock is called once per report.", "The sink is owned by the caller and passed in.", "Preserve report order when recording."],
+         "The first report reads tick 100 and the second 101, appended in order. Inserting at the front would reverse the record while still looking plausible for a single message.",
+         [['100:b','101:a'],['0:a','1:b'],['100:a','100:b']]),
+    ("When does composition beat inheritance?", "When a behavior varies independently and should be replaceable, e.g. an injected clock, store or sink that tests can fake."))
+
+add('value-equality', 'Data model: object.__hash__ / equality and hashability of dataclasses',
+    'https://docs.python.org/3.13/reference/datamodel.html#object.__hash__', [
+    "Objects that compare equal must have equal hashes, because sets and dict keys first use the hash to find candidates and then __eq__ to confirm. If a class defines __eq__ without __hash__, Python sets __hash__ to None so instances cannot be used as keys with an inconsistent hash.",
+    "A plain @dataclass generates __eq__ and therefore becomes unhashable. @dataclass(frozen=True) generates both __eq__ and a field-based __hash__, which is safe because the fields cannot be rebound. Use frozen value objects as dictionary keys and set members.",
+    "Generated dataclass equality only compares instances of exactly the same class; comparing different dataclass types returns NotImplemented, and Python falls back to identity, giving False. Identity (is) remains a separate question about whether two names refer to one object.",
+    "The transfer checks hashability, set deduplication through value equality and cross-type comparison. eq=False would restore identity hashing and stop deduplication."
+    ],
+    ("Why is an instance of a plain @dataclass (eq=True, not frozen) unhashable?",
+     "Defining __eq__ without __hash__ sets __hash__ to None, so mutable value objects cannot become keys with stale hashes.",
+     ["Dataclasses never support hashing.", "Hashing requires __slots__.", "Only integer fields can be hashed."],
+     "Equal objects must hash equally; a mutable field-based hash could change after insertion, so Python disables hashing."),
+    task("Transfer: hashable value keys",
+         "data is a list of integers. Check whether a plain dataclass Loose is hashable, deduplicate data through a set of frozen Key values, and compare Key(1) == Loose(1). Return [loose_hashable, sorted_unique_values, cross_type_equal].",
+         "@dataclass\nclass Loose:\n    v: int\n@dataclass(frozen=True)\nclass Key:\n    v: int\ntry:\n    hash(Loose(0))\n    loose_hashable = True\nexcept TypeError:\n    loose_hashable = False\nunique = sorted(k.v for k in {Key(x) for x in data})\nresult = [loose_hashable, unique, Key(1) == Loose(1)]",
+         [([2,2,1],[False,[1,2],False]),([],[False,[],False]),([5],[False,[5],False])],
+         ("@dataclass(frozen=True)","@dataclass(eq=False, frozen=True)"),
+         ["hash() on an object whose __hash__ is None raises TypeError.", "Equal frozen values hash equally, so the set keeps one per value.", "Generated __eq__ declines other classes; the fallback is identity."],
+         "Loose is unhashable. The two Key(2) values are equal with equal hashes, so the set keeps one, giving [1, 2]. Key and Loose are different classes, so equality is False. With eq=False the set would keep both Key(2) objects.",
+         [[True,[1,2],False],[False,[1,2,2],False],[False,[1,2],True]],
+         "from dataclasses import dataclass"),
+    ("What must hold between __eq__ and __hash__?", "Objects that compare equal must have equal hashes; defining only __eq__ makes instances unhashable."))
+
+add('ordering-key', 'Sorting HOWTO: key functions, stability and multi-key sorts',
+    'https://docs.python.org/3.13/howto/sorting.html#sort-stability-and-complex-sorts', [
+    "sorted and list.sort compare keys, not the records themselves, when you pass key=. The key function runs once per element. A tuple key compares field by field, so (primary, secondary) expresses a complete ordering rule in one place.",
+    "To sort one numeric field descending and another ascending, negate the numeric field in the key: (-score, name). Using reverse=True would reverse both fields. For non-numeric descending fields, use Python's guaranteed stability: sort by the secondary key first, then by the primary key with reverse=True.",
+    "Stability means records with equal keys keep their existing relative order. It makes multi-pass sorting correct, and it means the input order matters when keys tie. State whether ties are broken by a field or by arrival order, and test a tie.",
+    "The transfer ranks scores high to low and breaks ties alphabetically. Its fixtures include a tie and a negative score."
+    ],
+    ("You need scores descending and names ascending. Why is sorted(rows, key=lambda r: (r.score, r.name), reverse=True) wrong?",
+     "reverse=True reverses the whole tuple order, so tied names would also be sorted descending.",
+     ["Tuples cannot be sort keys.", "reverse=True makes the sort unstable.", "It is correct because reverse applies only to the first key."],
+     "Negating the numeric field, or using two stable passes, expresses mixed directions correctly."),
+    task("Transfer: rank with mixed directions",
+         "data is a list of [name, score]. Return the rows sorted by score descending, then name ascending.",
+         "result = sorted(data, key=lambda r: (-r[1], r[0]))",
+         [([['b',2],['a',2],['c',5]],[['c',5],['a',2],['b',2]]),([],[]),([['z',0],['y',-1]],[['z',0],['y',-1]])],
+         ("(-r[1], r[0])","(r[1], r[0])"),
+         ["Build a tuple key: primary first.", "Negate the numeric field to reverse only that field.", "Check the tie between a and b."],
+         "c has the highest score. a and b tie at 2, and the ascending name rule puts a first. Without negation, the lowest scores would come first.",
+         [[['a',2],['b',2],['c',5]],[['c',5],['b',2],['a',2]],[['b',2],['a',2],['c',5]]]),
+    ("How do you sort numeric field descending but text field ascending?", "Use key=lambda r: (-r.num, r.text), or two stable sorts: by text, then by num with reverse=True."))
+
+add('slots-layout', 'Data model 3.3.2.4: __slots__ and inheritance',
+    'https://docs.python.org/3.13/reference/datamodel.html#slots', [
+    "__slots__ declares a fixed set of attribute names and replaces the per-instance __dict__ with compact storage. Assigning a name that is not declared raises AttributeError. It can save memory when you create many small objects and catches attribute-name typos.",
+    "The restriction holds only if every class in the hierarchy cooperates. A subclass that does not define __slots__ gets a __dict__ again, so arbitrary attributes become allowed on subclass instances. A subclass that declares its own __slots__ adds names while keeping the restriction.",
+    "Slots are not immutability: declared attributes can still be reassigned. They also interact with features that expect __dict__, such as some pickling and dynamic attribute patterns, and weak references need '__weakref__' in the slots. Measure memory before adopting slots for performance.",
+    "The transfer checks three classes built from the same slotted base and shows which instances accept an extra attribute."
+    ],
+    ("A base class defines __slots__ = ('x',). A subclass defines no __slots__. Can subclass instances accept obj.extra = 1?",
+     "Yes; the subclass gets a __dict__, so arbitrary attributes are allowed again.",
+     ["No; slots are inherited as a strict restriction.", "Only if extra is also in the base slots.", "No; assigning any attribute on the subclass raises TypeError."],
+     "Every class in the hierarchy must declare __slots__ to keep instances without a __dict__."),
+    task("Transfer: slots across a hierarchy",
+         "For Base (slots x), Loose (subclass, no slots) and Tight (subclass, slots y), set obj.x = data and try obj.extra = 1. Return [[accepted per class], Loose has __dict__, Tight has __dict__].",
+         "class Base:\n    __slots__ = ('x',)\nclass Loose(Base):\n    pass\nclass Tight(Base):\n    __slots__ = ('y',)\noutcomes = []\nfor cls in (Base, Loose, Tight):\n    obj = cls()\n    obj.x = data\n    try:\n        obj.extra = 1\n        outcomes.append(True)\n    except AttributeError:\n        outcomes.append(False)\nresult = [outcomes, hasattr(Loose(), '__dict__'), hasattr(Tight(), '__dict__')]",
+         [(1,[[False,True,False],True,False]),(0,[[False,True,False],True,False]),(-5,[[False,True,False],True,False])],
+         ("__slots__ = ('y',)","pass"),
+         ["Declared slot x is assignable on all three.", "A subclass without __slots__ regains a __dict__.", "Tight extends the slots instead of dropping them."],
+         "Base and Tight reject the undeclared attribute; Loose accepts it because it has a __dict__. Replacing Tight's slots with pass gives it a __dict__ too.",
+         [[[False,False,False],False,False],[[False,True,True],True,True],[[True,True,False],True,False]]),
+    ("What must a subclass do to keep the __slots__ restriction?", "Declare its own __slots__ (possibly empty); otherwise it regains a per-instance __dict__."))
+
+add('descriptor-access', 'Descriptor HowTo: customized names with __set_name__ and validating __set__',
+    'https://docs.python.org/3.13/howto/descriptor.html#customized-names', [
+    "A descriptor is an object stored on a class that defines __get__, and optionally __set__ or __delete__. Attribute access on instances calls those methods. Properties, methods and classmethod are all built from this mechanism, so understanding it explains how much of Python's object model works.",
+    "One descriptor instance is shared by every instance of the owning class. It must not store per-instance values on itself. Store them on the instance under a private name. __set_name__(owner, name) runs when the class is created and tells the descriptor which attribute name it was assigned to, so each field gets its own private storage name.",
+    "A data descriptor (defining __set__) takes priority over the instance dictionary, so validation in __set__ runs for every assignment, including those in __init__. __get__ receives obj=None when accessed on the class; returning the descriptor itself then supports introspection.",
+    "The transfer reuses one Positive descriptor for two fields. A storage-name bug would make both fields share one value, which a test with different field values exposes."
+    ],
+    ("Why should a reusable validating descriptor store values on the instance instead of on self (the descriptor)?",
+     "The descriptor object is shared by all instances of the class, so storing on it would mix values across instances.",
+     ["Descriptors cannot have attributes.", "Storing on self makes the descriptor a non-data descriptor.", "Instance storage is required for __set_name__ to be called."],
+     "One descriptor per class attribute serves every instance; per-instance state belongs in each instance."),
+    task("Transfer: one validating descriptor, two fields",
+         "data is [qty, price]. Positive uses __set_name__ to store under '_'+name and rejects values <= 0 with ValueError. Construct Order(qty, price) and return [qty * price, sorted(vars(order))], or 'rejected' if validation fails.",
+         "class Positive:\n    def __set_name__(self, owner, name):\n        self.private = '_' + name\n    def __get__(self, obj, owner=None):\n        if obj is None:\n            return self\n        return getattr(obj, self.private)\n    def __set__(self, obj, value):\n        if value <= 0:\n            raise ValueError(value)\n        setattr(obj, self.private, value)\nclass Order:\n    qty = Positive()\n    price = Positive()\n    def __init__(self, qty, price):\n        self.qty = qty\n        self.price = price\ntry:\n    o = Order(*data)\n    result = [o.qty * o.price, sorted(vars(o))]\nexcept ValueError:\n    result = 'rejected'",
+         [([2,5],[10,['_price','_qty']]),([0,5],'rejected'),([3,3],[9,['_price','_qty']])],
+         ("self.private = '_' + name","self.private = '_value'"),
+         ["__set_name__ receives the attribute name chosen in the class body.", "Store each field under its own private instance attribute.", "Assignments in __init__ also pass through __set__."],
+         "qty and price are stored separately as _qty and _price, giving 2 * 5 = 10. A zero quantity raises ValueError in __set__. A fixed storage name makes both fields share one slot, so the product would be price squared.",
+         [[25,['_value']],[10,['price','qty']],'rejected']),
+    ("What does __set_name__ provide to a descriptor?", "The owner class and attribute name at class creation, so one descriptor class can store each field under a distinct instance name."))
+
+add('iterator-protocol', 'Built-in types: iterator types / iterable versus iterator',
+    'https://docs.python.org/3.13/library/stdtypes.html#iterator-types', [
+    "An iterable can produce iterators: its __iter__ returns a new iterator each time. An iterator yields items through __next__, raises StopIteration when exhausted and returns itself from __iter__. A list is iterable; iter(list) is an iterator.",
+    "Because an iterator returns itself from __iter__, looping over it twice continues from where it stopped, and an exhausted iterator yields nothing. A container class that wants repeated traversal should return a fresh iterator from __iter__, often iter(self._items) or a generator.",
+    "This distinction matters for data pipelines: passing an iterator to two consumers splits the items between them, and checking emptiness by consuming loses data. Choose whether a function accepts any iterable and calls iter() once, or requires a re-iterable collection, and document the choice.",
+    "The transfer partially consumes one iterator and then traverses the container twice. The container's traversals stay complete while the separate iterator continues from its own position."
+    ],
+    ("What does iter(it) return when it is already an iterator?",
+     "The same iterator object, so further traversal continues from its current position.",
+     ["A fresh iterator starting from the beginning.", "A copy of the remaining items as a list.", "A TypeError, because iterators are not iterable."],
+     "The iterator protocol requires __iter__ to return self; only iterables such as containers create new iterators."),
+    task("Transfer: re-iterable container",
+         "data is a list. Replayable stores a list and returns iter(self.items) from __iter__. Take one item from a separate iterator, then return [list(r), list(r), first_item_or_None, list(rest_of_iterator), iterator_returns_itself].",
+         "class Replayable:\n    def __init__(self, items):\n        self.items = list(items)\n    def __iter__(self):\n        return iter(self.items)\nr = Replayable(data)\nit = iter(r)\nfirst = next(it, None)\nresult = [list(r), list(r), first, list(it), it is iter(it)]",
+         [([1,2,3],[[1,2,3],[1,2,3],1,[2,3],True]),([],[[],[],None,[],True]),(['a'],[['a'],['a'],'a',[],True])],
+         ("self.items = list(items)","self.items = iter(items)"),
+         ["Each call to iter(r) creates a new list iterator.", "next(it, None) returns None instead of raising on an empty source.", "The separate iterator keeps its own position."],
+         "Both container traversals produce the full list, the separate iterator delivered 1 and still holds [2, 3], and it is iter(it). Storing an iterator instead of a list would make all traversals share one position.",
+         [[[1,2,3],[],1,[2,3],True],[[1,2,3],[1,2,3],1,[1,2,3],True],[[1,2,3],[1,2,3],1,[2,3],False]]),
+    ("Iterable versus iterator?", "An iterable's __iter__ returns a fresh iterator; an iterator's __iter__ returns itself and it can be consumed only once."))
+
+add('abstract-contract', 'abc: abstractmethod and incomplete subclasses',
+    'https://docs.python.org/3.13/library/abc.html#abc.abstractmethod', [
+    "Inheriting from ABC and marking methods with @abstractmethod records them in the class's __abstractmethods__ set. Instantiating any class whose set is non-empty raises TypeError. This turns 'forgot to implement save' into an immediate, clear failure at construction.",
+    "A subclass becomes concrete only when it overrides every abstract method. Implementing some of them leaves the subclass abstract, and its __abstractmethods__ names what is missing. Misspelling a method name has the same effect, which makes the check useful against typos too.",
+    "The check covers names, not behavior. It does not verify signatures, return types or semantics. Pair an abstract interface with tests that exercise a concrete implementation, and keep the interface small enough that every method is genuinely required.",
+    "The transfer defines a storage interface, a partial implementation and a complete in-memory implementation, then exercises the complete one."
+    ],
+    ("A subclass of an ABC implements one of its two abstract methods. What happens on instantiation?",
+     "TypeError; the subclass is still abstract because one method remains in __abstractmethods__.",
+     ["It works; Python only checks at the first call of the missing method.", "The missing method is inherited as a no-op.", "AttributeError when the class statement runs."],
+     "Abstractness is checked when instantiating; every abstract method must be overridden."),
+    task("Transfer: complete an abstract store",
+         "data is a list of [key, value] pairs. Store declares abstract load and save. Partial implements only load; Memory implements both. Return [Partial() instantiable, sorted(Partial.__abstractmethods__), Memory load of the first key or None].",
+         "class Store(ABC):\n    @abstractmethod\n    def load(self, key): ...\n    @abstractmethod\n    def save(self, key, value): ...\nclass Partial(Store):\n    def load(self, key):\n        return None\nclass Memory(Store):\n    def __init__(self):\n        self.data = {}\n    def load(self, key):\n        return self.data.get(key)\n    def save(self, key, value):\n        self.data[key] = value\ntry:\n    Partial()\n    partial_ok = True\nexcept TypeError:\n    partial_ok = False\nm = Memory()\nfor k, v in data:\n    m.save(k, v)\nresult = [partial_ok, sorted(Partial.__abstractmethods__), m.load(data[0][0]) if data else None]",
+         [([['a',1],['b',2]],[False,['save'],1]),([],[False,['save'],None]),([['k',0],['k',5]],[False,['save'],5])],
+         ("    def save(self, key, value):\n        self.data[key] = value","    def store(self, key, value):\n        self.data[key] = value"),
+         ["Partial still lacks save, so it cannot be instantiated.", "__abstractmethods__ names exactly the missing methods.", "A later save with the same key overwrites the earlier value."],
+         "Partial is abstract with save missing. Memory overrides both and returns 1 for key a. Misspelling save as store would leave Memory abstract and make its construction fail.",
+         [[True,[],1],[False,['load','save'],1],[False,['save'],2]],
+         "from abc import ABC, abstractmethod"),
+    ("What does @abstractmethod check, and what not?", "That every abstract name is overridden before instantiation; not signatures, types or behavior."))
+
+add('context-exit', 'Data model: object.__exit__ return value and selective suppression',
+    'https://docs.python.org/3.13/reference/datamodel.html#object.__exit__', [
+    "A with statement calls __enter__ before its block and __exit__ afterwards, whether the block finished normally or raised. __exit__ receives the exception type, value and traceback, or three Nones. Cleanup placed there always runs.",
+    "A true return value from __exit__ suppresses the exception; a false value lets it propagate after cleanup. Returning True unconditionally swallows every error, including programming mistakes. Suppress only the specific exception types you can justify, by testing exc_type.",
+    "contextlib.suppress(KeyError) packages this exact pattern. Prefer it in ordinary code, and keep the suppressed region small so unrelated errors are not hidden. A custom manager is appropriate when cleanup or recording must accompany the decision.",
+    "The transfer records enter and exit events and checks three paths: no error, an allowed error that is suppressed, and an unrelated error that must still propagate."
+    ],
+    ("A context manager's __exit__ returns True for every call. What is the risk?",
+     "It suppresses every exception from the block, hiding unrelated failures.",
+     ["Cleanup no longer runs.", "__enter__ is called twice.", "Normal exits now raise RuntimeError."],
+     "The return value controls suppression; return true only for exception types you deliberately intend to absorb."),
+    task("Transfer: suppress one exception type",
+         "data is 'none', 'key' or 'value'. Ignore(KeyError) records 'enter' and 'exit' and suppresses only KeyError. Inside the block, raise KeyError for 'key' and ValueError for 'value'. Return [outcome, events], where outcome is 'ok' or 'propagated'.",
+         "events = []\nclass Ignore:\n    def __init__(self, kind):\n        self.kind = kind\n    def __enter__(self):\n        events.append('enter')\n        return self\n    def __exit__(self, exc_type, exc, tb):\n        events.append('exit')\n        return exc_type is not None and issubclass(exc_type, self.kind)\noutcome = 'ok'\ntry:\n    with Ignore(KeyError):\n        if data == 'key':\n            {}['missing']\n        elif data == 'value':\n            int('x')\nexcept ValueError:\n    outcome = 'propagated'\nresult = [outcome, events]",
+         [('none',['ok',['enter','exit']]),('key',['ok',['enter','exit']]),('value',['propagated',['enter','exit']])],
+         ("return exc_type is not None and issubclass(exc_type, self.kind)","return True"),
+         ["exc_type is None on a normal exit.", "issubclass also accepts subclasses of the allowed type.", "exit is recorded on every path, including propagation."],
+         "With no error both events are recorded and nothing propagates. KeyError is suppressed. ValueError is not a KeyError, so __exit__ returns False and it propagates after cleanup. Returning True always would hide the ValueError.",
+         [['propagated',['enter','exit']],['ok',['enter']],['ok',[]]]),
+    ("When does __exit__ suppress an exception?", "When it returns a true value; return true only for the specific exception types you mean to absorb, as contextlib.suppress does."))

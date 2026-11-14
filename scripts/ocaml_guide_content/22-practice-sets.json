@@ -1,0 +1,218 @@
+[
+  {
+    "key": "practice-basics",
+    "stage": "22 · Practice sets",
+    "title": "Practice: expressions, functions and recursion",
+    "body": [
+      "This is a set of original exercises for the \"Basics\" chapter of the CS 3110 textbook. They practise the same skills as that chapter without reproducing its exercises. Each exercise has a specification, and the program below contains one worked answer for each, with its output printed so you can check your own version against it.",
+      "Work in this order: read the specification, write your own solution without looking, run it on the examples, then compare with the worked answer. If they disagree, find the smallest input where they differ, because that input usually exposes a misread specification or a missing case.",
+      "Check the boundaries: century years for leap years, zero and single digits for digit sums, a zero remainder for gcd, and exponent zero for power."
+    ],
+    "code": "(* 1. is_leap year: divisible by 4, except centuries not divisible by 400. *)\nlet is_leap y = (y mod 4 = 0 && y mod 100 <> 0) || y mod 400 = 0\n\n(* 2. sum_digits n: the sum of the decimal digits of a non-negative integer. *)\nlet rec sum_digits n = if n < 10 then n else (n mod 10) + sum_digits (n / 10)\n\n(* 3. gcd by Euclid's algorithm. *)\nlet rec gcd a b = if b = 0 then a else gcd b (a mod b)\n\n(* 4. power b e in O(log e) multiplications, by repeated squaring. *)\nlet rec power b e =\n  if e = 0 then 1\n  else\n    let half = power b (e / 2) in\n    if e mod 2 = 0 then half * half else half * half * b\n\n(* 5. collatz_length n: how many steps until n reaches 1. *)\nlet collatz_length n =\n  let rec go n steps = if n = 1 then steps else go (if n mod 2 = 0 then n / 2 else (3 * n) + 1) (steps + 1) in\n  go n 0\n\nlet () =\n  Printf.printf \"%b %b %b %b\\n\" (is_leap 1900) (is_leap 2000) (is_leap 2024) (is_leap 2023);\n  Printf.printf \"%d %d\\n\" (sum_digits 12345) (sum_digits 0);\n  Printf.printf \"%d %d\\n\" (gcd 48 18) (gcd 17 5);\n  Printf.printf \"%d %d\\n\" (power 2 10) (power 3 5);\n  Printf.printf \"%d\\n\" (collatz_length 27)\n",
+    "expectedStdout": "false true true false\n15 0\n6 1\n1024 243\n111\n",
+    "challenge": "Write `fib_pair n` returning the pair (fib n, fib (n+1)) in linear time with a single recursive call, and print `fst (fib_pair 30)`.",
+    "solution": "let rec fib_pair n = if n = 0 then (0, 1) else let a, b = fib_pair (n - 1) in (b, a + b)\n\nlet () = Printf.printf \"%d\\n\" (fst (fib_pair 30))\n",
+    "solutionStdout": "832040\n",
+    "question": "Why does `power` halve the exponent?",
+    "correct": "Squaring the half answer needs only about log2 e multiplications instead of e",
+    "wrong": [
+      "It avoids integer overflow completely",
+      "It makes the function tail recursive"
+    ],
+    "reasoning": "Repeated squaring reuses the answer for e/2, so the work grows with the number of bits in e.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/basics/exercises.html",
+    "project": null
+  },
+  {
+    "key": "practice-data",
+    "stage": "22 · Practice sets",
+    "title": "Practice: lists, variants, records and options",
+    "body": [
+      "This is a set of original exercises for the \"Data types\" chapter of the CS 3110 textbook. They practise the same skills as that chapter without reproducing its exercises. Each exercise has a specification, and the program below contains one worked answer for each, with its output printed so you can check your own version against it.",
+      "Work in this order: read the specification, write your own solution without looking, run it on the examples, then compare with the worked answer. If they disagree, find the smallest input where they differ, because that input usually exposes a misread specification or a missing case.",
+      "Check the empty list, a list of one element and a list whose neighbours are all equal; each of compress, last_two and encode has a special case there."
+    ],
+    "code": "(* 1. last_two: the final two elements of a list, if there are at least two. *)\nlet rec last_two = function [] | [ _ ] -> None | [ a; b ] -> Some (a, b) | _ :: rest -> last_two rest\n\n(* 2. compress: remove adjacent duplicates. *)\nlet rec compress = function a :: (b :: _ as rest) -> if a = b then compress rest else a :: compress rest | l -> l\n\n(* 3. run-length encoding as (count, element) pairs. *)\nlet encode l =\n  let rec go acc = function\n    | [] -> List.rev acc\n    | x :: rest -> (\n        match acc with\n        | (n, y) :: acc' when y = x -> go ((n + 1, y) :: acc') rest\n        | _ -> go ((1, x) :: acc) rest)\n  in\n  go [] l\n\n(* 4. a student record and its average, as an option for the empty case. *)\ntype student = { name : string; marks : int list }\n\nlet average s =\n  match s.marks with [] -> None | ms -> Some (float_of_int (List.fold_left ( + ) 0 ms) /. float_of_int (List.length ms))\n\n(* 5. a small expression type and its evaluator. *)\ntype shape = Circle of float | Rect of float * float | Square of float\n\nlet area = function Circle r -> 3.0 *. r *. r | Rect (w, h) -> w *. h | Square s -> s *. s\n\nlet () =\n  (match last_two [ 1; 2; 3; 4 ] with Some (a, b) -> Printf.printf \"%d %d\\n\" a b | None -> print_endline \"none\");\n  print_endline (String.concat \",\" (List.map string_of_int (compress [ 1; 1; 2; 2; 2; 3; 1; 1 ])));\n  print_endline (String.concat \" \" (List.map (fun (n, c) -> Printf.sprintf \"%d%c\" n c) (encode [ 'a'; 'a'; 'b'; 'c'; 'c'; 'c' ])));\n  List.iter\n    (fun s -> print_endline (match average s with Some a -> Printf.sprintf \"%s %.1f\" s.name a | None -> s.name ^ \" none\"))\n    [ { name = \"ada\"; marks = [ 90; 80 ] }; { name = \"bob\"; marks = [] } ];\n  Printf.printf \"%.1f\\n\" (List.fold_left (fun acc s -> acc +. area s) 0.0 [ Circle 1.0; Rect (2.0, 3.0); Square 2.0 ])\n",
+    "expectedStdout": "3 4\n1,2,3,1\n2a 1b 3c\nada 85.0\nbob none\n13.0\n",
+    "challenge": "Write `decode` that expands the run-length pairs back into a list, and print the decoded result of `encode [\"x\"; \"x\"; \"y\"]` joined by commas.",
+    "solution": "let encode l =\n  let rec go acc = function\n    | [] -> List.rev acc\n    | x :: rest -> (\n        match acc with\n        | (n, y) :: acc' when y = x -> go ((n + 1, y) :: acc') rest\n        | _ -> go ((1, x) :: acc) rest)\n  in\n  go [] l\n\nlet decode pairs = List.concat_map (fun (n, x) -> List.init n (fun _ -> x)) pairs\n\nlet () = print_endline (String.concat \",\" (decode (encode [ \"x\"; \"x\"; \"y\" ])))\n",
+    "solutionStdout": "x,x,y\n",
+    "question": "Why does `average` return an option?",
+    "correct": "The average of an empty list is undefined, and the type forces callers to handle that case",
+    "wrong": [
+      "Options are faster than floats",
+      "Because floats cannot be returned from a function"
+    ],
+    "reasoning": "An option makes the missing answer part of the type instead of an exception or a made-up value.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/data/exercises.html",
+    "project": null
+  },
+  {
+    "key": "practice-higher-order",
+    "stage": "22 · Practice sets",
+    "title": "Practice: map, filter, fold and composition",
+    "body": [
+      "This is a set of original exercises for the \"Higher-order programming\" chapter of the CS 3110 textbook. They practise the same skills as that chapter without reproducing its exercises. Each exercise has a specification, and the program below contains one worked answer for each, with its output printed so you can check your own version against it.",
+      "Work in this order: read the specification, write your own solution without looking, run it on the examples, then compare with the worked answer. If they disagree, find the smallest input where they differ, because that input usually exposes a misread specification or a missing case.",
+      "Check the direction of each fold: fold_left threads an accumulator from the left, fold_right rebuilds from the right, and swapping them reverses a list."
+    ],
+    "code": "(* 1. product and concat as folds. *)\nlet product = List.fold_left ( * ) 1\nlet concat ls = List.fold_right ( @ ) ls []\n\n(* 2. unzip a list of pairs with one fold. *)\nlet unzip l = List.fold_right (fun (a, b) (xs, ys) -> (a :: xs, b :: ys)) l ([], [])\n\n(* 3. apply a function n times. *)\nlet rec repeat n f x = if n = 0 then x else repeat (n - 1) f (f x)\n\n(* 4. count_if and partition by hand. *)\nlet count_if p l = List.fold_left (fun n x -> if p x then n + 1 else n) 0 l\n\n(* 5. group consecutive elements that satisfy an equivalence. *)\nlet group_by eq l =\n  List.fold_right\n    (fun x groups -> match groups with (y :: _ as g) :: rest when eq x y -> (x :: g) :: rest | _ -> [ x ] :: groups)\n    l []\n\n(* 6. compose a list of functions, applied left to right. *)\nlet pipeline fs x = List.fold_left (fun acc f -> f acc) x fs\n\nlet () =\n  Printf.printf \"%d %d\\n\" (product [ 1; 2; 3; 4 ]) (List.length (concat [ [ 1 ]; [ 2; 3 ]; [] ]));\n  (let xs, ys = unzip [ (1, \"a\"); (2, \"b\") ] in Printf.printf \"%d %s\\n\" (List.length xs) (String.concat \"\" ys));\n  Printf.printf \"%d\\n\" (repeat 5 (fun n -> n * 2) 1);\n  Printf.printf \"%d\\n\" (count_if (fun n -> n mod 3 = 0) (List.init 20 Fun.id));\n  print_endline (String.concat \" | \" (List.map (fun g -> String.concat \",\" (List.map string_of_int g)) (group_by (fun a b -> a / 10 = b / 10) [ 1; 5; 12; 18; 19; 30 ])));\n  Printf.printf \"%d\\n\" (pipeline [ (fun x -> x + 1); (fun x -> x * 10); (fun x -> String.length (string_of_int x)) ] 4)\n",
+    "expectedStdout": "24 3\n2 ab\n32\n7\n1,5 | 12,18,19 | 30\n2\n",
+    "challenge": "Define `compose_all fs` as a single function that applies a list of int functions right to left using `List.fold_right`, and print `compose_all [succ; (fun x -> x * 2)] 5`.",
+    "solution": "let compose_all fs = List.fold_right (fun f acc x -> f (acc x)) fs (fun x -> x)\n\nlet () = Printf.printf \"%d\\n\" (compose_all [ succ; (fun x -> x * 2) ] 5)\n",
+    "solutionStdout": "11\n",
+    "question": "Which fold builds a list in the same order as the input?",
+    "correct": "fold_right with ::, because it processes the last element first and conses each earlier one on the front",
+    "wrong": [
+      "fold_left with ::, which preserves order",
+      "Neither; folds always reverse a list"
+    ],
+    "reasoning": "fold_right visits from the end, so consing as it goes rebuilds the list in order; fold_left with :: reverses it.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/hop/exercises.html",
+    "project": null
+  },
+  {
+    "key": "practice-modules",
+    "stage": "22 · Practice sets",
+    "title": "Practice: signatures, abstraction and functors",
+    "body": [
+      "This is a set of original exercises for the \"Modules\" chapter of the CS 3110 textbook. They practise the same skills as that chapter without reproducing its exercises. Each exercise has a specification, and the program below contains one worked answer for each, with its output printed so you can check your own version against it.",
+      "Work in this order: read the specification, write your own solution without looking, run it on the examples, then compare with the worked answer. If they disagree, find the smallest input where they differ, because that input usually exposes a misread specification or a missing case.",
+      "Check what the signature hides: a client must not be able to build a queue or look inside a set except through the exported functions."
+    ],
+    "code": "module type QUEUE = sig\n  type 'a t\n\n  val empty : 'a t\n  val enqueue : 'a -> 'a t -> 'a t\n  val dequeue : 'a t -> ('a * 'a t) option\n  val size : 'a t -> int\nend\n\nmodule TwoListQueue : QUEUE = struct\n  type 'a t = { front : 'a list; back : 'a list }\n\n  let empty = { front = []; back = [] }\n  let enqueue x q = { q with back = x :: q.back }\n\n  let dequeue q =\n    match q.front with\n    | x :: front -> Some (x, { q with front })\n    | [] -> (\n        match List.rev q.back with [] -> None | x :: front -> Some (x, { front; back = [] }))\n\n  let size q = List.length q.front + List.length q.back\nend\n\n(* A functor taking any ordered type and returning a sorted-unique set. *)\nmodule type ORDERED = sig\n  type t\n\n  val compare : t -> t -> int\nend\n\nmodule MakeSortedSet (O : ORDERED) = struct\n  type elt = O.t\n  type t = elt list\n\n  let empty = []\n\n  let rec add x = function\n    | [] -> [ x ]\n    | y :: rest as l ->\n        let c = O.compare x y in\n        if c = 0 then l else if c < 0 then x :: l else y :: add x rest\n\n  let to_list s = s\nend\n\nmodule IntSet = MakeSortedSet (Int)\nmodule StringSet = MakeSortedSet (String)\n\nlet () =\n  let q = TwoListQueue.(empty |> enqueue 1 |> enqueue 2 |> enqueue 3) in\n  (match TwoListQueue.dequeue q with\n   | Some (x, rest) -> Printf.printf \"%d %d\\n\" x (TwoListQueue.size rest)\n   | None -> print_endline \"empty\");\n  print_endline (String.concat \",\" (List.map string_of_int (IntSet.to_list (List.fold_left (fun s x -> IntSet.add x s) IntSet.empty [ 3; 1; 2; 3; 1 ]))));\n  print_endline (String.concat \",\" (StringSet.to_list (List.fold_left (fun s x -> StringSet.add x s) StringSet.empty [ \"pear\"; \"apple\"; \"pear\" ])))\n",
+    "expectedStdout": "1 2\n1,2,3\napple,pear\n",
+    "challenge": "Write a minimal queue module with `enqueue` and `peek`, hide its representation behind a signature, and print the peek of a queue holding 7 then 8.",
+    "solution": "module type QUEUE = sig\n  type 'a t\n\n  val empty : 'a t\n  val enqueue : 'a -> 'a t -> 'a t\n  val peek : 'a t -> 'a option\nend\n\nmodule Q : QUEUE = struct\n  type 'a t = { front : 'a list; back : 'a list }\n\n  let empty = { front = []; back = [] }\n  let enqueue x q = { q with back = x :: q.back }\n\n  let peek q =\n    match q.front with x :: _ -> Some x | [] -> (match List.rev q.back with x :: _ -> Some x | [] -> None)\nend\n\nlet () = match Q.(empty |> enqueue 7 |> enqueue 8 |> peek) with Some n -> Printf.printf \"%d\\n\" n | None -> print_endline \"empty\"\n",
+    "solutionStdout": "7\n",
+    "question": "What does the signature QUEUE hide from users of TwoListQueue?",
+    "correct": "The representation of the queue type, so only the listed operations can build or inspect a queue",
+    "wrong": [
+      "The names of the functions",
+      "The fact that the queue exists"
+    ],
+    "reasoning": "The abstract type t lets the implementation change, for example to a tree, without breaking any client.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/modules/exercises.html",
+    "project": null
+  },
+  {
+    "key": "practice-mutation",
+    "stage": "22 · Practice sets",
+    "title": "Practice: refs, arrays and mutable records",
+    "body": [
+      "This is a set of original exercises for the \"Mutable data\" chapter of the CS 3110 textbook. They practise the same skills as that chapter without reproducing its exercises. Each exercise has a specification, and the program below contains one worked answer for each, with its output printed so you can check your own version against it.",
+      "Work in this order: read the specification, write your own solution without looking, run it on the examples, then compare with the worked answer. If they disagree, find the smallest input where they differ, because that input usually exposes a misread specification or a missing case.",
+      "Check aliasing and independence: closures must not share state unless you meant them to, and in-place operations must handle empty and one-element arrays."
+    ],
+    "code": "(* 1. a counter factory using a closure over a ref. *)\nlet make_counter () = let n = ref 0 in fun () -> incr n; !n\n\n(* 2. reverse an array in place. *)\nlet reverse a =\n  let n = Array.length a in\n  for i = 0 to (n / 2) - 1 do\n    let t = a.(i) in\n    a.(i) <- a.(n - 1 - i);\n    a.(n - 1 - i) <- t\n  done\n\n(* 3. bubble sort in place. *)\nlet bubble_sort a =\n  let n = Array.length a in\n  for pass = 0 to n - 2 do\n    for i = 0 to n - 2 - pass do\n      if a.(i) > a.(i + 1) then (let t = a.(i) in a.(i) <- a.(i + 1); a.(i + 1) <- t)\n    done\n  done\n\n(* 4. a running average with mutable fields. *)\ntype stats = { mutable count : int; mutable total : float }\n\nlet add s x = s.count <- s.count + 1; s.total <- s.total +. x\nlet mean s = if s.count = 0 then 0.0 else s.total /. float_of_int s.count\n\n(* 5. memoise a function with a Hashtbl, counting the real calls. *)\nlet calls = ref 0\nlet memo f = let t = Hashtbl.create 8 in fun x -> match Hashtbl.find_opt t x with Some v -> v | None -> let v = f x in Hashtbl.add t x v; v\nlet slow_square = memo (fun x -> incr calls; x * x)\n\nlet () =\n  let a = make_counter () and b = make_counter () in\n  let first = a () in\n  let second = a () in\n  Printf.printf \"%d %d %d\\n\" first second (b ());\n  let arr = [| 5; 2; 9; 1 |] in\n  reverse arr;\n  print_endline (String.concat \",\" (Array.to_list (Array.map string_of_int arr)));\n  bubble_sort arr;\n  print_endline (String.concat \",\" (Array.to_list (Array.map string_of_int arr)));\n  let s = { count = 0; total = 0.0 } in\n  List.iter (add s) [ 2.0; 4.0; 9.0 ];\n  Printf.printf \"%.1f %d\\n\" (mean s) s.count;\n  ignore (slow_square 7); ignore (slow_square 7); ignore (slow_square 8);\n  Printf.printf \"%d\\n\" !calls\n",
+    "expectedStdout": "1 2 1\n1,9,2,5\n1,2,5,9\n5.0 3\n2\n",
+    "challenge": "Write `swap_ends a` that exchanges the first and last elements of a non-empty array in place, and print the array [|1;2;3;4|] after calling it.",
+    "solution": "let swap_ends a =\n  let n = Array.length a in\n  if n > 1 then (let t = a.(0) in a.(0) <- a.(n - 1); a.(n - 1) <- t)\n\nlet () =\n  let a = [| 1; 2; 3; 4 |] in\n  swap_ends a;\n  print_endline (String.concat \",\" (Array.to_list (Array.map string_of_int a)))\n",
+    "solutionStdout": "4,2,3,1\n",
+    "question": "Why do two counters made by `make_counter ()` not interfere?",
+    "correct": "Each call creates its own ref, and each closure captures a different one",
+    "wrong": [
+      "Because refs are copied on every use",
+      "Because incr is atomic across closures"
+    ],
+    "reasoning": "The ref is allocated inside the function, so every call gets a fresh mutable cell.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/mut/exercises.html",
+    "project": null
+  },
+  {
+    "key": "practice-concurrency",
+    "stage": "22 · Practice sets",
+    "title": "Practice: monads, options and an event loop",
+    "body": [
+      "This is a set of original exercises for the \"Concurrency\" chapter of the CS 3110 textbook. They practise the same skills as that chapter without reproducing its exercises. Each exercise has a specification, and the program below contains one worked answer for each, with its output printed so you can check your own version against it.",
+      "Work in this order: read the specification, write your own solution without looking, run it on the examples, then compare with the worked answer. If they disagree, find the smallest input where they differ, because that input usually exposes a misread specification or a missing case.",
+      "Check the failure path: a None must short-circuit the whole chain, and events scheduled for the same time must keep their scheduling order."
+    ],
+    "code": "(* 1. chain fallible steps with an option monad. *)\nlet ( let* ) = Option.bind\nlet safe_div a b = if b = 0 then None else Some (a / b)\n\nlet compute a b c =\n  let* x = safe_div a b in\n  let* y = safe_div x c in\n  Some (x + y)\n\n(* 2. a tiny logging monad: a value together with messages. *)\nlet return x = (x, [])\nlet bind (x, log) f = let y, log' = f x in (y, log @ log')\nlet step name f x = (f x, [ name ])\n\n(* 3. sequencing events on a virtual clock. *)\nlet events : (int * string) list ref = ref []\nlet at time name = events := (time, name) :: !events\nlet run () = List.map snd (List.sort compare !events)\n\nlet () =\n  let show = function Some n -> string_of_int n | None -> \"none\" in\n  Printf.printf \"%s %s\\n\" (show (compute 100 5 2)) (show (compute 100 0 2));\n  let result, log = bind (bind (return 3) (step \"double\" (fun x -> x * 2))) (step \"inc\" (fun x -> x + 1)) in\n  Printf.printf \"%d %s\\n\" result (String.concat \">\" log);\n  at 30 \"c\"; at 10 \"a\"; at 20 \"b\";\n  print_endline (String.concat \"\" (run ()))\n",
+    "expectedStdout": "30 none\n7 double>inc\nabc\n",
+    "challenge": "Write `both a b` for options that returns `Some (x, y)` only when both are `Some`, using `let*`, and print `both (Some 1) (Some \"a\")` formatted as \"1,a\".",
+    "solution": "let ( let* ) = Option.bind\n\nlet both a b =\n  let* x = a in\n  let* y = b in\n  Some (x, y)\n\nlet () = match both (Some 1) (Some \"a\") with Some (x, y) -> Printf.printf \"%d,%s\\n\" x y | None -> print_endline \"none\"\n",
+    "solutionStdout": "1,a\n",
+    "question": "What does `let* x = e in body` do when `e` is `None` in the option monad?",
+    "correct": "It skips the body and the whole expression is None",
+    "wrong": [
+      "It raises Not_found",
+      "It runs the body with x set to a default"
+    ],
+    "reasoning": "bind on None returns None without calling the continuation, so a failure short-circuits the rest of the chain.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/conc/exercises.html",
+    "project": null
+  },
+  {
+    "key": "practice-correctness",
+    "stage": "22 · Practice sets",
+    "title": "Practice: specifications, tests and properties",
+    "body": [
+      "This is a set of original exercises for the \"Correctness\" chapter of the CS 3110 textbook. They practise the same skills as that chapter without reproducing its exercises. Each exercise has a specification, and the program below contains one worked answer for each, with its output printed so you can check your own version against it.",
+      "Work in this order: read the specification, write your own solution without looking, run it on the examples, then compare with the worked answer. If they disagree, find the smallest input where they differ, because that input usually exposes a misread specification or a missing case.",
+      "Check that your properties are not copies of the implementation, and that two properties together pin the behaviour down (order and length)."
+    ],
+    "code": "(** [median l] requires a non-empty list and returns the middle element of the sorted list\n    (the lower middle for an even length). *)\nlet median l =\n  assert (l <> []);\n  List.nth (List.sort compare l) ((List.length l - 1) / 2)\n\n(** [insert_sorted x l] requires [l] sorted and returns a sorted list with [x] added. *)\nlet rec insert_sorted x = function [] -> [ x ] | y :: rest as l -> if x <= y then x :: l else y :: insert_sorted x rest\n\nlet rec sorted = function a :: (b :: _ as rest) -> a <= b && sorted rest | _ -> true\n\nlet () =\n  Random.init 3;\n  let random_list () = List.init (Random.int 8) (fun _ -> Random.int 20) in\n  let all_hold p = List.for_all (fun _ -> p (random_list ())) (List.init 200 Fun.id) in\n  Printf.printf \"%d %d %d\\n\" (median [ 3; 1; 2 ]) (median [ 4; 1; 3; 2 ]) (median [ 7 ]);\n  Printf.printf \"insert keeps order: %b\\n\" (all_hold (fun l -> sorted (insert_sorted 10 (List.sort compare l))));\n  Printf.printf \"insert adds one element: %b\\n\" (all_hold (fun l -> List.length (insert_sorted 5 (List.sort compare l)) = List.length l + 1));\n  Printf.printf \"sorting twice is the same as once: %b\\n\" (all_hold (fun l -> List.sort compare (List.sort compare l) = List.sort compare l));\n  Printf.printf \"a wrong claim, median is the mean: %b\\n\" (all_hold (fun l -> l = [] || median l * List.length l = List.fold_left ( + ) 0 l))\n",
+    "expectedStdout": "2 2 7\ninsert keeps order: true\ninsert adds one element: true\nsorting twice is the same as once: true\na wrong claim, median is the mean: false\n",
+    "challenge": "State the property \"`median` of a list is between its minimum and maximum\" and check it on 200 random non-empty lists, printing the result.",
+    "solution": "let median l = List.nth (List.sort compare l) ((List.length l - 1) / 2)\n\nlet () =\n  Random.init 5;\n  let ok = ref true in\n  for _ = 1 to 200 do\n    let l = List.init (1 + Random.int 7) (fun _ -> Random.int 50) in\n    let m = median l in\n    if m < List.fold_left min max_int l || m > List.fold_left max min_int l then ok := false\n  done;\n  Printf.printf \"%b\\n\" !ok\n",
+    "solutionStdout": "true\n",
+    "question": "Why check that insertion returns a sorted list AND one element longer?",
+    "correct": "A function can satisfy one property and still be wrong, for example by dropping an element",
+    "wrong": [
+      "The two checks are the same property",
+      "Because sorted lists cannot change length"
+    ],
+    "reasoning": "Together the properties pin down the behaviour much more tightly than either one alone.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/correctness/exercises.html",
+    "project": null
+  },
+  {
+    "key": "practice-data-structures",
+    "stage": "22 · Practice sets",
+    "title": "Practice: stacks, queues, trees and heaps",
+    "body": [
+      "This is a set of original exercises for the \"Data structures\" chapter of the CS 3110 textbook. They practise the same skills as that chapter without reproducing its exercises. Each exercise has a specification, and the program below contains one worked answer for each, with its output printed so you can check your own version against it.",
+      "Work in this order: read the specification, write your own solution without looking, run it on the examples, then compare with the worked answer. If they disagree, find the smallest input where they differ, because that input usually exposes a misread specification or a missing case.",
+      "Check the invariant after every operation: a binary search tree stays ordered, and the two-stack queue pops in first-in first-out order."
+    ],
+    "code": "(* 1. a queue from two stacks (lists). *)\ntype 'a queue = { inbox : 'a list; outbox : 'a list }\n\nlet push x q = { q with inbox = x :: q.inbox }\n\nlet pop q =\n  match q.outbox with\n  | x :: rest -> Some (x, { q with outbox = rest })\n  | [] -> (match List.rev q.inbox with [] -> None | x :: rest -> Some (x, { inbox = []; outbox = rest }))\n\n(* 2. binary search tree: insert, mem and in-order traversal. *)\ntype tree = Leaf | Node of tree * int * tree\n\nlet rec insert x = function\n  | Leaf -> Node (Leaf, x, Leaf)\n  | Node (l, v, r) as t -> if x < v then Node (insert x l, v, r) else if x > v then Node (l, v, insert x r) else t\n\nlet rec mem x = function Leaf -> false | Node (l, v, r) -> if x < v then mem x l else if x > v then mem x r else true\nlet rec inorder = function Leaf -> [] | Node (l, v, r) -> inorder l @ [ v ] @ inorder r\nlet rec height = function Leaf -> 0 | Node (l, _, r) -> 1 + max (height l) (height r)\n\n(* 3. the smallest k elements using a sorted insertion buffer. *)\nlet smallest k l =\n  let insert_k acc x = List.filteri (fun i _ -> i < k) (List.sort compare (x :: acc)) in\n  List.fold_left insert_k [] l\n\nlet () =\n  let q = List.fold_left (fun q x -> push x q) { inbox = []; outbox = [] } [ 1; 2; 3 ] in\n  (match pop q with Some (x, q') -> (match pop (push 4 q') with Some (y, _) -> Printf.printf \"%d %d\\n\" x y | None -> ()) | None -> ());\n  let t = List.fold_left (fun t x -> insert x t) Leaf [ 5; 3; 8; 1; 4; 7; 9; 3 ] in\n  Printf.printf \"%s %b %b %d\\n\" (String.concat \",\" (List.map string_of_int (inorder t))) (mem 4 t) (mem 6 t) (height t);\n  print_endline (String.concat \",\" (List.map string_of_int (smallest 3 [ 9; 4; 7; 1; 8; 2 ])))\n",
+    "expectedStdout": "1 2\n1,3,4,5,7,8,9 true false 3\n1,2,4\n",
+    "challenge": "Write `delete_min` for the binary search tree that returns the tree without its smallest element, and print the in-order list after removing the minimum of the tree built from [5;3;8;1].",
+    "solution": "type tree = Leaf | Node of tree * int * tree\n\nlet rec insert x = function\n  | Leaf -> Node (Leaf, x, Leaf)\n  | Node (l, v, r) as t -> if x < v then Node (insert x l, v, r) else if x > v then Node (l, v, insert x r) else t\n\nlet rec delete_min = function Leaf -> Leaf | Node (Leaf, _, r) -> r | Node (l, v, r) -> Node (delete_min l, v, r)\nlet rec inorder = function Leaf -> [] | Node (l, v, r) -> inorder l @ [ v ] @ inorder r\n\nlet () =\n  let t = List.fold_left (fun t x -> insert x t) Leaf [ 5; 3; 8; 1 ] in\n  print_endline (String.concat \",\" (List.map string_of_int (inorder (delete_min t))))\n",
+    "solutionStdout": "3,5,8\n",
+    "question": "Why does the two-stack queue pop from the outbox first?",
+    "correct": "The outbox already holds the oldest elements in order; only when it is empty is the inbox reversed",
+    "wrong": [
+      "The outbox is faster to search",
+      "To avoid ever reversing a list"
+    ],
+    "reasoning": "Reversing the inbox only when the outbox runs dry moves each element once, which keeps the amortised cost constant.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/ds/exercises.html",
+    "project": null
+  },
+  {
+    "key": "practice-interpreters",
+    "stage": "22 · Practice sets",
+    "title": "Practice: extending a small interpreter",
+    "body": [
+      "This is a set of original exercises for the \"Interpreters\" chapter of the CS 3110 textbook. They practise the same skills as that chapter without reproducing its exercises. Each exercise has a specification, and the program below contains one worked answer for each, with its output printed so you can check your own version against it.",
+      "Work in this order: read the specification, write your own solution without looking, run it on the examples, then compare with the worked answer. If they disagree, find the smallest input where they differ, because that input usually exposes a misread specification or a missing case.",
+      "Check evaluation order: the right side of a short-circuit operator must not run when the left side decides the answer, and unbound names must fail cleanly."
+    ],
+    "code": "type expr =\n  | Int of int\n  | Bool of bool\n  | Var of string\n  | Add of expr * expr\n  | Le of expr * expr\n  | Not of expr\n  | And of expr * expr\n  | If of expr * expr * expr\n  | Let of string * expr * expr\n\ntype value = VInt of int | VBool of bool\n\nlet rec eval env = function\n  | Int n -> VInt n\n  | Bool b -> VBool b\n  | Var x -> List.assoc x env\n  | Add (a, b) -> (match (eval env a, eval env b) with VInt x, VInt y -> VInt (x + y) | _ -> failwith \"type error\")\n  | Le (a, b) -> (match (eval env a, eval env b) with VInt x, VInt y -> VBool (x <= y) | _ -> failwith \"type error\")\n  | Not e -> (match eval env e with VBool b -> VBool (not b) | _ -> failwith \"type error\")\n  | And (a, b) -> (\n      (* short-circuit: the right side is not evaluated when the left is false *)\n      match eval env a with VBool false -> VBool false | VBool true -> eval env b | _ -> failwith \"type error\")\n  | If (c, t, e) -> (match eval env c with VBool true -> eval env t | VBool false -> eval env e | _ -> failwith \"type error\")\n  | Let (x, e1, e2) -> eval ((x, eval env e1) :: env) e2\n\nlet show = function VInt n -> string_of_int n | VBool b -> string_of_bool b\n\nlet () =\n  let run e = try show (eval [] e) with Failure m -> m | Not_found -> \"unbound\" in\n  print_endline (run (Let (\"x\", Int 5, If (Le (Var \"x\", Int 10), Add (Var \"x\", Int 1), Int 0))));\n  print_endline (run (Not (Le (Int 3, Int 2))));\n  print_endline (run (And (Bool false, Var \"never_evaluated\")));\n  print_endline (run (And (Bool true, Bool true)));\n  print_endline (run (Add (Int 1, Bool true)));\n  print_endline (run (Var \"y\"))\n",
+    "expectedStdout": "6\ntrue\nfalse\ntrue\ntype error\nunbound\n",
+    "challenge": "Write a tiny evaluator for booleans and variables with an `Or` constructor that short-circuits, and print the value of `Or (Bool true, Var \"unused\")`.",
+    "solution": "type expr = Bool of bool | Var of string | Or of expr * expr\ntype value = VBool of bool\n\nlet rec eval env = function\n  | Bool b -> VBool b\n  | Var x -> List.assoc x env\n  | Or (a, b) -> (\n      match eval env a with\n      | VBool true -> VBool true\n      | VBool false -> eval env b)\n\nlet () = match eval [] (Or (Bool true, Var \"unused\")) with VBool b -> Printf.printf \"%b\\n\" b\n",
+    "solutionStdout": "true\n",
+    "question": "Why must `And` evaluate its right operand only after checking the left?",
+    "correct": "To short-circuit: if the left side is false the right side must not run, which matters for errors and effects",
+    "wrong": [
+      "Because the right side is always a variable",
+      "To make evaluation parallel"
+    ],
+    "reasoning": "Short-circuit evaluation is part of the meaning of and/or, so the interpreter has to evaluate lazily on the right.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/interp/exercises.html",
+    "project": null
+  }
+]

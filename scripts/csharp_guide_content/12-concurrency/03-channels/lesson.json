@@ -1,0 +1,30 @@
+{
+ "key": "concurrent-collections-and-channels",
+ "title": "Concurrent collections and channels",
+ "minutes": 25,
+ "body": [
+  "`ConcurrentDictionary<TKey, TValue>`, `ConcurrentQueue<T>`, `ConcurrentStack<T>` and `ConcurrentBag<T>` are safe to use from many threads without external locks. Use their atomic compound operations: `GetOrAdd`, `AddOrUpdate`, `TryRemove`, `TryDequeue`. Note that the factory passed to `GetOrAdd` may run more than once under contention, even though only one value is stored.",
+  "`System.Threading.Channels` is the modern producer/consumer pipe. `Channel.CreateBounded<T>(capacity)` gives a writer and a reader; `await writer.WriteAsync(item)` waits when the channel is full, so a fast producer is slowed to the consumer's pace. That waiting is backpressure, and it keeps memory bounded. Unbounded channels never wait and can grow without limit.",
+  "Consumers use `await foreach (var item in reader.ReadAllAsync(token))`. The producer calls `writer.Complete()` when done, which ends the consumers' loops once the remaining items are drained. `Complete(exception)` propagates a failure to readers.",
+  "`BoundedChannelOptions` chooses what happens when full: `Wait` (backpressure, the default), `DropOldest`, `DropNewest` or `DropWrite`. `SingleReader`/`SingleWriter` hints enable faster implementations. Multiple consumers reading the same channel share the work; each item goes to exactly one reader.",
+  "Check that every channel is completed exactly once (or consumers wait forever), that cancellation stops both sides, and that bounded capacity matches how much memory you can afford."
+ ],
+ "expectedStdout": "a=3 b=2 c=1\nproducer waits at item 3\nconsumed total 10, reader completed: True\n3 consumers shared the work: 5050\n",
+ "challenge": "Build a two-stage pipeline: stage one writes the numbers 1..5 to a bounded channel of capacity 1; stage two reads them, squares them and writes to a second channel; the main code reads the second channel and prints the squares. Complete each channel when its writer finishes.",
+ "solutionStdout": "1 4 9 16 25 \n",
+ "question": "What does `await writer.WriteAsync(item)` do on a full bounded channel with FullMode.Wait?",
+ "correct": "Waits until a reader makes room",
+ "wrong": [
+  "Throws ChannelClosedException",
+  "Drops the oldest item silently"
+ ],
+ "reasoning": "Waiting writers are backpressure: the producer runs no faster than the consumer, keeping memory bounded.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/core/extensions/channels",
+ "additionalReadings": [
+  {
+   "title": "Thread-safe collections",
+   "url": "https://learn.microsoft.com/en-us/dotnet/standard/collections/thread-safe/",
+   "section": "Concurrent collections"
+  }
+ ]
+}

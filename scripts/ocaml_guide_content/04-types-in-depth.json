@@ -1,0 +1,122 @@
+[
+  {
+    "key": "inference-and-annotations",
+    "stage": "04 · Types in depth",
+    "title": "Type inference and when to annotate",
+    "body": [
+      "OCaml infers the type of every expression without annotations. It collects constraints from how values are used: `let f x = x + 1` forces `x : int` because `+` only works on integers, so the type of `f` is `int -> int`. Inference is complete for the core language, which is why OCaml code looks so light.",
+      "You can still annotate, and often should. A signature such as `let f (x : int) : int = x + 1` documents intent, and in a module interface a `val` line is the contract. Annotations also help error messages: when inference blames the wrong line, adding one on a parameter moves the report to where you made the mistake.",
+      "Read type errors from the first expected-versus-found mismatch. The compiler reports where its constraints first conflict, not necessarily where your reasoning went wrong. Use `ocamlfind ocamlopt -i file.ml` or `ocaml-print-intf` to see the inferred interface."
+    ],
+    "code": "let f x = x + 1\nlet pair_up a b = (a, b)\nlet apply g x = g x\nlet describe (n : int) : string = \"n=\" ^ string_of_int n\n\nlet () =\n  Printf.printf \"%d\\n\" (f 41);\n  let a, b = pair_up 1 \"x\" in\n  Printf.printf \"%d %s\\n\" a b;\n  print_endline (apply describe 7)\n",
+    "expectedStdout": "42\n1 x\nn=7\n",
+    "challenge": "Write `twice g x = g (g x)` without annotations, then use it on an int function and on a string function, and print both results.",
+    "solution": "let twice g x = g (g x)\n\nlet () =\n  Printf.printf \"%d\\n\" (twice (fun n -> n + 3) 10);\n  print_endline (twice (fun s -> s ^ \"!\") \"hi\")\n",
+    "solutionStdout": "16\nhi!!\n",
+    "question": "Why is `let f x = x + 1` inferred as `int -> int`?",
+    "correct": "The + operator only accepts ints, so using x with it constrains x to int",
+    "wrong": [
+      "OCaml defaults every unannotated parameter to int",
+      "The literal 1 forces the result to be a float"
+    ],
+    "reasoning": "Inference unifies the types required by each use of a value; + requires int operands and returns int.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/basics/functions.html",
+    "project": null
+  },
+  {
+    "key": "parametric-polymorphism",
+    "stage": "04 · Types in depth",
+    "title": "Parametric polymorphism",
+    "body": [
+      "A type variable such as `'a` stands for any type, and every occurrence of the same variable in a type means the same type. `let id x = x : 'a -> 'a` works for every type, and `let swap (a, b) = (b, a) : 'a * 'b -> 'b * 'a` relates its positions without knowing what they hold.",
+      "The type tells you what a function can do. A function of type `'a -> 'a` cannot inspect its argument, so it can only return it. A function `'a list -> int` can only use the list's shape, such as its length. This is the idea behind parametricity: more general types leave less room for surprising behaviour.",
+      "Polymorphic functions are instantiated freshly at every use, so one definition serves `int list` and `string list` alike. Be careful with comparison: `compare : 'a -> 'a -> int` is polymorphic but works structurally, so it raises on functional values."
+    ],
+    "code": "let id x = x\nlet swap (a, b) = (b, a)\nlet rec map_list f = function [] -> [] | x :: xs -> f x :: map_list f xs\nlet first_or default = function [] -> default | x :: _ -> x\n\nlet () =\n  let a, b = swap (1, \"one\") in\n  Printf.printf \"%s %d\\n\" a b;\n  Printf.printf \"%d %s\\n\" (id 3) (id \"s\");\n  List.iter print_endline (map_list string_of_int [1; 2]);\n  Printf.printf \"%d %s\\n\" (first_or 0 []) (first_or \"none\" [])\n",
+    "expectedStdout": "one 1\n3 s\n1\n2\n0 none\n",
+    "challenge": "Write a polymorphic `last_or default xs` that returns the last element or the default, and print it for an int list and a string list.",
+    "solution": "let rec last_or default = function\n  | [] -> default\n  | [x] -> x\n  | _ :: rest -> last_or default rest\n\nlet () =\n  Printf.printf \"%d %s\\n\" (last_or 0 [1; 2; 3]) (last_or \"none\" [])\n",
+    "solutionStdout": "3 none\n",
+    "question": "What can a function of type `'a -> 'a` do with its argument?",
+    "correct": "Only return it, because it knows nothing about what 'a is",
+    "wrong": [
+      "Print it and return it",
+      "Compare it with zero"
+    ],
+    "reasoning": "A universally quantified type variable gives the function no operations on the value, so the only total behaviour is the identity.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/basics/functions.html",
+    "project": null
+  },
+  {
+    "key": "parameterised-and-recursive-types",
+    "stage": "04 · Types in depth",
+    "title": "Parameterised and recursive types",
+    "body": [
+      "A type definition can take type parameters and refer to itself. `type 'a tree = Leaf | Node of 'a tree * 'a * 'a tree` describes binary trees whose elements may have any type, and `int tree` and `string tree` are different instances of one definition.",
+      "Functions over such types follow the type's shape. A function on `'a tree` handles `Leaf` and `Node` and recurses on both subtrees. Because the type is defined once with a parameter, you write each operation once instead of once per element type.",
+      "Use a type alias, `type point = float * float`, for readability only: aliases are interchangeable with the original type. Use a variant or a record when you want a distinct type that the checker will not confuse with its representation."
+    ],
+    "code": "type 'a tree = Leaf | Node of 'a tree * 'a * 'a tree\n\nlet rec insert x = function\n  | Leaf -> Node (Leaf, x, Leaf)\n  | Node (l, v, r) as t ->\n    if x < v then Node (insert x l, v, r)\n    else if x > v then Node (l, v, insert x r)\n    else t\n\nlet rec to_list = function\n  | Leaf -> []\n  | Node (l, v, r) -> to_list l @ [v] @ to_list r\n\nlet rec size = function Leaf -> 0 | Node (l, _, r) -> size l + 1 + size r\n\nlet () =\n  let t = List.fold_left (fun t x -> insert x t) Leaf [5; 2; 8; 2; 1] in\n  List.iter (Printf.printf \"%d \") (to_list t);\n  Printf.printf \"| %d\\n\" (size t);\n  let s = List.fold_left (fun t x -> insert x t) Leaf [\"b\"; \"a\"] in\n  List.iter print_string (to_list s);\n  print_newline ()\n",
+    "expectedStdout": "1 2 5 8 | 4\nab\n",
+    "challenge": "Write `height : 'a tree -> int` returning the number of levels (Leaf is 0), and print the height of the tree built from [5; 2; 8; 1].",
+    "solution": "type 'a tree = Leaf | Node of 'a tree * 'a * 'a tree\n\nlet rec insert x = function\n  | Leaf -> Node (Leaf, x, Leaf)\n  | Node (l, v, r) as t ->\n    if x < v then Node (insert x l, v, r)\n    else if x > v then Node (l, v, insert x r)\n    else t\n\nlet rec height = function\n  | Leaf -> 0\n  | Node (l, _, r) -> 1 + max (height l) (height r)\n\nlet () =\n  let t = List.fold_left (fun t x -> insert x t) Leaf [5; 2; 8; 1] in\n  Printf.printf \"%d\\n\" (height t)\n",
+    "solutionStdout": "3\n",
+    "question": "What does the parameter in `type 'a tree` allow?",
+    "correct": "One definition describes trees of any element type, such as int tree and string tree",
+    "wrong": [
+      "Trees whose elements can have different types in the same tree",
+      "Trees that can change their element type at runtime"
+    ],
+    "reasoning": "The parameter is instantiated once per use of the type, so all elements of a given tree share that instance.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/data/variants.html",
+    "project": null
+  },
+  {
+    "key": "value-restriction",
+    "stage": "04 · Types in depth",
+    "title": "The value restriction and weak types",
+    "body": [
+      "Only syntactic values are generalised. `let id = fun x -> x` is polymorphic, but `let r = ref []` is not: its type is the weak type `'_weak1 list ref`, a placeholder that becomes fixed by the first use. If it were fully polymorphic you could store an int and read back a string.",
+      "This is why partial application can surprise you. `let f = List.map (fun x -> x)` applies a function, so the result is weakly typed, while `let f l = List.map (fun x -> x) l` is a function value and stays polymorphic. Eta-expanding, meaning adding the explicit parameter, usually fixes the problem.",
+      "A weak type that survives to the end of a compilation unit is a compile error. The usual repairs are to eta-expand, to annotate the binding with the type you intend, or to move the mutable cell inside a function."
+    ],
+    "code": "let r = ref []\nlet () = r := [1; 2; 3]\n\nlet identity_list l = List.map (fun x -> x) l\n\nlet make_stack () = ref []\n\nlet () =\n  Printf.printf \"%d\\n\" (List.length !r);\n  List.iter print_endline (identity_list [\"a\"; \"b\"]);\n  let ints = make_stack () in\n  let strings = make_stack () in\n  ints := [1];\n  strings := [\"x\"];\n  Printf.printf \"%d %s\\n\" (List.hd !ints) (List.hd !strings)\n",
+    "expectedStdout": "3\na\nb\n1 x\n",
+    "challenge": "Explain by experiment: define `let cell = ref None`, assign `Some 1` to it, then print whether it holds a value. Which use fixed its type?",
+    "solution": "let cell = ref None\nlet () = cell := Some 1\nlet () = print_endline (match !cell with Some _ -> \"holds a value\" | None -> \"empty\")\n",
+    "solutionStdout": "holds a value\n",
+    "question": "Why is `let r = ref []` not generalised to `'a list ref`?",
+    "correct": "Applying ref is not a syntactic value, and a polymorphic mutable cell would be unsound",
+    "wrong": [
+      "Because lists cannot be polymorphic",
+      "Because ref is a keyword"
+    ],
+    "reasoning": "A polymorphic mutable cell could hold an int in one use and be read as a string in another, so the type stays weak.",
+    "sourceURL": "https://dev.realworldocaml.org/imperative-programming.html",
+    "project": null
+  },
+  {
+    "key": "equality-and-compare",
+    "stage": "04 · Types in depth",
+    "title": "Structural equality, physical equality and compare",
+    "body": [
+      "`=` and `<>` compare structurally: two values are equal when their contents are equal, however they were built. `==` and `!=` compare physical identity, asking whether two names refer to the very same block. Use `=` unless you are deliberately testing sharing.",
+      "`compare` returns a negative, zero or positive int and is the function to pass to sorting. The polymorphic versions work on most data, but they raise `Invalid_argument` on functional values and may not terminate on cyclic structures. For custom types, define a monomorphic comparison instead.",
+      "Floating point adds a trap: `nan = nan` is false while `compare nan nan` is 0, so sorting floats with `<` and with `compare` can behave differently. When you need a total order, use `Float.compare`."
+    ],
+    "code": "let () =\n  let make () = List.init 2 (fun i -> i + 1) in\n  let a = make () and b = make () in\n  Printf.printf \"%b %b\\n\" (a = b) (a == b);\n  Printf.printf \"%b %b\\n\" (a == a) (\"x\" = \"x\");\n  Printf.printf \"%d %d\\n\" (compare 1 2) (compare \"b\" \"a\");\n  Printf.printf \"%b %d\\n\" (nan = nan) (Float.compare nan nan);\n  let sorted = List.sort compare [3; 1; 2] in\n  List.iter (Printf.printf \"%d \") sorted;\n  print_newline ();\n  (try ignore (compare (fun x -> x) (fun x -> x)) with Invalid_argument m -> print_endline m)\n",
+    "expectedStdout": "true false\ntrue true\n-1 1\nfalse 0\n1 2 3 \ncompare: functional value\n",
+    "challenge": "Sort the strings [\"pear\"; \"fig\"; \"apple\"] by length, breaking ties alphabetically, using List.sort with a custom comparison, and print them.",
+    "solution": "let by_length a b =\n  let c = compare (String.length a) (String.length b) in\n  if c <> 0 then c else compare a b\n\nlet () = List.iter print_endline (List.sort by_length [\"pear\"; \"fig\"; \"apple\"])\n",
+    "solutionStdout": "fig\npear\napple\n",
+    "question": "What is the difference between `a = b` and `a == b`?",
+    "correct": "= compares contents structurally; == tests whether both names are the same block in memory",
+    "wrong": [
+      "== is the faster spelling of =",
+      "= works only on integers"
+    ],
+    "reasoning": "Structural equality walks the values while physical equality checks identity, so equal-looking separate values differ under ==.",
+    "sourceURL": "https://dev.realworldocaml.org/maps-and-hashtables.html",
+    "project": null
+  }
+]

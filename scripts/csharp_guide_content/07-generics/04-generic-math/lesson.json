@@ -1,0 +1,29 @@
+{
+ "key": "generic-math",
+ "title": "Static abstract members and generic math",
+ "body": [
+  "Interfaces can declare `static abstract` members (C# 11), which implementing types must provide as static members. Generic code constrained to such an interface can call them through the type parameter: `T.Zero`, `T.Parse(text, null)`, or operators like `a + b`. This makes 'factory' and 'operator' contracts possible without instances.",
+  ".NET uses this for generic math. `INumber<T>` and its smaller pieces (`IAdditionOperators<TSelf, TOther, TResult>`, `IAdditiveIdentity<TSelf, TResult>`, `IComparisonOperators`, `IParsable<TSelf>`) are implemented by all built-in numeric types. One `Sum<T>(IEnumerable<T>) where T : INumber<T>` works for int, double, decimal and BigInteger.",
+  "Your own types can participate: a `Money` or `Vector` struct implementing `IAdditionOperators<Money, Money, Money>` and `IAdditiveIdentity<Money, Money>` works with any algorithm written against those interfaces. Constrain to the smallest interface the algorithm needs.",
+  "The `TSelf` pattern (`where TSelf : IThing<TSelf>`) lets the interface refer to the implementing type. Static virtual members (with a default body) are also allowed. C# 15 adds non-virtual static interface members, covered in the final stage.",
+  "Generic math code is compiled per value type, so it runs as fast as hand-written code. Check overflow behaviour: `T.CreateChecked(x)` throws when a value does not fit, `CreateSaturating` clamps and `CreateTruncating` wraps."
+ ],
+ "expectedStdout": "6\n0.75\n3.3\n2.3333333333333335\n15\nMoney { Amount = 12 }\n255 44\n300 does not fit in a byte\n",
+ "challenge": "Write a generic Max<T>(ReadOnlySpan<T> values) where T : INumber<T> that throws for an empty span, and call it with int and double arrays.",
+ "solutionStdout": "9\n1.5\n",
+ "question": "What lets generic code write `T.AdditiveIdentity` or `a + b` for a type parameter T?",
+ "correct": "Constraining T to interfaces with static abstract members",
+ "wrong": [
+  "Casting T to dynamic",
+  "Marking the method unsafe"
+ ],
+ "reasoning": "Static abstract interface members expose operators and static factories to generic code at compile time.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/standard/generics/math",
+ "additionalReadings": [
+  {
+   "title": "Static abstract interface members",
+   "url": "https://learn.microsoft.com/en-us/dotnet/csharp/whats-new/tutorials/static-virtual-interface-members",
+   "section": "Tutorial"
+  }
+ ]
+}

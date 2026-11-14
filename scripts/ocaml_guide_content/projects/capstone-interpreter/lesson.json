@@ -1,0 +1,87 @@
+{
+  "key": "capstone-interpreter",
+  "stage": "14 · Metaprogramming and capstones",
+  "n": 2,
+  "title": "Capstone 1: a parser and interpreter",
+  "minutes": 60,
+  "body": [
+    "An interpreter has three parts: a lexer that turns text into tokens, a parser that turns tokens into a syntax tree, and an evaluator that gives the tree a meaning. Variants model the tokens and the tree, pattern matching walks them, and `result` carries errors with no exceptions, so each stage is a small total function you can test alone.",
+    "A recursive-descent parser has one function per precedence level. `expr` handles `+` and `-`, `term` handles `*` and `/`, `unary` handles prefix `-`, and `atom` handles numbers and parentheses. Each level calls the next-tighter one for its operands and then loops while it sees its own operators, which makes the operators left-associative: `2-3-4` is `(2-3)-4`.",
+    "Each parsing function takes the remaining tokens and returns the tree together with what is left over. Threading the remainder explicitly keeps the parser pure and makes error cases easy to test: unexpected end, a missing closing parenthesis and trailing input are all `Error` values. Binding operators (`let*`) keep the success path readable."
+  ],
+  "challenge": "src/calc.ml provides the tokenizer, the AST and `eval`. Implement `parse : token list -> (expr, string) result` with the four precedence levels above, so that `calc \"1+2*3\"` is `Ok 7`, `calc \"2-3-4\"` is `Ok (-5)`, `calc \"--4\"` is `Ok 4`, and malformed input such as \"1+\", \"(1\" or \"1 2\" is an `Error`.",
+  "projectInstructions": "Run `dune test --root .`. Edit only the `parse` function in src/calc.ml. Write one function per precedence level and return the unparsed tokens with each tree.",
+  "question": "Why does looping on `+`/`-` inside `expr` make `2-3-4` equal `(2-3)-4`?",
+  "correct": "Each new operand is combined with the tree built so far, so operators group from the left",
+  "wrong": [
+    "Because subtraction is commutative",
+    "Because the tokenizer reorders the numbers"
+  ],
+  "reasoning": "The loop folds left: after parsing 2-3 it makes that the left operand for the next minus, giving left associativity.",
+  "sourceURL": "https://cs3110.github.io/textbook/chapters/interp/parsing.html",
+  "projectChecks": [
+    {
+      "name": "starter compiles",
+      "command": [
+        "dune",
+        "build",
+        "--root",
+        "."
+      ],
+      "exit": 0
+    },
+    {
+      "name": "starter tests fail",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "test_calc.ml"
+    },
+    {
+      "name": "solution tests pass",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 0,
+      "useSolution": true
+    },
+    {
+      "name": "dropped operator is caught",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "test_calc.ml",
+      "useSolution": true,
+      "mutations": [
+        {
+          "path": "src/calc.ml",
+          "find": "TOp (('+' | '-') as op)",
+          "replace": "TOp ('+' as op)"
+        }
+      ]
+    }
+  ],
+  "additionalReadings": [
+    {
+      "title": "OCaml Programming: Correct + Efficient + Beautiful",
+      "url": "https://cs3110.github.io/textbook/chapters/interp/intro.html",
+      "section": "Interpreters"
+    },
+    {
+      "title": "10.1. Example: Calculator",
+      "url": "https://cs3110.github.io/textbook/chapters/interp/calculator.html",
+      "section": "10.1. Example: Calculator"
+    }
+  ]
+}

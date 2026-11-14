@@ -1,0 +1,110 @@
+{
+  "key": "format-docs-opam",
+  "stage": "10 · Tooling",
+  "n": 4,
+  "title": "Formatting, documentation and opam packaging",
+  "minutes": 30,
+  "body": [
+    "`ocamlformat` gives a whole team one layout, so reviews are about behaviour and not about spacing. A `.ocamlformat` file in the project root pins the formatter's version and options, and `dune build @fmt` reports every file that would change; `dune fmt` (or `dune promote`) rewrites them. Pin the version, because different versions format differently.",
+    "`odoc` turns documentation comments written as `(** ... *)` into HTML. A library with a `public_name` belongs to a package, and `dune build @doc` builds the pages under `_build/default/_doc/_html`. Document the interface (`.mli`) rather than the implementation, and give each public value one sentence about what it returns.",
+    "Opam is the package manager, and Dune can generate the package description from the project. With `(generate_opam_files true)` and a `(package ...)` stanza in `dune-project`, `dune build` writes `tidy.opam` for you, so the dependency list lives in one place. Edit `dune-project`, never the generated `.opam` file."
+  ],
+  "challenge": "The starter builds but `dune build @fmt` reports src/tidy.ml and src/tidy.mli as unformatted. Replace them with the formatted versions (or run `dune fmt`), then confirm the opam file mentions the package synopsis and the docs build.",
+  "projectInstructions": "Run `dune build @fmt --root .` to see the formatting diff, then `dune fmt --root .` to apply it. Run `dune build --root .` to generate tidy.opam and `dune build @doc --root .` for the documentation.",
+  "question": "Why pin a version in `.ocamlformat`?",
+  "correct": "Different ocamlformat versions format differently, so a pin keeps everyone's output identical",
+  "wrong": [
+    "The pin makes formatting faster",
+    "Without a pin, ocamlformat refuses to run on comments"
+  ],
+  "reasoning": "A shared formatter only removes style churn if every contributor and CI job runs the same version.",
+  "sourceURL": "https://ocaml.org/p/ocamlformat/latest",
+  "projectChecks": [
+    {
+      "name": "starter builds",
+      "command": [
+        "dune",
+        "build",
+        "--root",
+        "."
+      ],
+      "exit": 0
+    },
+    {
+      "name": "starter is not formatted",
+      "command": [
+        "dune",
+        "build",
+        "@fmt",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "src/tidy.ml"
+    },
+    {
+      "name": "solution is formatted",
+      "command": [
+        "dune",
+        "build",
+        "@fmt",
+        "--root",
+        "."
+      ],
+      "exit": 0,
+      "useSolution": true
+    },
+    {
+      "name": "opam file is generated",
+      "command": [
+        "cat",
+        "tidy.opam"
+      ],
+      "exit": 0,
+      "stdoutContains": [
+        "synopsis",
+        "A tidy example",
+        "\"dune\""
+      ],
+      "useSolution": true
+    },
+    {
+      "name": "documentation builds",
+      "command": [
+        "dune",
+        "build",
+        "@doc",
+        "--root",
+        "."
+      ],
+      "exit": 0,
+      "useSolution": true
+    },
+    {
+      "name": "documentation page exists",
+      "command": [
+        "ls",
+        "_build/default/_doc/_html/tidy/Tidy/index.html"
+      ],
+      "exit": 0,
+      "useSolution": true
+    }
+  ],
+  "additionalReadings": [
+    {
+      "title": "ocamlformat",
+      "url": "https://ocaml.org/p/ocamlformat/latest",
+      "section": "Configuration"
+    },
+    {
+      "title": "odoc documentation syntax",
+      "url": "https://ocaml.github.io/odoc/odoc/odoc_for_authors.html",
+      "section": "Writing documentation"
+    },
+    {
+      "title": "2.5. Documentation",
+      "url": "https://cs3110.github.io/textbook/chapters/basics/documentation.html",
+      "section": "2.5. Documentation"
+    }
+  ]
+}

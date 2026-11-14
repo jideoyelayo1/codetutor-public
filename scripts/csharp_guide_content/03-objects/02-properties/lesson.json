@@ -1,0 +1,35 @@
+{
+ "key": "properties",
+ "title": "Properties, init, required and the field keyword",
+ "body": [
+  "A property looks like a field to callers but runs accessor code. `public string Name { get; set; }` is an auto-property: the compiler creates a hidden backing field. Expression-bodied properties such as `public bool IsEmpty => Count == 0;` compute a value on each read. Prefer properties over public fields so you can add validation later without changing callers.",
+  "Accessors can have different accessibility (`public int Count { get; private set; }`). An `init` accessor allows assignment only during object creation, including object initializers and `with` expressions, then makes the property read-only. A `required` property must be set by every object initializer; forgetting it is error CS9035.",
+  "C# 14 adds the `field` keyword for field-backed properties: inside an accessor, `field` refers to the compiler-generated backing field. `set => field = value ?? throw new ArgumentNullException(nameof(value));` validates without declaring a separate private field. You may give a body to one accessor and leave the other as `get;`.",
+  "Because `field` is now a keyword inside accessors, an existing member actually named `field` must be written `this.field` or `@field` there. That is the C# 14 source-breaking risk to check when upgrading older code.",
+  "Property getters should be cheap and side-effect free; callers assume reading twice gives the same answer. Check that setters keep the object valid, that `init`/`required` express the construction contract, and that expensive work lives in a method whose name says so."
+ ],
+ "expectedStdout": "ada@example.com\nAda L.\nName is required\n1\n0\n2\n",
+ "challenge": "Add a Percent property to a Progress class using the field keyword so values below 0 become 0 and values above 100 become 100. Print the stored value after setting -5, 42 and 250.",
+ "solutionStdout": "0\n42\n100\n",
+ "question": "Inside a C# 14 property accessor, what does `field` refer to?",
+ "correct": "The compiler-generated backing field of that property",
+ "wrong": [
+  "Any field named field declared in the class",
+  "A new local variable created for each call"
+ ],
+ "reasoning": "field lets you add logic to an auto-property without declaring the backing field yourself.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/field",
+ "additionalReadings": [
+  {
+   "title": "Properties",
+   "url": "https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/classes-and-structs/properties",
+   "section": "init and required"
+  }
+ ],
+ "rejected": [
+  {
+   "file": "rejected.cs",
+   "diagnostic": "CS9035"
+  }
+ ]
+}

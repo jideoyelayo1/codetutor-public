@@ -1,0 +1,89 @@
+{
+  "key": "atomic-counter",
+  "stage": "12 · Concurrency and parallelism",
+  "n": 2,
+  "title": "Data races, Atomic and Mutex",
+  "minutes": 35,
+  "body": [
+    "When two domains touch the same mutable location and at least one writes, you have a data race. OCaml 5 has a memory model that keeps races from corrupting memory, but the result is still wrong: `n := !n + 1` is a read, an add and a write, so two domains can both read 5 and both write 6, and one increment is lost.",
+    "`Atomic.t` makes single operations indivisible. `Atomic.incr`, `Atomic.fetch_and_add` and `Atomic.compare_and_set` are executed without interruption, so a shared counter built from them never loses an update. Writing `Atomic.set c (Atomic.get c + 1)` is *not* atomic overall, because another domain can run between the get and the set.",
+    "For updates that involve several fields or a data structure, use a lock: `Mutex.protect m (fun () -> ...)` runs the function with the mutex held and releases it even on an exception. Prefer atomics for one counter or flag, and a mutex around code that must see a consistent whole."
+  ],
+  "challenge": "The starter Counter wraps a plain `int ref`, so the test (4 domains each incrementing 200,000 times) loses updates. Reimplement `create`, `incr` and `get` on top of `Atomic` so the total is exactly 800,000.",
+  "projectInstructions": "Run `dune test --root .` on the starter to watch the assertion fail because of lost updates, then fix src/counter.ml. Edit only that file.",
+  "question": "Why is `Atomic.set c (Atomic.get c + 1)` still racy?",
+  "correct": "The get and the set are two separate atomic steps, so another domain can update the counter in between",
+  "wrong": [
+    "Atomic.set is not allowed after Atomic.get",
+    "Atomic values can only be read"
+  ],
+  "reasoning": "Atomicity applies to each operation individually; a read-modify-write needs one operation such as fetch_and_add or a compare_and_set loop.",
+  "sourceURL": "https://ocaml.org/manual/5.5/memorymodel.html",
+  "projectChecks": [
+    {
+      "name": "starter compiles",
+      "command": [
+        "dune",
+        "build",
+        "--root",
+        "."
+      ],
+      "exit": 0
+    },
+    {
+      "name": "starter loses updates",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "Assert_failure",
+      "retries": 5
+    },
+    {
+      "name": "solution is exact",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 0,
+      "useSolution": true
+    },
+    {
+      "name": "get-then-set race is caught",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "Assert_failure",
+      "useSolution": true,
+      "retries": 5,
+      "mutations": [
+        {
+          "path": "src/counter.ml",
+          "find": "let incr = Atomic.incr",
+          "replace": "let incr c = Atomic.set c (Atomic.get c + 1)"
+        }
+      ]
+    }
+  ],
+  "additionalReadings": [
+    {
+      "title": "OCaml manual: The memory model",
+      "url": "https://ocaml.org/manual/5.5/memorymodel.html",
+      "section": "Data races"
+    },
+    {
+      "title": "OCaml manual: Parallel programming",
+      "url": "https://ocaml.org/manual/5.5/parallelism.html",
+      "section": "Atomics and mutexes"
+    }
+  ]
+}

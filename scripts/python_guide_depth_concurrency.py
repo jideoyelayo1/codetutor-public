@@ -1,0 +1,246 @@
+"""Original Stage 09 concurrency/ownership depth: bounded Python 3.13 sections with executed transfer practice.
+
+Fixtures use scheduler turns (sleep(0)) and events, never wall-clock races, so results are deterministic."""
+from python_guide_depth import add, task
+
+add('async-await', 'asyncio: coroutines, sequential awaits versus concurrent gather',
+    'https://docs.python.org/3.13/library/asyncio-task.html#coroutines', [
+    "Calling an async function does not run it. It returns a coroutine object, which runs only when awaited or wrapped in a task. A coroutine that is never awaited does nothing, and Python warns when one is garbage-collected unawaited.",
+    "await runs one coroutine to completion before the next line continues, so awaiting in a loop is sequential even inside async code. Concurrency comes from scheduling several awaitables together, for example with asyncio.gather, so that while one waits, another runs.",
+    "Concurrency here means interleaving at await points on one thread. It overlaps waiting such as network or disk I/O; it does not make CPU-bound Python code faster. A coroutine that never awaits anything blocks every other task until it finishes.",
+    "The transfer logs start and end events for the same steps run sequentially and then concurrently, and inspects an unawaited call."
+    ],
+    ("What does calling an async def function without await return?",
+     "A coroutine object that has not started running.",
+     ["The function's return value.", "A running Task.", "None, after running the body in the background."],
+     "Coroutines run only when awaited or scheduled as tasks; an unawaited coroutine does nothing."),
+    task("Transfer: sequential versus concurrent awaits",
+         "data is a list of names. step(name, log) logs name:start, awaits sleep(0) and logs name:end. Run the steps sequentially, then concurrently with gather, then create (and close) one unawaited coroutine. Return [sequential_log, concurrent_log, unawaited_type_name].",
+         "async def step(name, log):\n    log.append(name + ':start')\n    await asyncio.sleep(0)\n    log.append(name + ':end')\n    return name\nasync def main():\n    sequential, concurrent = [], []\n    for name in data:\n        await step(name, sequential)\n    await asyncio.gather(*(step(name, concurrent) for name in data))\n    pending = step('x', [])\n    kind = type(pending).__name__\n    pending.close()\n    return [sequential, concurrent, kind]\nresult = asyncio.run(main())",
+         [(['a','b'],[['a:start','a:end','b:start','b:end'],['a:start','b:start','a:end','b:end'],'coroutine']),([],[[],[],'coroutine']),(['x'],[['x:start','x:end'],['x:start','x:end'],'coroutine'])],
+         ("    await asyncio.sleep(0)\n",""),
+         ["Awaiting in a loop finishes each step before the next starts.", "gather lets each step run until its first await, then switches.", "Close the unawaited coroutine to avoid a warning."],
+         "Sequentially, each step starts and ends before the next. Under gather, both start before either ends because each yields at sleep(0). Without that await there is no switch point, and the concurrent log looks sequential.",
+         [[['a:start','b:start','a:end','b:end'],['a:start','b:start','a:end','b:end'],'coroutine'],[['a:start','a:end','b:start','b:end'],['a:start','a:end','b:start','b:end'],'coroutine'],[['a:start','a:end','b:start','b:end'],['a:start','b:start','a:end','b:end'],'str']],
+         "import asyncio"),
+    ("Does asyncio speed up CPU-bound Python code?", "No. It interleaves tasks at await points on one thread, overlapping waits, not computation."))
+
+add('gather-order', 'asyncio.gather(return_exceptions=True) and as_completed ordering',
+    'https://docs.python.org/3.13/library/asyncio-task.html#asyncio.gather', [
+    "asyncio.gather returns results in the order the awaitables were passed, regardless of which finished first. That makes it easy to pair results with inputs. as_completed instead yields awaitables in completion order, for handling results as soon as each is ready.",
+    "By default, the first exception raised by any awaitable propagates out of gather, and you lose the other results. With return_exceptions=True, exceptions are placed in the result list at their positions, so the caller can report each failure alongside the successes.",
+    "With return_exceptions=True you must check each result's type; otherwise errors pass silently as values. In new code, TaskGroup is often preferable, because it cancels siblings when one fails; gather fits when partial results are wanted.",
+    "The transfer runs jobs that take different numbers of scheduler turns, one of which fails, and compares gather's positional results with as_completed's completion order."
+    ],
+    ("With asyncio.gather(..., return_exceptions=True), what happens to a failing awaitable's exception?",
+     "It is returned as a value at that awaitable's position in the result list.",
+     ["It is logged and replaced with None.", "It still propagates and cancels the others.", "It is moved to the end of the result list."],
+     "return_exceptions keeps positions aligned with inputs and turns failures into values the caller must check."),
+    task("Transfer: positional results versus completion order",
+         "data is a list of [name, turns]. job(name, turns) awaits sleep(0) turns times and returns name; a negative turns value raises ValueError(name) immediately. Return [gather labels with return_exceptions=True ('error:<name>' for failures), as_completed order for the same jobs with turns clamped at 0].",
+         "async def job(name, turns):\n    for _ in range(turns):\n        await asyncio.sleep(0)\n    if turns < 0:\n        raise ValueError(name)\n    return name\nasync def main():\n    gathered = await asyncio.gather(*(job(n, t) for n, t in data), return_exceptions=True)\n    labels = [g if isinstance(g, str) else 'error:' + str(g) for g in gathered]\n    finished = []\n    for next_done in asyncio.as_completed([job(n, max(t, 0)) for n, t in data]):\n        finished.append(await next_done)\n    return [labels, finished]\nresult = asyncio.run(main())",
+         [([['slow',3],['bad',-1],['fast',1]],[['slow','error:bad','fast'],['bad','fast','slow']]),([],[[],[]]),([['a',2],['b',0]],[['a','b'],['b','a']])],
+         ("return_exceptions=True","return_exceptions=False"),
+         ["gather results line up with the input positions.", "Check each gathered item's type to find failures.", "as_completed yields the job with the fewest turns first."],
+         "gather keeps slow, bad and fast in input order, with bad recorded as an error value. as_completed reports bad (zero turns), then fast, then slow. Without return_exceptions the ValueError propagates and no results are returned.",
+         [[['slow','error:bad','fast'],['slow','bad','fast']],[['slow','fast'],['bad','fast','slow']],[['error:bad'],['bad','fast','slow']]],
+         "import asyncio"),
+    ("Which order does gather return results in?", "The order the awaitables were passed, not completion order; use as_completed for completion order."))
+
+add('taskgroup-scope', 'asyncio.TaskGroup: sibling cancellation and except* handling',
+    'https://docs.python.org/3.13/library/asyncio-task.html#task-groups', [
+    "A TaskGroup owns every task created through it. Leaving the async with block waits for all of them, so no child can outlive the scope that started it. This is structured concurrency: task lifetimes follow the code's block structure.",
+    "If any child raises, the group cancels the remaining children, waits for them to finish their cleanup and then raises an ExceptionGroup containing the failures. Children see CancelledError and should clean up and re-raise it.",
+    "except* ValueError handles the matching exceptions inside an ExceptionGroup, and other types continue to propagate. A failure therefore cannot leave orphaned background work running, which is the main difference from creating tasks individually.",
+    "The transfer runs children that finish, fail or are still waiting, and records which ones completed and which were cancelled."
+    ],
+    ("One child of an asyncio.TaskGroup raises ValueError while a sibling is still waiting. What happens to the sibling?",
+     "It is cancelled; the group waits for it and then raises an ExceptionGroup containing the ValueError.",
+     ["It keeps running in the background after the block exits.", "It finishes normally and its error is ignored.", "The whole event loop stops immediately."],
+     "TaskGroup guarantees no child outlives the block, cancelling siblings after a failure."),
+    task("Transfer: failure cancels siblings",
+         "data is a list of [name, turns, fail]. Each child awaits sleep(0) turns times, then raises ValueError(name) if fail or records name:done. Cancelled children record name:cancelled and re-raise. Return [outcome ('ok' or the sorted failing names), sorted events].",
+         "async def main():\n    events = []\n    async def child(name, turns, fail):\n        try:\n            for _ in range(turns):\n                await asyncio.sleep(0)\n            if fail:\n                raise ValueError(name)\n            events.append(name + ':done')\n        except asyncio.CancelledError:\n            events.append(name + ':cancelled')\n            raise\n    try:\n        async with asyncio.TaskGroup() as group:\n            for name, turns, fail in data:\n                group.create_task(child(name, turns, fail))\n        outcome = 'ok'\n    except* ValueError as errors:\n        outcome = sorted(str(e) for e in errors.exceptions)\n    return [outcome, sorted(events)]\nresult = asyncio.run(main())",
+         [([['a',1,True],['b',5,False],['c',0,False]],[['a'],['b:cancelled','c:done']]),([],['ok',[]]),([['x',2,False],['y',1,False]],['ok',['x:done','y:done']])],
+         ("if fail:","if not fail:"),
+         ["c needs no turns and finishes before a fails.", "b is still waiting when a fails, so it is cancelled.", "except* receives an ExceptionGroup; inspect its exceptions."],
+         "c completes immediately, a fails after one turn and the group cancels b. Only a's ValueError is reported. Inverting the failure condition changes which children fail and which are cancelled.",
+         [['ok',['a:done','b:done','c:done']],[['a'],['b:done','c:done']],[['a','b'],['c:done']]],
+         "import asyncio"),
+    ("What does TaskGroup do when one child fails?", "Cancels the remaining children, waits for them, then raises an ExceptionGroup of the failures."))
+
+add('cancel-finally', 'asyncio task cancellation: cleanup, re-raise and Task.cancelled()',
+    'https://docs.python.org/3.13/library/asyncio-task.html#task-cancellation', [
+    "task.cancel() asks a task to stop by raising CancelledError at its current await. The task can clean up in except or finally blocks, and the caller should await it to know the cleanup has finished.",
+    "After cleanup, re-raise CancelledError. Returning normally instead swallows the cancellation: the task then reports as successfully finished, task.cancelled() is False, and structures such as TaskGroup and timeouts that rely on cancellation can misbehave.",
+    "Suppress cancellation only in rare, deliberate cases, and document them. Use finally for cleanup that must happen on every path, so success, errors and cancellation all release the same resources.",
+    "The transfer cancels two workers, one that re-raises and one that swallows the cancellation, and reports how each task appears to its owner."
+    ],
+    ("A worker catches CancelledError, cleans up and returns a value. What does task.cancelled() report?",
+     "False; the task finished normally, so the cancellation was swallowed.",
+     ["True; cancel() always marks the task cancelled.", "It raises InvalidStateError.", "True, because cleanup ran."],
+     "Only a task that ends by raising CancelledError counts as cancelled; re-raise after cleanup."),
+    task("Transfer: re-raise or swallow cancellation",
+         "data is a list of booleans (swallow). For each, start a worker waiting forever, cancel it and await it. Workers record 'cleanup'; they re-raise unless swallow is true, in which case they return 'swallowed'. Return [[task.cancelled(), awaited_value_or_None], ...] and the events.",
+         "async def main():\n    events = []\n    async def worker(swallow):\n        try:\n            await asyncio.Event().wait()\n        except asyncio.CancelledError:\n            events.append('cleanup')\n            if not swallow:\n                raise\n            return 'swallowed'\n    report = []\n    for swallow in data:\n        task = asyncio.create_task(worker(swallow))\n        await asyncio.sleep(0)\n        task.cancel()\n        try:\n            value = await task\n        except asyncio.CancelledError:\n            value = None\n        report.append([task.cancelled(), value])\n    return [report, events]\nresult = asyncio.run(main())",
+         [([False,True],[[[True,None],[False,'swallowed']],['cleanup','cleanup']]),([],[[],[]]),([False],[[[True,None]],['cleanup']])],
+         ("            if not swallow:\n                raise","            if swallow:\n                raise"),
+         ["Let the worker start before cancelling it.", "Awaiting a cancelled task raises CancelledError in the caller.", "Swallowing makes the task look like a success."],
+         "The re-raising worker reports cancelled with no value. The swallowing worker cleans up too but reports a normal result, hiding the cancellation from its owner.",
+         [[[[True,None],[True,None]],['cleanup','cleanup']],[[[True,None],[False,'swallowed']],['cleanup']],[[[False,None],[False,'swallowed']],['cleanup','cleanup']]],
+         "import asyncio"),
+    ("What must a coroutine do after cleaning up on CancelledError?", "Re-raise it, so the task is reported as cancelled and owners such as TaskGroup work correctly."))
+
+add('async-timeout', 'asyncio.timeout: per-item deadlines that do not abort a whole batch',
+    'https://docs.python.org/3.13/library/asyncio-task.html#timeouts', [
+    "async with asyncio.timeout(seconds) cancels the work inside it when the deadline passes and converts that cancellation into TimeoutError at the block's exit. Code that completes without suspending past the deadline is unaffected.",
+    "Where the timeout scope sits decides what a slow operation affects. A timeout around a whole loop aborts the remaining items; a timeout around each item records the slow one and continues with the rest. Choose deliberately and test with a hanging input.",
+    "Report a timeout as a timeout. Converting it into a normal-looking value hides that the result is missing. Cleanup belongs in finally inside the timed work, because cancellation runs it.",
+    "The transfer applies a zero-second deadline to each item; one item waits forever and must be reported without stopping the batch."
+    ],
+    ("A batch loop wraps each item in its own asyncio.timeout. One item hangs. What happens to later items?",
+     "They still run; only the hanging item times out.",
+     ["They are all cancelled with the hanging item.", "The loop blocks forever on the hanging item.", "They run twice to compensate."],
+     "Per-item scopes contain a slow operation; a scope around the whole loop would abort the rest."),
+    task("Transfer: per-item timeouts",
+         "data is a list of item names. fetch returns name.upper(), except 'slow', which waits forever. Wrap each fetch in asyncio.timeout(0) and record 'timeout:<name>' on TimeoutError. Return the results in order.",
+         "async def fetch(item):\n    if item == 'slow':\n        await asyncio.Event().wait()\n    return item.upper()\nasync def main():\n    results = []\n    for item in data:\n        try:\n            async with asyncio.timeout(0):\n                results.append(await fetch(item))\n        except TimeoutError:\n            results.append('timeout:' + item)\n    return results\nresult = asyncio.run(main())",
+         [(['a','slow','b'],['A','timeout:slow','B']),([],[]),(['slow'],['timeout:slow'])],
+         ("results.append('timeout:' + item)","results.append(item.upper())"),
+         ["A fast item finishes before the deadline can be delivered.", "The hanging item is cancelled at its await.", "Record the timeout explicitly rather than a fake result."],
+         "a and b complete; slow times out and is recorded, and b still runs. Recording a normal result on timeout would hide the missing data.",
+         [['A','B'],['A','timeout:slow'],['timeout:a','timeout:slow','timeout:b']],
+         "import asyncio"),
+    ("Where should a timeout scope go for a batch?", "Around each item when one slow item must not abort the rest; around the batch only when the whole batch has one deadline."))
+
+add('thread-pool', 'concurrent.futures: submit, as_completed and mapping futures to inputs',
+    'https://docs.python.org/3.13/library/concurrent.futures.html#concurrent.futures.as_completed', [
+    "Executor.submit schedules one call and returns a Future. as_completed(futures) yields futures as they finish, in an order you cannot predict. Keep a dictionary from each future to its input so every result can be attributed correctly.",
+    "future.result() returns the value or re-raises the worker's exception. Handle errors per future, so one bad input is reported without losing the others. Sort or key the collected results when the output must be deterministic.",
+    "The with block shuts the pool down and waits for submitted work, so threads are not leaked. Threads overlap I/O waits; because of the GIL, CPU-bound pure-Python work generally needs processes, not threads, for parallel speedup on standard builds.",
+    "The transfer parses inputs concurrently, separates successes from failures and returns them in a deterministic order."
+    ],
+    ("Why keep a dict from Future to input when using as_completed?",
+     "Futures arrive in completion order, so the mapping is needed to know which input each result belongs to.",
+     ["as_completed requires a dict argument.", "It prevents the futures from being garbage-collected early.", "It makes the futures complete in input order."],
+     "Completion order is unpredictable; the mapping attributes each result to its input."),
+    task("Transfer: attribute concurrent results",
+         "data is a list of strings. Submit int(text) for each to a ThreadPoolExecutor, then consume with as_completed using a future-to-input dict. Return [sorted [input, value] pairs for successes, sorted inputs that raised ValueError].",
+         "def parse(text):\n    return int(text)\nwith ThreadPoolExecutor(max_workers=3) as pool:\n    futures = {pool.submit(parse, t): t for t in data}\n    good, bad = {}, []\n    for future in as_completed(futures):\n        source = futures[future]\n        try:\n            good[source] = future.result()\n        except ValueError:\n            bad.append(source)\nresult = [sorted(good.items()), sorted(bad)]",
+         [(['1','x','3'],[[['1',1],['3',3]],['x']]),([],[[],[]]),(['-2'],[[['-2',-2]],[]])],
+         ("source = futures[future]","source = data[0]"),
+         ["Look up each finished future's input in the dict.", "result() re-raises the worker's ValueError.", "Sort the outputs because completion order varies."],
+         "'1' and '3' parse and 'x' fails; each is attributed through the dict. Using a fixed input instead would overwrite results under one key.",
+         [[[['1',1],['x',None],['3',3]],[]],[[['1',1],['3',3]],[]],[[['1',1]],['x','3']]],
+         "from concurrent.futures import ThreadPoolExecutor, as_completed"),
+    ("What does future.result() do when the worker raised?", "It re-raises the worker's exception in the caller."))
+
+add('locked-update', 'threading.Lock: protect check-then-act invariants',
+    'https://docs.python.org/3.13/library/threading.html#lock-objects', [
+    "A race happens when two threads read shared state, decide, and write back, and their steps interleave. Checking a balance and then withdrawing is a check-then-act sequence: two threads can both see enough money and both withdraw.",
+    "Hold one lock around the entire sequence, the check and the update together. Protecting only the write still lets two threads pass the check with the same old value. The lock defines what must happen atomically; the GIL does not provide that guarantee for compound operations.",
+    "With a lock, the result is independent of thread scheduling: the invariant (no overdraft) holds and the number of accepted withdrawals is determined by the inputs alone. Use with lock: so the lock is released even if the block raises.",
+    "The transfer runs concurrent withdrawals against one balance and checks that the invariant and the accepted count are deterministic."
+    ],
+    ("Why must the balance check and the subtraction be inside the same locked block?",
+     "Otherwise two threads can both pass the check before either subtracts, overdrawing the account.",
+     ["Locks only work around a single statement.", "The GIL already makes the check atomic.", "Subtraction is slower without a lock."],
+     "The lock must cover the whole check-then-act sequence that the invariant depends on."),
+    task("Transfer: no overdraft under concurrency",
+         "data is [balance, amount, attempts]. Four threads attempt `attempts` withdrawals of amount; each succeeds only if the balance covers it, inside one lock. Return [final_balance, accepted_count].",
+         "balance, amount, attempts = data\nlock = threading.Lock()\nstate = {'balance': balance, 'accepted': 0}\ndef withdraw(_):\n    with lock:\n        if state['balance'] >= amount:\n            state['balance'] -= amount\n            state['accepted'] += 1\nwith ThreadPoolExecutor(max_workers=4) as pool:\n    list(pool.map(withdraw, range(attempts)))\nresult = [state['balance'], state['accepted']]",
+         [([10,3,5],[1,3]),([0,1,3],[0,0]),([9,3,3],[0,3])],
+         ("if state['balance'] >= amount:","if state['balance'] >= 0:"),
+         ["The check and the update share one critical section.", "Equal withdrawal amounts make the accepted count independent of order.", "A balance of 1 cannot cover a withdrawal of 3."],
+         "Ten covers three withdrawals of three, leaving one; the remaining two attempts are rejected. Checking only for a non-negative balance would allow the account to go negative.",
+         [[-5,5],[1,5],[10,0]],
+         "import threading\nfrom concurrent.futures import ThreadPoolExecutor"),
+    ("What must a lock protect?", "The whole compound operation an invariant depends on, such as check-then-act, not just the final write."))
+
+add('bounded-queue', 'asyncio.Queue: bounded producer/consumer backpressure and shutdown',
+    'https://docs.python.org/3.13/library/asyncio-queue.html#asyncio.Queue', [
+    "A bounded queue between a producer and a consumer applies backpressure: when the queue is full, await queue.put() suspends the producer until the consumer removes an item. Memory use stays bounded however fast the producer is.",
+    "maxsize=0, the default, means unbounded, not zero capacity. An unbounded queue lets a fast producer buffer everything, which hides the slowdown until memory runs out. Pick an explicit capacity and test that it holds.",
+    "The consumer needs a clear stop signal. A sentinel value such as None placed after the last item, or Queue.shutdown in newer Python versions, lets it exit without being cancelled while items remain. Make sure every item is processed before shutdown.",
+    "The transfer runs a producer and consumer with a small capacity, checks that every item was processed in order and that the queue never exceeded its bound."
+    ],
+    ("What does asyncio.Queue(maxsize=0) mean?",
+     "An unbounded queue; zero means no limit.",
+     ["A queue that rejects every put.", "A queue of capacity one.", "A queue that blocks until a consumer is attached."],
+     "Use a positive maxsize to bound memory and apply backpressure."),
+    task("Transfer: bounded producer and consumer",
+         "data is [capacity, items]. A producer puts each item into asyncio.Queue(maxsize=capacity), tracking the peak qsize, then puts a None sentinel. A consumer multiplies items by 10 until it sees None. Return [consumed, peak_within_capacity].",
+         "async def main():\n    q = asyncio.Queue(maxsize=data[0])\n    peak, consumed = 0, []\n    async def producer():\n        nonlocal peak\n        for item in data[1]:\n            await q.put(item)\n            peak = max(peak, q.qsize())\n        await q.put(None)\n    async def consumer():\n        while (item := await q.get()) is not None:\n            consumed.append(item * 10)\n            await asyncio.sleep(0)\n    await asyncio.gather(producer(), consumer())\n    return [consumed, peak <= data[0]]\nresult = asyncio.run(main())",
+         [([2,[1,2,3,4]],[[10,20,30,40],True]),([1,[]],[[],True]),([3,[5]],[[50],True])],
+         ("asyncio.Queue(maxsize=data[0])","asyncio.Queue()"),
+         ["put suspends while the queue is full.", "The sentinel tells the consumer to stop after the last item.", "A default Queue() is unbounded."],
+         "All four items are processed in order and the queue never holds more than two. An unbounded queue lets the producer buffer everything at once, exceeding the intended capacity.",
+         [[[10,20,30,40],False],[[1,2,3,4],True],[[10,20],True]],
+         "import asyncio"),
+    ("How does a bounded queue provide backpressure?", "A full queue suspends the producer's put until the consumer makes room, bounding memory."))
+
+add('child-process', 'subprocess.run: argument lists, check=True and timeouts',
+    'https://docs.python.org/3.13/library/subprocess.html#subprocess.run', [
+    "subprocess.run starts a child process, waits for it and returns a CompletedProcess. Pass the command as a list of arguments; it is then executed without a shell, so spaces and special characters in arguments cannot be interpreted as shell syntax.",
+    "By default a non-zero exit status is just a value in returncode, which is easy to ignore. check=True turns it into CalledProcessError, so failures cannot pass unnoticed. capture_output=True with text=True collects stdout and stderr as strings.",
+    "A child can hang. timeout=seconds kills the child when the limit expires and raises TimeoutExpired, so the parent does not wait forever. Distinguish success, failure exit and timeout in the result, because they need different handling.",
+    "The transfer runs a successful command, a failing exit and a hanging child, each with check=True and a short timeout."
+    ],
+    ("Without check=True, what does subprocess.run do when the child exits with status 3?",
+     "Returns normally; the status is only in returncode.",
+     ["Raises CalledProcessError.", "Raises TimeoutExpired.", "Retries the command."],
+     "check=True makes non-zero exits raise, so they cannot be silently ignored."),
+    task("Transfer: classify child outcomes",
+         "data is a list of Python code strings. Run each with [sys.executable, '-c', code], capture_output=True, text=True, timeout=1 and check=True. Return ['ok', stripped stdout], ['exit', returncode] or ['timeout', None] for each.",
+         "def run(code):\n    try:\n        child = subprocess.run([sys.executable, '-c', code], capture_output=True, text=True, timeout=1, check=True)\n        return ['ok', child.stdout.strip()]\n    except subprocess.CalledProcessError as error:\n        return ['exit', error.returncode]\n    except subprocess.TimeoutExpired:\n        return ['timeout', None]\nresult = [run(code) for code in data]",
+         [(["print('hi')","import sys; sys.exit(3)","import time; time.sleep(30)"],[['ok','hi'],['exit',3],['timeout',None]]),([],[]),(["print(2 + 2)"],[['ok','4']])],
+         ("text=True, timeout=1, check=True","text=True, timeout=1"),
+         ["Pass a list of arguments; no shell is involved.", "check=True raises CalledProcessError on a non-zero exit.", "timeout kills the child and raises TimeoutExpired."],
+         "The first child prints hi, the second exits with 3, and the third is killed after one second. Without check=True the failing exit would be reported as a success with empty output.",
+         [[['ok','hi'],['ok',''],['timeout',None]],[['ok','hi'],['exit',3],['ok','']],[['ok','hi'],['exit',1],['timeout',None]]],
+         "import subprocess, sys"),
+    ("What do check=True and timeout add to subprocess.run?", "check raises on non-zero exit; timeout kills a hanging child and raises TimeoutExpired."))
+
+add('future-errors', 'Executor.map: exceptions surface at iteration, after earlier results',
+    'https://docs.python.org/3.13/library/concurrent.futures.html#concurrent.futures.Executor.map', [
+    "Executor.map returns results in input order through an iterator. If a call raised, its exception is re-raised when iteration reaches that position, after the earlier results have already been delivered.",
+    "Code that collects results inside the loop therefore holds a partial result when the exception arrives. Decide whether partial output is acceptable, must be discarded or must be reported with the failure position, and test that path.",
+    "When failures should be handled per item, submit futures individually or wrap the function to return an error value. Never discard the iterator without consuming it: an unobserved exception is a failure nobody sees.",
+    "The transfer maps a function that fails on one input and reports how many results were collected before the failure."
+    ],
+    ("Executor.map(f, [1, 2, 0, 4]) raises on the third input. What has the consuming loop received when the exception appears?",
+     "The first two results, in input order.",
+     ["Nothing; map raises before yielding anything.", "All results except the failing one.", "The results in completion order."],
+     "map re-raises at the failing position during iteration, after earlier results."),
+    task("Transfer: partial results from Executor.map",
+         "data is a list of numbers. Map 1/x over it with a ThreadPoolExecutor, collecting values in a loop. Return [collected, 'complete'] or [collected, 'failed-after-<count>'] when ZeroDivisionError appears.",
+         "def invert(x):\n    return 1 / x\ncollected = []\nwith ThreadPoolExecutor(max_workers=2) as pool:\n    try:\n        for value in pool.map(invert, data):\n            collected.append(value)\n        status = 'complete'\n    except ZeroDivisionError:\n        status = 'failed-after-' + str(len(collected))\nresult = [collected, status]",
+         [([1,2,0,4],[[1.0,0.5],'failed-after-2']),([],[[],'complete']),([4],[[0.25],'complete'])],
+         ("for value in pool.map(invert, data):","for value in map(invert, [x for x in data if x]):"),
+         ["map yields results in input order.", "The exception appears at the failing position.", "Record how many results arrived before the failure."],
+         "1 and 0.5 arrive before the zero raises, so two results are collected. Filtering zeros out would hide the failure and report a complete run.",
+         [[[1.0,0.5,0.25],'complete'],[[],'failed-after-0'],[[1.0,0.5,None,0.25],'complete']],
+         "from concurrent.futures import ThreadPoolExecutor"),
+    ("When does Executor.map raise a worker's exception?", "When iteration reaches that item's position, after earlier results have been yielded."))
+
+add('event-coordination', 'threading.Event.wait(timeout) return values and joined threads',
+    'https://docs.python.org/3.13/library/threading.html#event-objects', [
+    "An Event is a flag threads can wait on. set() wakes every waiter; wait() blocks until the flag is set. wait(timeout) returns True if the flag was set and False if the timeout expired first, so the return value tells you which happened.",
+    "Ignoring that return value is a common bug: code continues as if the condition were met after a timeout. Check it and handle the timeout path explicitly.",
+    "Always join threads you start, with a timeout, and check is_alive() afterwards. A thread that is still alive after join(timeout) is leaked work that keeps running. An Event signals a condition; results still travel through a separate, owned channel.",
+    "The transfer starts a waiting thread, signals or does not signal it, and records what the waiter observed and whether the thread finished."
+    ],
+    ("What does event.wait(timeout=0.5) return if the event is never set?",
+     "False, after the timeout expires.",
+     ["True, because wait always returns True.", "None.", "It raises TimeoutError."],
+     "The Boolean return distinguishes a signal from a timeout; check it."),
+    task("Transfer: signal or time out",
+         "data is [should_set, wait_timeout]. A worker thread appends the return value of ready.wait(timeout). The main thread sets the event if should_set, then joins the worker. Return [seen, worker_still_alive].",
+         "ready = threading.Event()\nseen = []\ndef worker():\n    seen.append(ready.wait(timeout=data[1]))\nthread = threading.Thread(target=worker)\nthread.start()\nif data[0]:\n    ready.set()\nthread.join(timeout=5)\nresult = [seen, thread.is_alive()]",
+         [([True,2],[[True],False]),([False,0.01],[[False],False]),([True,1],[[True],False])],
+         ("if data[0]:\n    ready.set()","if data[0]:\n    ready.clear()"),
+         ["wait returns True when the event is set in time.", "A timeout makes wait return False.", "Join the worker and check is_alive afterwards."],
+         "When the event is set, the waiter sees True; without it, the short timeout gives False. Both threads are joined. Clearing instead of setting makes the waiter time out and see False.",
+         [[[False],False],[[True],True],[[],False]],
+         "import threading"),
+    ("How do you tell a signal from a timeout with Event.wait?", "Check its Boolean return: True means set, False means the timeout expired."))

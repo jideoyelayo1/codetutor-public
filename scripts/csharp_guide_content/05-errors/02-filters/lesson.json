@@ -1,0 +1,29 @@
+{
+ "key": "filters-rethrow-custom",
+ "title": "Exception filters, rethrow and custom exceptions",
+ "body": [
+  "An exception filter adds a condition to a catch: `catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.NotFound)`. If the condition is false, the catch is skipped and the search continues, and the stack is not unwound yet, so debuggers and crash dumps still see the original failure point.",
+  "Inside a catch, `throw;` rethrows the current exception and preserves its original stack trace. `throw e;` resets the stack trace to the current line, destroying the most useful diagnostic information; analyzers flag it (CA2200). To add context, throw a new exception with the original as `InnerException`.",
+  "Define a custom exception when callers need to catch a specific failure: derive from `Exception` (or a more specific base), name it with the `Exception` suffix, and provide the standard constructors (none, message, message plus inner exception). Add properties for data callers need, such as the invalid key.",
+  "`AggregateException` collects several exceptions, typically from parallel or task code; `Flatten()` and `InnerExceptions` let you inspect them. `ExceptionDispatchInfo.Capture(e).Throw()` rethrows an exception captured earlier, possibly on another thread, while preserving its trace; `await` does this for you.",
+  "Never swallow exceptions silently with an empty catch. Check that each catch either recovers, translates with the inner exception attached, or logs and rethrows with `throw;`."
+ ],
+ "expectedStdout": "not found, using default\nservice failed with 500\nInvalid port in settings\ncause: FormatException: The input string '12x' was not in a correct format.\norigin preserved\n",
+ "challenge": "Write a Retry(Func<int> action, int attempts) helper that retries only when the exception is a TimeoutException (use a filter) and rethrows anything else unchanged. Demonstrate it with an action that times out twice and then returns 7.",
+ "solutionStdout": "7\ncalls: 3\nfatal\n",
+ "question": "Why is `throw;` preferred over `throw e;` inside a catch block?",
+ "correct": "throw; keeps the original stack trace",
+ "wrong": [
+  "throw e; does not compile in C#",
+  "throw; also runs the finally block twice"
+ ],
+ "reasoning": "throw e; restarts the stack trace at the rethrow line, hiding where the failure began.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/exception-handling-statements#exception-filters",
+ "additionalReadings": [
+  {
+   "title": "Creating custom exceptions",
+   "url": "https://learn.microsoft.com/en-us/dotnet/standard/exceptions/how-to-create-user-defined-exceptions",
+   "section": "Custom exceptions"
+  }
+ ]
+}

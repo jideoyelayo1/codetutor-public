@@ -1,0 +1,153 @@
+[
+  {
+    "key": "specifications-and-contracts",
+    "stage": "16 · Correctness and proof",
+    "title": "Specifications, contracts and representation invariants",
+    "body": [
+      "A specification says what a function promises, not how it works. A good one names the preconditions the caller must meet (`requires`), what the function returns, and which exceptions it raises. Writing it as a documentation comment before the code forces you to decide the edge cases first, and the comment becomes the contract that tests and proofs check against.",
+      "A module has a specification too. Its abstract type has an *abstraction function* that says which mathematical value a concrete representation stands for, and a *representation invariant* that says which concrete values are legitimate. A `rep_ok` function that asserts the invariant and returns its argument can be called at every boundary where a value is built, which turns a silent corruption into an immediate failure.",
+      "Check preconditions at the edge of the system and raise `Invalid_argument` with a message naming the function. Inside the module trust the invariant, and keep it cheap enough that you can leave the checks on while testing. A specification that nobody can test is a wish, so for every sentence in the comment ask what input would show it false."
+    ],
+    "code": "module Counter : sig\n  type t\n\n  val create : int -> t\n  val incr : t -> t option\n  val value : t -> int\nend = struct\n  (* AF: {limit; v} is a counter that has counted v of at most limit steps.\n     RI: limit > 0 && 0 <= v && v <= limit. *)\n  type t = { limit : int; v : int }\n\n  let rep_ok c =\n    assert (c.limit > 0 && c.v >= 0 && c.v <= c.limit);\n    c\n\n  let create limit =\n    if limit <= 0 then invalid_arg \"Counter.create: limit must be positive\"\n    else rep_ok { limit; v = 0 }\n\n  let incr c = if c.v = c.limit then None else Some (rep_ok { c with v = c.v + 1 })\n  let value c = c.v\nend\n\n(** [sqrt_floor n] requires [n >= 0] and returns the greatest [r] with [r * r <= n].\n    Raises [Invalid_argument] if [n < 0]. *)\nlet sqrt_floor n =\n  if n < 0 then invalid_arg \"sqrt_floor: negative\";\n  let r = ref 0 in\n  while (!r + 1) * (!r + 1) <= n do incr r done;\n  !r\n\nlet () =\n  let c = Counter.create 2 in\n  (match Counter.incr c with\n   | Some c1 -> (\n       match Counter.incr c1 with\n       | Some c2 ->\n           Printf.printf \"%d \" (Counter.value c2);\n           print_endline (match Counter.incr c2 with None -> \"full\" | Some _ -> \"not full\")\n       | None -> print_endline \"stopped early\")\n   | None -> print_endline \"stopped early\");\n  (try ignore (Counter.create 0) with Invalid_argument m -> print_endline m);\n  Printf.printf \"%d %d %d\\n\" (sqrt_floor 0) (sqrt_floor 15) (sqrt_floor 16);\n  try ignore (sqrt_floor (-1)) with Invalid_argument m -> print_endline m\n",
+    "expectedStdout": "2 full\nCounter.create: limit must be positive\n0 3 4\nsqrt_floor: negative\n",
+    "challenge": "Write a specification comment and an implementation for `clamp lo hi x` that requires `lo <= hi` and returns `x` limited to that range. Raise `Invalid_argument` when the precondition fails, and print `clamp 0 10 15`, `clamp 0 10 (-3)` and the caught error for `clamp 5 1 0`.",
+    "solution": "(** [clamp lo hi x] requires [lo <= hi] and returns [x] limited to [lo, hi].\n    Raises [Invalid_argument] if [lo > hi]. *)\nlet clamp lo hi x =\n  if lo > hi then invalid_arg \"clamp: lo > hi\";\n  max lo (min hi x)\n\nlet () =\n  Printf.printf \"%d %d\\n\" (clamp 0 10 15) (clamp 0 10 (-3));\n  try ignore (clamp 5 1 0) with Invalid_argument m -> print_endline m\n",
+    "solutionStdout": "10 0\nclamp: lo > hi\n",
+    "question": "What does a representation invariant describe?",
+    "correct": "Which concrete values of an abstract type are legitimate",
+    "wrong": [
+      "How fast the operations on the type run",
+      "The names of the functions the module exports"
+    ],
+    "reasoning": "The invariant is the set of concrete values that actually stand for something, which is what every operation may assume and must preserve.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/correctness/specifications.html",
+    "additionalReadings": [
+      {
+        "title": "CS 3110: Documenting functions",
+        "url": "https://cs3110.github.io/textbook/chapters/correctness/function_docs.html",
+        "section": "Function documentation"
+      },
+      {
+        "title": "CS 3110: Documenting modules",
+        "url": "https://cs3110.github.io/textbook/chapters/correctness/module_docs.html",
+        "section": "Module documentation"
+      }
+    ],
+    "project": null
+  },
+  {
+    "key": "black-box-and-glass-box-testing",
+    "stage": "16 · Correctness and proof",
+    "title": "Black-box and glass-box testing",
+    "body": [
+      "Black-box tests are derived from the specification alone, as if the code were hidden. Split the inputs into equivalence classes the specification treats alike, then test one value from each class and the boundaries between classes. For a triangle classifier those classes are equilateral, isosceles, scalene and invalid, and the boundaries are the degenerate triangle whose two shorter sides only just reach the third.",
+      "Glass-box tests are derived from the code. Read the implementation, list its branches, and add tests until every branch has run. Black-box tests find behaviour the code does not implement; glass-box tests find code the black-box tests never reach. You need both, and tracing which branch ran gives a simple measure of how much of the code a test suite exercises.",
+      "Coverage numbers prove less than they seem to: executing a branch is not the same as checking its result. Keep every test deterministic, give each a clear name, and when you find a bug add the smallest input that shows it to the suite before you fix it, so the bug cannot return unnoticed."
+    ],
+    "code": "let classify a b c =\n  if a <= 0 || b <= 0 || c <= 0 then \"invalid\"\n  else if a + b <= c || a + c <= b || b + c <= a then \"invalid\"\n  else if a = b && b = c then \"equilateral\"\n  else if a = b || b = c || a = c then \"isosceles\"\n  else \"scalene\"\n\n(* The same logic with the branch number returned, for glass-box coverage. *)\nlet traced a b c =\n  if a <= 0 || b <= 0 || c <= 0 then (1, \"invalid\")\n  else if a + b <= c || a + c <= b || b + c <= a then (2, \"invalid\")\n  else if a = b && b = c then (3, \"equilateral\")\n  else if a = b || b = c || a = c then (4, \"isosceles\")\n  else (5, \"scalene\")\n\n(* Black box: one input per equivalence class, plus the boundaries. *)\nlet tests =\n  [ ((3, 3, 3), \"equilateral\"); ((3, 3, 2), \"isosceles\"); ((2, 3, 3), \"isosceles\");\n    ((3, 2, 3), \"isosceles\"); ((3, 4, 5), \"scalene\"); ((1, 2, 3), \"invalid\");\n    ((0, 1, 1), \"invalid\"); ((-1, 2, 2), \"invalid\"); ((1, 1, 3), \"invalid\") ]\n\nlet covered tests =\n  List.sort_uniq compare (List.map (fun ((a, b, c), _) -> fst (traced a b c)) tests)\n\nlet () =\n  let failures = List.filter (fun ((a, b, c), want) -> classify a b c <> want) tests in\n  Printf.printf \"%d tests, %d failures\\n\" (List.length tests) (List.length failures);\n  Printf.printf \"branches covered: %d of 5\\n\" (List.length (covered tests));\n  let first_three = List.filteri (fun i _ -> i < 3) tests in\n  Printf.printf \"with only three tests: %d of 5\\n\" (List.length (covered first_three));\n  let agree = List.for_all (fun ((a, b, c), _) -> snd (traced a b c) = classify a b c) tests in\n  Printf.printf \"traced version agrees: %b\\n\" agree\n",
+    "expectedStdout": "9 tests, 0 failures\nbranches covered: 5 of 5\nwith only three tests: 2 of 5\ntraced version agrees: true\n",
+    "challenge": "Write `grade score` returning \"fail\" below 50, \"pass\" from 50 to 79 and \"distinction\" from 80 up. List the boundary scores 49, 50, 79 and 80 as tests and print \"ok\" if all four give the expected grade.",
+    "solution": "let grade score = if score < 50 then \"fail\" else if score < 80 then \"pass\" else \"distinction\"\n\nlet () =\n  let cases = [ (49, \"fail\"); (50, \"pass\"); (79, \"pass\"); (80, \"distinction\") ] in\n  print_endline (if List.for_all (fun (s, want) -> grade s = want) cases then \"ok\" else \"bug\")\n",
+    "solutionStdout": "ok\n",
+    "question": "Where do black-box tests come from?",
+    "correct": "From the specification alone, using equivalence classes and boundaries",
+    "wrong": [
+      "From reading every branch of the implementation",
+      "From whatever inputs happen to pass"
+    ],
+    "reasoning": "They treat the code as hidden, so the only guide to what is correct is what the specification promises.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/correctness/black_glass_box.html",
+    "additionalReadings": [
+      {
+        "title": "CS 3110: Testing and debugging",
+        "url": "https://cs3110.github.io/textbook/chapters/correctness/test_debug.html",
+        "section": "Testing and debugging"
+      }
+    ],
+    "project": null
+  },
+  {
+    "key": "randomized-testing-with-shrinking",
+    "stage": "16 · Correctness and proof",
+    "title": "Randomized testing and shrinking",
+    "body": [
+      "Hand-written tests cover the cases you thought of. A randomized test states a *property*, a claim that should hold for every input, and checks it on many generated inputs. The generator must produce the inputs the code can see, and the property must be a statement about the output rather than a copy of the implementation, such as 'sorting does not change the length'.",
+      "A random counterexample is usually big and noisy. *Shrinking* repeatedly tries simpler candidates, such as the same list with an element removed or all values set to zero, and keeps any candidate that still fails. When no simpler candidate fails you have a minimal counterexample, which names the bug far more clearly than the random list that first revealed it.",
+      "Seed the generator so a failure can be replayed exactly. Real libraries such as QCheck do all of this with more generators and smarter shrinkers, but the mechanism is what you build here: generate, check, and shrink greedily while the property still fails."
+    ],
+    "code": "let removals l = List.mapi (fun i _ -> List.filteri (fun j _ -> j <> i) l) l\nlet zero_all l = if List.for_all (( = ) 0) l then [] else [ List.map (fun _ -> 0) l ]\n\nlet zero_one l =\n  List.concat\n    (List.mapi\n       (fun i x -> if x = 0 then [] else [ List.mapi (fun j y -> if j = i then 0 else y) l ])\n       l)\n\nlet rec shrink prop l =\n  match List.find_opt (fun c -> not (prop c)) (zero_all l @ removals l @ zero_one l) with\n  | Some smaller -> shrink prop smaller\n  | None -> l\n\nlet gen () = List.init (Random.int 8) (fun _ -> Random.int 5)\n\nlet check ~trials prop =\n  Random.init 42;\n  let rec go n =\n    if n = 0 then None\n    else\n      let l = gen () in\n      if prop l then go (n - 1) else Some (shrink prop l)\n  in\n  go trials\n\nlet show l = \"[\" ^ String.concat \"; \" (List.map string_of_int l) ^ \"]\"\nlet preserves_length sort l = List.length (sort l) = List.length l\n\nlet () =\n  (match check ~trials:200 (preserves_length (List.sort compare)) with\n   | None -> print_endline \"good sort: no counterexample\"\n   | Some l -> print_endline (\"good sort fails: \" ^ show l));\n  match check ~trials:200 (preserves_length (List.sort_uniq compare)) with\n  | None -> print_endline \"bad sort: no counterexample\"\n  | Some l -> print_endline (\"bad sort counterexample: \" ^ show l)\n",
+    "expectedStdout": "good sort: no counterexample\nbad sort counterexample: [0; 0]\n",
+    "challenge": "Test the property \"reversing twice returns the original list\" with `check`, then test the false property \"reversing returns the original list\" and print the length of the shrunk counterexample.",
+    "solution": "let removals l = List.mapi (fun i _ -> List.filteri (fun j _ -> j <> i) l) l\n\nlet rec shrink prop l =\n  match List.find_opt (fun c -> not (prop c)) (removals l) with\n  | Some smaller -> shrink prop smaller\n  | None -> l\n\nlet check prop =\n  Random.init 1;\n  let rec go n =\n    if n = 0 then None\n    else\n      let l = List.init (Random.int 6) (fun _ -> Random.int 10) in\n      if prop l then go (n - 1) else Some (shrink prop l)\n  in\n  go 100\n\nlet () =\n  print_endline (match check (fun l -> List.rev (List.rev l) = l) with None -> \"holds\" | Some _ -> \"fails\");\n  (* The exact values depend on the generator, but the shrunk length does not. *)\n  print_endline\n    (match check (fun l -> List.rev l = l) with\n     | None -> \"holds\"\n     | Some l -> Printf.sprintf \"counterexample of length %d\" (List.length l))\n",
+    "solutionStdout": "holds\ncounterexample of length 2\n",
+    "question": "Why does shrinking help after a property fails?",
+    "correct": "It finds a minimal failing input, which points at the bug more clearly than a large random one",
+    "wrong": [
+      "It proves the property is true for all other inputs",
+      "It makes the test run faster"
+    ],
+    "reasoning": "Greedily simplifying a failing input removes everything irrelevant to the failure, leaving the smallest case that still shows it.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/correctness/randomized.html",
+    "project": null
+  },
+  {
+    "key": "proving-list-functions-by-induction",
+    "stage": "16 · Correctness and proof",
+    "title": "Equational reasoning and induction on lists",
+    "body": [
+      "A proof about a recursive function follows the function. To show `length (a @ b) = length a + length b` for all lists, induct on `a`. In the base case `a = []`, both sides reduce to `length b`. In the inductive case `a = x :: a'`, assume the claim for `a'`, then `length ((x :: a') @ b) = 1 + length (a' @ b) = 1 + length a' + length b = length (x :: a') + length b`. Each step unfolds a definition or uses the hypothesis, which is what *equational reasoning* means.",
+      "Some claims need a stronger statement before induction works. To show the tail-recursive `sum_tr` equals `sum`, prove the more general fact `go acc l = acc + sum l` for every accumulator, because the plain claim gives no useful hypothesis for the recursive call. Choosing the right generalisation is the central skill, and it is the same idea as choosing the right accumulator when you write the function.",
+      "You can check a claim on every small input long before you prove it, and the checks find false claims quickly. Here all 121 lists of length up to four over {0, 1, 2} are enumerated, so a counterexample of that size would be found. A bounded check is evidence and not a proof, which is the reason the induction argument matters, and a *false* claim such as `rev (a @ b) = rev a @ rev b` is rejected at once by a counterexample."
+    ],
+    "code": "let rec all n = if n = 0 then [ [] ] else List.concat_map (fun l -> List.map (fun x -> x :: l) [ 0; 1; 2 ]) (all (n - 1))\nlet universe = List.concat_map all [ 0; 1; 2; 3; 4 ]\nlet small = List.concat_map all [ 0; 1; 2; 3 ]\n\nlet rec rev = function [] -> [] | x :: xs -> rev xs @ [ x ]\nlet rev_tr l = let rec go acc = function [] -> acc | x :: xs -> go (x :: acc) xs in go [] l\nlet rec sum = function [] -> 0 | x :: xs -> x + sum xs\nlet sum_tr l = let rec go acc = function [] -> acc | x :: xs -> go (acc + x) xs in go 0 l\n\nlet pairs p = List.for_all (fun a -> List.for_all (fun b -> p a b) universe) universe\n\nlet () =\n  let n = List.length universe in\n  Printf.printf \"%d lists, %d pairs\\n\" n (n * n);\n  Printf.printf \"rev (a @ b) = rev b @ rev a: %b\\n\" (pairs (fun a b -> rev (a @ b) = rev b @ rev a));\n  Printf.printf \"length (a @ b) = length a + length b: %b\\n\"\n    (pairs (fun a b -> List.length (a @ b) = List.length a + List.length b));\n  let triples =\n    List.for_all (fun a -> List.for_all (fun b -> List.for_all (fun c -> (a @ b) @ c = a @ (b @ c)) small) small) small\n  in\n  Printf.printf \"append is associative on %d triples: %b\\n\" (List.length small * List.length small * List.length small) triples;\n  Printf.printf \"rev_tr agrees with rev: %b\\n\" (List.for_all (fun l -> rev_tr l = rev l) universe);\n  Printf.printf \"sum_tr agrees with sum: %b\\n\" (List.for_all (fun l -> sum_tr l = sum l) universe);\n  Printf.printf \"a false claim, rev (a @ b) = rev a @ rev b: %b\\n\" (pairs (fun a b -> rev (a @ b) = rev a @ rev b))\n",
+    "expectedStdout": "121 lists, 14641 pairs\nrev (a @ b) = rev b @ rev a: true\nlength (a @ b) = length a + length b: true\nappend is associative on 64000 triples: true\nrev_tr agrees with rev: true\nsum_tr agrees with sum: true\na false claim, rev (a @ b) = rev a @ rev b: false\n",
+    "challenge": "State and check, over the same universe, that `List.length (rev l) = List.length l` and that `rev (rev l) = l`, printing both results.",
+    "solution": "let rec all n = if n = 0 then [ [] ] else List.concat_map (fun l -> List.map (fun x -> x :: l) [ 0; 1; 2 ]) (all (n - 1))\nlet universe = List.concat_map all [ 0; 1; 2; 3; 4 ]\nlet rec rev = function [] -> [] | x :: xs -> rev xs @ [ x ]\n\nlet () =\n  Printf.printf \"%b %b\\n\"\n    (List.for_all (fun l -> List.length (rev l) = List.length l) universe)\n    (List.for_all (fun l -> rev (rev l) = l) universe)\n",
+    "solutionStdout": "true true\n",
+    "question": "Why is the claim \"sum_tr agrees with sum\" proved through a generalised statement about `go acc l`?",
+    "correct": "The plain claim gives no useful hypothesis for the recursive call, which carries a different accumulator",
+    "wrong": [
+      "Because accumulators are not allowed in proofs",
+      "Because induction only works on trees"
+    ],
+    "reasoning": "Induction needs the hypothesis to cover the recursive call, and that call has a new accumulator, so the statement must quantify over every accumulator.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/correctness/proving_correctness.html",
+    "additionalReadings": [
+      {
+        "title": "CS 3110: Structural induction",
+        "url": "https://cs3110.github.io/textbook/chapters/correctness/structural_induction.html",
+        "section": "Structural induction"
+      },
+      {
+        "title": "CS 3110: Equational specification",
+        "url": "https://cs3110.github.io/textbook/chapters/correctness/eq_spec.html",
+        "section": "Equational specification"
+      }
+    ],
+    "project": null
+  },
+  {
+    "key": "induction-on-trees-and-naturals",
+    "stage": "16 · Correctness and proof",
+    "title": "Structural induction on trees and naturals",
+    "body": [
+      "Structural induction works for any recursive type, with one case per constructor. For a tree, the base case is `Leaf`, and the inductive case assumes the claim for both subtrees and proves it for `Node (l, v, r)`. For a natural number defined by `Z | S of nat` it is the familiar induction on `n`: prove it for `Z`, and prove it for `S n` assuming it for `n`. The proof has exactly the shape of the recursion.",
+      "Typical facts are 'mirroring twice is the identity', 'mirroring preserves size', and 'the in-order list of a mirrored tree is the reverse of the original'. Each follows by unfolding the definitions of `mirror`, `size` and `to_list` and applying the hypothesis to the two subtrees, with a small lemma such as `rev (a @ b) = rev b @ rev a` doing the combining.",
+      "Again, enumerate before you prove. Every tree of height at most three with leaf-values 0 and 1 is generated here, 723 trees, and each claim is checked on all of them. The false claim 'mirroring changes nothing' is refuted by the first lopsided tree, and a refuted claim never needs a proof."
+    ],
+    "code": "type tree = Leaf | Node of tree * int * tree\n\nlet rec trees h =\n  if h = 0 then [ Leaf ]\n  else\n    let sub = trees (h - 1) in\n    Leaf :: List.concat_map (fun l -> List.concat_map (fun r -> List.map (fun v -> Node (l, v, r)) [ 0; 1 ]) sub) sub\n\nlet rec mirror = function Leaf -> Leaf | Node (l, v, r) -> Node (mirror r, v, mirror l)\nlet rec size = function Leaf -> 0 | Node (l, _, r) -> size l + 1 + size r\nlet rec to_list = function Leaf -> [] | Node (l, v, r) -> to_list l @ [ v ] @ to_list r\n\ntype nat = Z | S of nat\n\nlet rec of_int n = if n = 0 then Z else S (of_int (n - 1))\nlet rec add a b = match a with Z -> b | S a' -> S (add a' b)\n\nlet () =\n  let all = trees 3 in\n  Printf.printf \"%d trees\\n\" (List.length all);\n  Printf.printf \"mirror is involutive: %b\\n\" (List.for_all (fun t -> mirror (mirror t) = t) all);\n  Printf.printf \"mirror preserves size: %b\\n\" (List.for_all (fun t -> size (mirror t) = size t) all);\n  Printf.printf \"size = length of to_list: %b\\n\" (List.for_all (fun t -> size t = List.length (to_list t)) all);\n  Printf.printf \"to_list (mirror t) = rev (to_list t): %b\\n\"\n    (List.for_all (fun t -> to_list (mirror t) = List.rev (to_list t)) all);\n  Printf.printf \"a false claim, mirror t = t: %b\\n\" (List.for_all (fun t -> mirror t = t) all);\n  let ns = List.map of_int [ 0; 1; 2; 3; 4; 5 ] in\n  let for_all3 p = List.for_all (fun a -> List.for_all (fun b -> List.for_all (fun c -> p a b c) ns) ns) ns in\n  Printf.printf \"add is associative: %b\\n\" (for_all3 (fun a b c -> add (add a b) c = add a (add b c)));\n  Printf.printf \"add Z n = n and add n Z = n: %b\\n\" (List.for_all (fun n -> add Z n = n && add n Z = n) ns)\n",
+    "expectedStdout": "723 trees\nmirror is involutive: true\nmirror preserves size: true\nsize = length of to_list: true\nto_list (mirror t) = rev (to_list t): true\na false claim, mirror t = t: false\nadd is associative: true\nadd Z n = n and add n Z = n: true\n",
+    "challenge": "Define `height` for the tree type and check over all trees of height at most three that `height (mirror t) = height t`, printing the result.",
+    "solution": "type tree = Leaf | Node of tree * int * tree\n\nlet rec trees h =\n  if h = 0 then [ Leaf ]\n  else\n    let sub = trees (h - 1) in\n    Leaf :: List.concat_map (fun l -> List.concat_map (fun r -> List.map (fun v -> Node (l, v, r)) [ 0; 1 ]) sub) sub\n\nlet rec mirror = function Leaf -> Leaf | Node (l, v, r) -> Node (mirror r, v, mirror l)\nlet rec height = function Leaf -> 0 | Node (l, _, r) -> 1 + max (height l) (height r)\n\nlet () = Printf.printf \"%b\\n\" (List.for_all (fun t -> height (mirror t) = height t) (trees 3))\n",
+    "solutionStdout": "true\n",
+    "question": "What are the cases of structural induction on `type tree = Leaf | Node of tree * int * tree`?",
+    "correct": "A base case for Leaf, and an inductive case for Node that assumes the claim for both subtrees",
+    "wrong": [
+      "Only the Node case, since Leaf has no data",
+      "One case for each integer stored in the tree"
+    ],
+    "reasoning": "There is one case per constructor, and a recursive constructor gets an induction hypothesis for each recursive field.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/correctness/structural_induction.html",
+    "project": null
+  }
+]

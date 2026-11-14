@@ -1,0 +1,5 @@
+(library
+ (name fastsum)
+ (foreign_stubs
+  (language c)
+  (names fastsum_stubs)))

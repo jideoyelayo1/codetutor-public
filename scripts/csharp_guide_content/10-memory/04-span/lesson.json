@@ -1,0 +1,41 @@
+{
+ "key": "span-and-memory",
+ "title": "Span<T>, Memory<T> and ref structs",
+ "minutes": 25,
+ "body": [
+  "`Span<T>` is a view over a contiguous region of memory: part of an array, a `stackalloc` buffer or native memory. Slicing a span (`span[2..5]` or `Slice`) creates another view without copying. `ReadOnlySpan<T>` is the read-only version; `string.AsSpan()` gives a `ReadOnlySpan<char>` so you can parse substrings without allocating new strings.",
+  "Span is a `ref struct`: it may live only on the stack. It cannot be a field of a class, be boxed, be captured by a lambda or (until C# 13's relaxations) live across an `await` or `yield`. These rules let the compiler guarantee a span never outlives the memory it points to. `stackalloc int[16]` assigned to a `Span<int>` is safe without `unsafe`.",
+  "`Memory<T>` and `ReadOnlyMemory<T>` are the heap-friendly counterparts: ordinary structs you can store in fields and pass to async methods, then call `.Span` when you need to process the data synchronously.",
+  "C# 14 adds implicit span conversions: arrays convert to `Span<T>` and `ReadOnlySpan<T>`, `Span<T>` to `ReadOnlySpan<T>`, and `string` to `ReadOnlySpan<char>`, and these conversions now take part in extension method lookup and generic inference. An extension method defined on `ReadOnlySpan<T>` can be called directly on an array, which previously required `AsSpan()`. One consequence: overload resolution may now prefer span-based overloads such as `MemoryExtensions.Contains` over LINQ's `Enumerable.Contains`.",
+  "Use spans in parsing, formatting and buffer code where allocation matters. Check that a span never escapes the lifetime of its memory (the compiler enforces most of this) and that a `stackalloc` size is small and bounded, because a large stack allocation can overflow the stack."
+ ],
+ "expectedStdout": "10,99,30,40,50\n40\nAda\n36\n4 7\n120\n6\n6\n",
+ "challenge": "Write CountWords(ReadOnlySpan<char> text) that counts space-separated words without allocating (no Split, no Substring). Call it with \"  the quick  brown fox \".",
+ "solutionStdout": "4\n",
+ "question": "Why can't a Span<T> be stored in a field of a class?",
+ "correct": "It is a ref struct that must stay on the stack so it cannot outlive its memory",
+ "wrong": [
+  "Spans are too large for class fields",
+  "Classes cannot have struct fields"
+ ],
+ "reasoning": "The ref struct rules let the compiler prove a span never refers to memory that is gone; use Memory<T> for storage.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/standard/memory-and-spans/memory-t-usage-guidelines",
+ "additionalReadings": [
+  {
+   "title": "First-class span types (C# 14)",
+   "url": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/proposals/csharp-14.0/first-class-span-types",
+   "section": "Specification"
+  },
+  {
+   "title": "ref struct types",
+   "url": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/ref-struct",
+   "section": "Restrictions"
+  }
+ ],
+ "rejected": [
+  {
+   "file": "rejected.cs",
+   "diagnostic": "CS8345"
+  }
+ ]
+}

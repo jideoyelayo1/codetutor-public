@@ -1,0 +1,6 @@
+(library
+ (name version_tests)
+ (libraries core version)
+ (inline_tests)
+ (preprocess
+  (pps ppx_jane)))

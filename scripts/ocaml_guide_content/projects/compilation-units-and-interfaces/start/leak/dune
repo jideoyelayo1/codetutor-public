@@ -1,0 +1,3 @@
+(executable
+ (name leak)
+ (libraries bounded_stack))

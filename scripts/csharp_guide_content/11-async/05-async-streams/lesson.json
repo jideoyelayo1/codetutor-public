@@ -1,0 +1,34 @@
+{
+ "key": "async-streams-and-valuetask",
+ "title": "Async streams, await using and ValueTask",
+ "body": [
+  "An async iterator returns `IAsyncEnumerable<T>` and can both `await` and `yield return`. Consumers use `await foreach`. It suits paged APIs, reading lines from a network stream, or any sequence whose elements arrive over time. System.Linq.AsyncEnumerable (.NET 10) provides LINQ operators such as `Where`, `Select` and `ToListAsync` for async streams.",
+  "Pass cancellation to async streams with `WithCancellation(token)`; inside the iterator, a parameter marked `[EnumeratorCancellation]` receives it. Breaking out of `await foreach` disposes the enumerator, which runs the iterator's `finally` blocks.",
+  "`IAsyncDisposable.DisposeAsync()` releases resources whose cleanup needs I/O, such as flushing a network stream. `await using var x = ...;` calls it at the end of the scope. A class holding async disposables implements `IAsyncDisposable` (and usually `IDisposable` too).",
+  "`ValueTask<T>` avoids allocating a `Task` when a method usually completes synchronously, for example a cache hit. The rules are strict: await a ValueTask exactly once, never await it concurrently, and never call `.Result` before it completes. If you need any of that, convert with `.AsTask()`. When in doubt, return `Task<T>`.",
+  "Check that async streams honour cancellation, that resources acquired inside them are released in `finally`, and that every ValueTask is consumed exactly once."
+ ],
+ "expectedStdout": "page 1\npage 2\npage 3\npages finished\ngot page 1\ngot page 2\npages finished\nsent hello\nflushed and closed\n16\n16\ncomputed 1 time(s)\n",
+ "challenge": "Write an async iterator NumbersAsync(int count) and consume it with await foreach, summing only the even numbers. Then compute the same total with System.Linq.AsyncEnumerable (.NET 10): filter with Where, materialize with ToListAsync and Sum the list.",
+ "solutionStdout": "12\n12\n",
+ "question": "Which rule applies to a ValueTask<T> but not to a Task<T>?",
+ "correct": "It must be awaited at most once",
+ "wrong": [
+  "It cannot carry a result",
+  "It always allocates on the heap"
+ ],
+ "reasoning": "A ValueTask may wrap a pooled object reused after completion; await it once or convert with AsTask().",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/asynchronous-programming/generate-consume-asynchronous-stream",
+ "additionalReadings": [
+  {
+   "title": "Implement DisposeAsync",
+   "url": "https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/implementing-disposeasync",
+   "section": "await using"
+  },
+  {
+   "title": "ValueTask<TResult>",
+   "url": "https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.valuetask-1",
+   "section": "Remarks"
+  }
+ ]
+}

@@ -1,0 +1,28 @@
+{
+ "key": "variance",
+ "title": "Covariance and contravariance",
+ "body": [
+  "Variance answers: if `Cat` derives from `Animal`, can a `Thing<Cat>` be used where a `Thing<Animal>` is expected? For most generic types the answer is no; `List<Cat>` is not a `List<Animal>`, because you could then add a `Dog` to a list of cats.",
+  "An interface or delegate type parameter marked `out` is covariant: it only produces values. `IEnumerable<out T>` lets `IEnumerable<Cat>` convert to `IEnumerable<Animal>`, which is safe because you can only read animals out of it. `Func<out TResult>` is covariant in its result.",
+  "A type parameter marked `in` is contravariant: it only consumes values. `IComparer<in T>` and `Action<in T>` let an `Action<Animal>` be used where an `Action<Cat>` is needed: something that can handle any animal can certainly handle a cat.",
+  "Variance only applies to interfaces and delegates, only to reference-type arguments (an `IEnumerable<int>` is not an `IEnumerable<object>`), and the compiler enforces that `out` parameters appear only in output positions (CS1961). Arrays are covariant for historical reasons, which is unsafe: storing the wrong type throws `ArrayTypeMismatchException` at runtime.",
+  "When an assignment between generic types fails to compile, check whether the type parameter is only read (could be `out`) or only written (could be `in`); if it is both, invariance is protecting you."
+ ],
+ "expectedStdout": "Tom Kit \nanimal: Tom\nNew\nKit,Tom\narray covariance failed at runtime\n",
+ "challenge": "Declare a covariant interface ISource<out T> { T Next(); } with a string implementation and an int implementation. Show that the string source converts to ISource<object> while the int source does not.",
+ "solutionStdout": "word\nTrue\nFalse\n",
+ "question": "Why can't List<Cat> be assigned to List<Animal>?",
+ "correct": "List<T> is invariant because it both reads and writes T",
+ "wrong": [
+  "Because Cat and Animal are records",
+  "Because covariance only works with arrays"
+ ],
+ "reasoning": "If the assignment were allowed you could add a Dog through the List<Animal> view.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/concepts/covariance-contravariance/",
+ "rejected": [
+  {
+   "file": "rejected.cs",
+   "diagnostic": "CS0029"
+  }
+ ]
+}

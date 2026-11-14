@@ -1,0 +1,234 @@
+[
+  {
+    "key": "debugging-printing-assertions",
+    "stage": "15 · Foundations in depth",
+    "title": "Debugging with printing, assertions and backtraces",
+    "body": [
+      "The first debugging tool is a print. `Printf.printf` writes to standard output and `Printf.eprintf` writes to standard error, which keeps diagnostics out of a program's real output. Printing a value needs a conversion for its type, so you often write a small `string_of_...` function for a type you are inspecting.",
+      "`assert e` checks a condition that must always hold. If it is false the program raises `Assert_failure` carrying the file, line and column, so an assertion documents an assumption and stops the program at the first moment it is violated instead of letting a wrong value travel. Use assertions for programmer errors, not for input that a user might get wrong.",
+      "Exceptions can be turned into text with `Printexc.to_string`, and `Printexc.record_backtrace true` makes uncaught failures report the call stack. Debug by shrinking: find the smallest input that fails, print the intermediate values around the first wrong one, then replace the print with a test so the bug stays fixed."
+    ],
+    "code": "let checked_div a b =\n  assert (b <> 0);\n  a / b\n\nlet () =\n  Printf.printf \"%d\\n\" (checked_div 10 2);\n  (try ignore (checked_div 1 0) with Assert_failure _ -> print_endline \"assertion failed\");\n  print_endline (Printexc.to_string (Failure \"boom\"));\n  print_endline (Printexc.to_string Not_found);\n  Printexc.record_backtrace true;\n  Printf.printf \"%b\\n\" (Printexc.backtrace_status ());\n  let x = 42 in\n  Printf.eprintf \"debug: x = %d\\n\" x;\n  print_endline (Format.asprintf \"<%d>\" x)\n",
+    "expectedStdout": "5\nassertion failed\nFailure(\"boom\")\nNot_found\ntrue\n<42>\n",
+    "challenge": "Write `average xs` that asserts the list is not empty, then print the average of [2; 4; 6] and show that an empty list triggers the assertion by catching it.",
+    "solution": "let average xs =\n  assert (xs <> []);\n  List.fold_left ( + ) 0 xs / List.length xs\n\nlet () =\n  Printf.printf \"%d\\n\" (average [ 2; 4; 6 ]);\n  try ignore (average []) with Assert_failure _ -> print_endline \"empty list\"\n",
+    "solutionStdout": "4\nempty list\n",
+    "question": "Why write diagnostics with eprintf rather than printf?",
+    "correct": "Standard error keeps debugging output separate from the program's real output",
+    "wrong": [
+      "eprintf is faster than printf",
+      "printf cannot print integers"
+    ],
+    "reasoning": "The two streams can be redirected independently, so diagnostics never corrupt output that another program reads.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/basics/debugging.html",
+    "additionalReadings": [
+      {
+        "title": "CS 3110: Printing",
+        "url": "https://cs3110.github.io/textbook/chapters/basics/printing.html",
+        "section": "Printing"
+      }
+    ],
+    "project": null
+  },
+  {
+    "key": "nested-patterns-tuples-records",
+    "stage": "15 · Foundations in depth",
+    "title": "Patterns on tuples, records and nested values",
+    "body": [
+      "A pattern can mirror the shape of any value, so you can match several things at once. Matching a pair, `match (a, b) with | (0, 0) -> ...`, lets one function look at two inputs together, and it is the standard way to handle every combination of two variants.",
+      "Record patterns name the fields they care about and use `_` for the rest: `{ name = \"square\"; _ }` tests one field, and `{ sides = a :: b :: _; name }` both tests a list inside the record and binds names. A `let` can destructure too, so `let (a, (b, c)) = (1, (2, 3))` and `let { x; y } = p` bind several names without a `match`.",
+      "An or-pattern may bind variables only if every alternative binds the same names with the same types. Order the arms from most specific to most general, and let the compiler's exhaustiveness and unused-case warnings tell you whether an earlier arm already covers a later one."
+    ],
+    "code": "type point = { x : int; y : int }\ntype shape = { name : string; sides : int list }\n\nlet describe_pair = function\n  | (0, 0) -> \"origin\"\n  | (_, 0) -> \"x-axis\"\n  | (0, _) -> \"y-axis\"\n  | (x, y) when x = y -> \"diagonal\"\n  | _ -> \"elsewhere\"\n\nlet describe_shape = function\n  | { name = \"square\"; _ } -> \"a square\"\n  | { sides = []; name } -> name ^ \" has no sides\"\n  | { sides = [ a ]; _ } -> \"one side of \" ^ string_of_int a\n  | { sides = a :: b :: _; name } -> Printf.sprintf \"%s starts %d,%d\" name a b\n\nlet first_two = function\n  | (x :: y :: _, _) | (_, x :: y :: _) -> Some (x, y)\n  | _ -> None\n\nlet () =\n  List.iter (fun p -> print_endline (describe_pair p)) [ (0, 0); (3, 0); (0, 2); (4, 4); (1, 2) ];\n  List.iter (fun s -> print_endline (describe_shape s))\n    [ { name = \"square\"; sides = [ 1 ] }; { name = \"line\"; sides = [] };\n      { name = \"spike\"; sides = [ 7 ] }; { name = \"tri\"; sides = [ 3; 4; 5 ] } ];\n  (match first_two ([ 1 ], [ 5; 6; 7 ]) with Some (a, b) -> Printf.printf \"%d %d\\n\" a b | None -> print_endline \"none\");\n  let (a, (b, c)) = (1, (2, 3)) in\n  Printf.printf \"%d\\n\" (a + b + c);\n  let { x; y } = { x = 3; y = 4 } in\n  Printf.printf \"%d\\n\" (x * y)\n",
+    "expectedStdout": "origin\nx-axis\ny-axis\ndiagonal\nelsewhere\na square\nline has no sides\none side of 7\ntri starts 3,4\n5 6\n6\n12\n",
+    "challenge": "Write `compare_options a b` that matches the pair (a, b) of int options and returns \"both\", \"left\", \"right\" or \"neither\", then print all four cases.",
+    "solution": "let compare_options a b =\n  match (a, b) with\n  | Some _, Some _ -> \"both\"\n  | Some _, None -> \"left\"\n  | None, Some _ -> \"right\"\n  | None, None -> \"neither\"\n\nlet () =\n  List.iter (fun (a, b) -> print_endline (compare_options a b))\n    [ (Some 1, Some 2); (Some 1, None); (None, Some 2); (None, None) ]\n",
+    "solutionStdout": "both\nleft\nright\nneither\n",
+    "question": "What must be true of the variables in an or-pattern?",
+    "correct": "Every alternative must bind the same names with the same types",
+    "wrong": [
+      "Each alternative must bind a different name",
+      "Or-patterns cannot bind any variable"
+    ],
+    "reasoning": "The arm's body uses the names whichever alternative matched, so each alternative has to supply all of them consistently.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/data/pattern_matching_advanced.html",
+    "additionalReadings": [
+      {
+        "title": "CS 3110: Records and Tuples",
+        "url": "https://cs3110.github.io/textbook/chapters/data/records_tuples.html",
+        "section": "Records and tuples"
+      }
+    ],
+    "project": null
+  },
+  {
+    "key": "type-synonyms-and-association-lists",
+    "stage": "15 · Foundations in depth",
+    "title": "Type synonyms and association lists",
+    "body": [
+      "A type synonym gives a new name to an existing type: `type name = string` and `type directory = (name * age) list`. The synonym is only documentation. The compiler treats `name` and `string` as the same type, so a function that wants an `age` accepts any `int`, and a synonym will never catch you mixing two quantities that happen to share a representation.",
+      "An association list is a list of key-value pairs, `(string * int) list`, with `List.assoc_opt` to look up a key and `List.remove_assoc` to drop one. Lookup walks the list, so it is linear, which makes association lists a good fit for small tables and a poor one for large ones, where `Hashtbl` or `Map` belong.",
+      "Because lists are immutable, 'updating' a pair means building a new list, usually by putting the new binding at the front after removing the old one. When you need real distinction between two quantities, define an abstract type or a one-constructor variant instead of a synonym."
+    ],
+    "code": "type name = string\ntype age = int\ntype directory = (name * age) list\n\nlet ages : directory = [ (\"ada\", 36); (\"alan\", 41) ]\nlet age_of n (d : directory) = List.assoc_opt n d\nlet update n (a : age) (d : directory) : directory = (n, a) :: List.remove_assoc n d\nlet add_years (a : age) (n : int) = a + n\n\nlet show = function Some a -> string_of_int a | None -> \"unknown\"\n\nlet () =\n  print_endline (show (age_of \"ada\" ages));\n  print_endline (show (age_of \"bob\" ages));\n  let ages = update \"ada\" 37 ages in\n  print_endline (show (age_of \"ada\" ages));\n  Printf.printf \"%d %b\\n\" (List.length ages) (List.mem_assoc \"alan\" ages);\n  Printf.printf \"%d\\n\" (add_years 36 4)\n",
+    "expectedStdout": "36\nunknown\n37\n2 true\n40\n",
+    "challenge": "Write `invert d` that swaps the key and value of every pair in an association list, and print the name looked up for the age 41 in the inverted directory.",
+    "solution": "type directory = (string * int) list\n\nlet invert (d : directory) = List.map (fun (k, v) -> (v, k)) d\n\nlet () =\n  let d = [ (\"ada\", 36); (\"alan\", 41) ] in\n  match List.assoc_opt 41 (invert d) with Some n -> print_endline n | None -> print_endline \"none\"\n",
+    "solutionStdout": "alan\n",
+    "question": "What does a type synonym like `type age = int` add to type checking?",
+    "correct": "Nothing: age and int are the same type, so it only documents intent",
+    "wrong": [
+      "A distinct type that rejects plain ints",
+      "A runtime check that the value is non-negative"
+    ],
+    "reasoning": "Synonyms are transparent to the type checker; use an abstract or variant type for real distinction.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/data/type_synonym.html",
+    "additionalReadings": [
+      {
+        "title": "CS 3110: Association Lists",
+        "url": "https://cs3110.github.io/textbook/chapters/data/assoc_list.html",
+        "section": "Association lists"
+      }
+    ],
+    "project": null
+  },
+  {
+    "key": "recursive-variants-expression-trees",
+    "stage": "15 · Foundations in depth",
+    "title": "Recursive variants: expressions as trees",
+    "body": [
+      "A variant whose constructors mention the type itself describes a tree. `type expr = Const of int | Add of expr * expr | Mul of expr * expr | Neg of expr` is the syntax tree of arithmetic: a leaf is a constant, and every other constructor holds smaller expressions. The shape of the type is the shape of the data.",
+      "A function over the tree has one arm per constructor, and recursive constructors turn into recursive calls on the sub-expressions. `eval` computes a meaning, `to_string` computes a display, and `simplify` rewrites the tree. The type checker's exhaustiveness check tells you when you have forgotten a constructor in any of them.",
+      "Rewrites such as 'adding zero changes nothing' are written as extra arms placed before the general case. Test a rewriting function against the evaluator: a correct simplification never changes `eval`, which is a property you can check on many generated trees."
+    ],
+    "code": "type expr =\n  | Const of int\n  | Add of expr * expr\n  | Mul of expr * expr\n  | Neg of expr\n\nlet rec eval = function\n  | Const n -> n\n  | Add (a, b) -> eval a + eval b\n  | Mul (a, b) -> eval a * eval b\n  | Neg e -> - eval e\n\nlet rec to_string = function\n  | Const n -> string_of_int n\n  | Add (a, b) -> \"(\" ^ to_string a ^ \" + \" ^ to_string b ^ \")\"\n  | Mul (a, b) -> \"(\" ^ to_string a ^ \" * \" ^ to_string b ^ \")\"\n  | Neg e -> \"-\" ^ to_string e\n\nlet rec simplify = function\n  | Add (Const 0, e) | Add (e, Const 0) -> simplify e\n  | Mul (Const 1, e) | Mul (e, Const 1) -> simplify e\n  | Mul (Const 0, _) | Mul (_, Const 0) -> Const 0\n  | Add (a, b) -> Add (simplify a, simplify b)\n  | Mul (a, b) -> Mul (simplify a, simplify b)\n  | Neg (Neg e) -> simplify e\n  | Neg e -> Neg (simplify e)\n  | Const _ as c -> c\n\nlet () =\n  let e = Add (Const 2, Mul (Const 3, Const 4)) in\n  Printf.printf \"%d %s\\n\" (eval e) (to_string e);\n  let messy = Add (Const 0, Mul (Const 1, Neg (Neg (Const 5)))) in\n  Printf.printf \"%s -> %s\\n\" (to_string messy) (to_string (simplify messy));\n  Printf.printf \"%b\\n\" (eval messy = eval (simplify messy))\n",
+    "expectedStdout": "14 (2 + (3 * 4))\n(0 + (1 * --5)) -> 5\ntrue\n",
+    "challenge": "Define a smaller expression type with `Const`, `Add` and `Sub`, write `eval` for it, and print the value of `Sub (Const 10, Const 4)`.",
+    "solution": "type expr = Const of int | Add of expr * expr | Sub of expr * expr\n\nlet rec eval = function\n  | Const n -> n\n  | Add (a, b) -> eval a + eval b\n  | Sub (a, b) -> eval a - eval b\n\nlet () = Printf.printf \"%d\\n\" (eval (Sub (Const 10, Const 4)))\n",
+    "solutionStdout": "6\n",
+    "question": "Why does the shape of a recursive function mirror the type it consumes?",
+    "correct": "Each constructor gets an arm, and recursive constructors become recursive calls on their parts",
+    "wrong": [
+      "Because OCaml requires recursion for every function",
+      "Because constructors are evaluated in reverse order"
+    ],
+    "reasoning": "Structural recursion follows the type's definition, which also guarantees it terminates on finite trees.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/data/algebraic_data_types.html",
+    "additionalReadings": [
+      {
+        "title": "CS 3110: Trees",
+        "url": "https://cs3110.github.io/textbook/chapters/data/trees.html",
+        "section": "Trees"
+      }
+    ],
+    "project": null
+  },
+  {
+    "key": "natural-numbers-as-variants",
+    "stage": "15 · Foundations in depth",
+    "title": "Natural numbers as a variant",
+    "body": [
+      "Numbers themselves can be defined with a variant: `type nat = Z | S of nat`. `Z` is zero and `S n` is the successor of `n`, so three is `S (S (S Z))`. The type has exactly the values 0, 1, 2, ... and nothing else, so negative numbers cannot be written at all.",
+      "Arithmetic is structural recursion on the first argument. Adding is 'peel one `S` from the left and put it on the result': `add Z b = b` and `add (S a) b = S (add a b)`. Multiplication is repeated addition, and comparison walks both numbers down together until one runs out.",
+      "Nobody uses unary numbers for speed. The value of the exercise is seeing that recursive definitions follow the shape of the data, and that properties like 'adding zero on the left does nothing' fall out of the definition itself, which is the idea behind proofs by induction."
+    ],
+    "code": "type nat = Z | S of nat\n\nlet rec to_int = function Z -> 0 | S n -> 1 + to_int n\nlet rec of_int n = if n <= 0 then Z else S (of_int (n - 1))\nlet rec add a b = match a with Z -> b | S a' -> S (add a' b)\nlet rec mul a b = match a with Z -> Z | S a' -> add b (mul a' b)\n\nlet rec leq a b =\n  match (a, b) with\n  | Z, _ -> true\n  | S _, Z -> false\n  | S a', S b' -> leq a' b'\n\nlet () =\n  let three = of_int 3 and four = of_int 4 in\n  Printf.printf \"%d %d\\n\" (to_int (add three four)) (to_int (mul three four));\n  Printf.printf \"%b %b\\n\" (leq three four) (leq four three);\n  Printf.printf \"%d\\n\" (to_int (add Z three))\n",
+    "expectedStdout": "7 12\ntrue false\n3\n",
+    "challenge": "Write `pow a b` (a to the power b) using `mul`, with `pow _ Z = S Z`, and print `to_int (pow (of_int 2) (of_int 5))`.",
+    "solution": "type nat = Z | S of nat\n\nlet rec to_int = function Z -> 0 | S n -> 1 + to_int n\nlet rec of_int n = if n <= 0 then Z else S (of_int (n - 1))\nlet rec add a b = match a with Z -> b | S a' -> S (add a' b)\nlet rec mul a b = match a with Z -> Z | S a' -> add b (mul a' b)\nlet rec pow a b = match b with Z -> S Z | S b' -> mul a (pow a b')\n\nlet () = Printf.printf \"%d\\n\" (to_int (pow (of_int 2) (of_int 5)))\n",
+    "solutionStdout": "32\n",
+    "question": "On which argument does `add` recurse, and why does that terminate?",
+    "correct": "On the first, which loses one S each call until it reaches Z",
+    "wrong": [
+      "On the second, which grows each call",
+      "On neither; add is not recursive"
+    ],
+    "reasoning": "Each recursive call is on a strictly smaller natural number, and naturals are finite, so the recursion must reach Z.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/data/nats.html",
+    "project": null
+  },
+  {
+    "key": "exception-design-and-reraise",
+    "stage": "15 · Foundations in depth",
+    "title": "Designing exceptions: context, matching and re-raising",
+    "body": [
+      "Define an exception for each failure a caller might want to tell apart, and carry the data they need: `exception Invalid_config of string`. Use the standard ones where they fit: `Invalid_argument` for a bad argument, `Failure` for a general failure, `Not_found` for a missing key.",
+      "`match f () with v -> ... | exception e -> ...` handles both outcomes in one place and keeps the success path out of the `try` body, so you cannot accidentally catch an exception raised by code that runs on success. To add context, catch, wrap and raise again with a message that says where the problem happened.",
+      "Document which exceptions a function can raise, and prefer `result` for failures callers are expected to handle routinely. When you re-raise an exception you caught, use `raise e` for a new context or `Printexc.raise_with_backtrace e bt` to keep the original call stack."
+    ],
+    "code": "exception Invalid_config of string\n\nlet parse_port s =\n  match int_of_string_opt s with\n  | None -> raise (Invalid_config (\"not a number: \" ^ s))\n  | Some p when p < 1 || p > 65535 -> raise (Invalid_config (\"out of range: \" ^ s))\n  | Some p -> p\n\nlet with_context ctx f =\n  try f () with Invalid_config m -> raise (Invalid_config (ctx ^ \": \" ^ m))\n\nlet () =\n  Printf.printf \"%d\\n\" (parse_port \"8080\");\n  (try ignore (parse_port \"x\") with Invalid_config m -> print_endline m);\n  (try ignore (with_context \"server\" (fun () -> parse_port \"99999\")) with Invalid_config m -> print_endline m);\n  (match int_of_string \"q\" with\n   | n -> Printf.printf \"parsed %d\\n\" n\n   | exception Failure _ -> print_endline \"not an int\");\n  match int_of_string \"7\" with\n  | n -> Printf.printf \"parsed %d\\n\" n\n  | exception Failure _ -> print_endline \"not an int\"\n",
+    "expectedStdout": "8080\nnot a number: x\nserver: out of range: 99999\nnot an int\nparsed 7\n",
+    "challenge": "Write `first_positive xs` that raises `Not_found` when the list has no positive number, and use `match ... with exception Not_found` to print \"none\" for [-1; 0] and the value for [-1; 5].",
+    "solution": "let first_positive xs = List.find (fun n -> n > 0) xs\n\nlet show xs =\n  match first_positive xs with\n  | n -> Printf.printf \"%d\\n\" n\n  | exception Not_found -> print_endline \"none\"\n\nlet () = show [ -1; 0 ]; show [ -1; 5 ]\n",
+    "solutionStdout": "none\n5\n",
+    "question": "What is the advantage of `match f () with v -> ... | exception e -> ...` over `try`?",
+    "correct": "The success path stays outside the handler, so exceptions raised by it are not caught by mistake",
+    "wrong": [
+      "It runs faster than try",
+      "It catches every exception automatically"
+    ],
+    "reasoning": "Only the scrutinee is protected, so the handler covers exactly the call you meant to guard.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/data/exceptions.html",
+    "project": null
+  },
+  {
+    "key": "writing-map-and-filter",
+    "stage": "15 · Foundations in depth",
+    "title": "Writing map and filter yourself, and going beyond lists",
+    "body": [
+      "`map` applies a function to every element and keeps the structure; `filter` keeps the elements a predicate accepts. Writing them yourself shows that each is a recursion on the list with one arm for the empty list and one for a head and tail. A tail-recursive `map` accumulates in reverse and reverses once at the end.",
+      "The idea of 'apply a function to the contents and keep the shape' is not special to lists. `Option.map` transforms a value that might be missing, and a `map_tree` transforms every label of a tree while leaving its shape alone. Any container can have a `map`, and the result type is always the same container with new contents.",
+      "A well-behaved map changes values but never the shape, so `List.length (map f l) = List.length l`. If your own `map` for a type breaks that, it is probably also doing a filter. Keep the two ideas separate: map changes what is inside, filter changes how much there is."
+    ],
+    "code": "let rec map f = function [] -> [] | x :: xs -> let y = f x in y :: map f xs\nlet rec filter p = function [] -> [] | x :: xs -> if p x then x :: filter p xs else filter p xs\nlet map_tr f l = List.rev (List.fold_left (fun acc x -> f x :: acc) [] l)\n\ntype 'a tree = Leaf | Node of 'a tree * 'a * 'a tree\n\nlet rec map_tree f = function\n  | Leaf -> Leaf\n  | Node (l, v, r) -> Node (map_tree f l, f v, map_tree f r)\n\nlet rec to_list = function Leaf -> [] | Node (l, v, r) -> to_list l @ [ v ] @ to_list r\nlet opt_map f = function None -> None | Some x -> Some (f x)\n\nlet () =\n  List.iter (Printf.printf \"%d \") (map succ [ 1; 2; 3 ]);\n  print_newline ();\n  List.iter (Printf.printf \"%d \") (filter (fun n -> n mod 2 = 0) [ 1; 2; 3; 4 ]);\n  print_newline ();\n  Printf.printf \"%d\\n\" (List.length (map_tr succ (List.init 1_000_000 Fun.id)));\n  let t = Node (Node (Leaf, 1, Leaf), 2, Node (Leaf, 3, Leaf)) in\n  List.iter (Printf.printf \"%d \") (to_list (map_tree (fun n -> n * 10) t));\n  print_newline ();\n  (match opt_map succ (Some 4) with Some n -> Printf.printf \"%d\\n\" n | None -> ())\n",
+    "expectedStdout": "2 3 4 \n2 4 \n1000000\n10 20 30 \n5\n",
+    "challenge": "Write `filter_map f xs` that maps with a function returning an option and keeps only the Some results, and print it for parsing [\"1\"; \"x\"; \"3\"] with int_of_string_opt.",
+    "solution": "let rec filter_map f = function\n  | [] -> []\n  | x :: xs -> (match f x with Some y -> y :: filter_map f xs | None -> filter_map f xs)\n\nlet () = List.iter (Printf.printf \"%d \") (filter_map int_of_string_opt [ \"1\"; \"x\"; \"3\" ]); print_newline ()\n",
+    "solutionStdout": "1 3 \n",
+    "question": "What should `map` never change about a container?",
+    "correct": "Its shape: only the values inside are transformed",
+    "wrong": [
+      "The type of its elements",
+      "Nothing; map may reorder the elements"
+    ],
+    "reasoning": "Map is shape-preserving by definition; removing elements is filter's job.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/hop/map.html",
+    "additionalReadings": [
+      {
+        "title": "CS 3110: Filter",
+        "url": "https://cs3110.github.io/textbook/chapters/hop/filter.html",
+        "section": "Filter"
+      },
+      {
+        "title": "CS 3110: Beyond Lists",
+        "url": "https://cs3110.github.io/textbook/chapters/hop/beyond_lists.html",
+        "section": "Beyond lists"
+      }
+    ],
+    "project": null
+  },
+  {
+    "key": "map-and-fold-laws",
+    "stage": "15 · Foundations in depth",
+    "title": "Laws of map, filter and fold, checked by random testing",
+    "body": [
+      "Higher-order functions obey laws you can rely on when refactoring. Mapping twice equals mapping once with the composition: `map f (map g l) = map (f % g) l`. Mapping the identity changes nothing. Two filters can be applied in either order. A fold with the list constructor rebuilds the list.",
+      "A law is a universally quantified equation, so a few examples never prove it. You can gain real confidence by generating many random inputs from a fixed seed and checking the equation on each. A counterexample is a bug in the law or in the code, and the seed makes any failure reproducible.",
+      "Proof is stronger than testing, and the next stages show how structural induction proves these laws for all lists. Until then, treat a passing property test as evidence rather than certainty, and keep the seed in the test so that anyone can rerun the same cases."
+    ],
+    "code": "let random_list () = List.init (Random.int 12) (fun _ -> Random.int 100 - 50)\n\nlet holds name law =\n  Random.init 7;\n  let ok = ref true in\n  for _ = 1 to 200 do\n    if not (law (random_list ())) then ok := false\n  done;\n  Printf.printf \"%s: %b\\n\" name !ok\n\nlet f x = x * 2\nlet g x = x + 1\nlet even x = x mod 2 = 0\nlet positive x = x > 0\n\nlet () =\n  holds \"map composes\" (fun l -> List.map f (List.map g l) = List.map (fun x -> f (g x)) l);\n  holds \"map id\" (fun l -> List.map Fun.id l = l);\n  holds \"filters commute\" (fun l -> List.filter even (List.filter positive l) = List.filter positive (List.filter even l));\n  holds \"fold cons rebuilds\" (fun l -> List.fold_right (fun x acc -> x :: acc) l [] = l);\n  holds \"map keeps length\" (fun l -> List.length (List.map f l) = List.length l);\n  holds \"a false law\" (fun l -> List.map g (List.rev l) = l)\n",
+    "expectedStdout": "map composes: true\nmap id: true\nfilters commute: true\nfold cons rebuilds: true\nmap keeps length: true\na false law: false\n",
+    "challenge": "State and check the law `List.rev (List.rev l) = l` and the law `List.length (l @ m) = List.length l + List.length m` using the same random generator, printing both results.",
+    "solution": "let random_list () = List.init (Random.int 12) (fun _ -> Random.int 100)\n\nlet () =\n  Random.init 7;\n  let ok1 = ref true and ok2 = ref true in\n  for _ = 1 to 200 do\n    let l = random_list () and m = random_list () in\n    if List.rev (List.rev l) <> l then ok1 := false;\n    if List.length (l @ m) <> List.length l + List.length m then ok2 := false\n  done;\n  Printf.printf \"%b %b\\n\" !ok1 !ok2\n",
+    "solutionStdout": "true true\n",
+    "question": "Why use a fixed random seed when checking a law?",
+    "correct": "A failing case can be reproduced exactly by rerunning the test",
+    "wrong": [
+      "A fixed seed makes the law true",
+      "Random can only be used once per program"
+    ],
+    "reasoning": "A deterministic sequence of inputs turns a flaky-looking failure into one you can debug.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/hop/laws.html",
+    "project": null
+  }
+]

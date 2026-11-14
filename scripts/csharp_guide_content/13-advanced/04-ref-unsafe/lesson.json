@@ -1,0 +1,46 @@
+{
+ "key": "ref-and-unsafe",
+ "title": "ref locals, ref structs, scoped and unsafe code",
+ "minutes": 25,
+ "body": [
+  "`ref` can do more than pass parameters. A `ref` local aliases another variable (`ref int slot = ref array[2];`), and a method can return by reference (`ref int Find(...)`) so callers update storage in place, avoiding copies of large structs. `ref readonly` returns allow aliasing without mutation. A struct method cannot return a reference to its own fields (CS8170) because `this` may be a temporary copy; classes can, since their fields live in the heap object.",
+  "`ref struct` types (like `Span<T>`) may live only on the stack. Since C# 11 a ref struct can hold `ref` fields, which is how `Span<T>` itself is written. The compiler tracks 'escape scope' to stop a reference to a local from leaking out of the method. The `scoped` modifier promises a parameter or local will not escape, which lets the compiler accept more code safely.",
+  "Unsafe code (`unsafe` blocks, enabled with `AllowUnsafeBlocks`) uses raw pointers: `int*`, `&x`, `*p`, pointer arithmetic, `stackalloc` to a pointer, `sizeof`, and `fixed` to pin a managed object so the GC cannot move it while you hold its address. Function pointers (`delegate*<int, int>`) call methods without delegate allocation, mainly for interop.",
+  "Unsafe code disables the safety guarantees: an out-of-bounds pointer write silently corrupts memory. Most performance needs are met with spans and `ref` locals instead. Interop with native libraries uses `[LibraryImport]` (source-generated marshalling) rather than hand-written pointers where possible.",
+  "C# 15 begins redefining unsafe so that only memory-accessing operations require `unsafe` (final stage). Today, check every `unsafe` block for bounds, pinning duration and aliasing, and keep it as small as possible."
+ ],
+ "unsafe": true,
+ "expectedStdout": "10,25,30\n10,25,0\n7\n36\n42\n0\n144\n8\n",
+ "challenge": "Write a method ref int FirstNegative(Span<int> values) that returns a reference to the first negative element (throw if none) and use it to set that element to 0 in [5, -2, -7].",
+ "solutionStdout": "5,0,-7\n",
+ "question": "What does the `fixed` statement do in unsafe code?",
+ "correct": "Pins a managed object so the GC cannot move it while its address is used",
+ "wrong": [
+  "Makes a variable immutable",
+  "Allocates memory outside the GC heap"
+ ],
+ "reasoning": "The GC compacts the heap; pinning keeps addresses valid for the duration of the fixed block only.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/unsafe-code",
+ "additionalReadings": [
+  {
+   "title": "ref keyword",
+   "url": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/ref",
+   "section": "ref locals and returns"
+  },
+  {
+   "title": "scoped",
+   "url": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/declarations#scoped-ref",
+   "section": "scoped"
+  }
+ ],
+ "rejected": [
+  {
+   "file": "rejected.cs",
+   "diagnostic": "CS8168"
+  },
+  {
+   "file": "rejected1.cs",
+   "diagnostic": "CS8170"
+  }
+ ]
+}

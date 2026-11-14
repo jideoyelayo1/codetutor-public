@@ -1,0 +1,82 @@
+{
+  "key": "runtime-events-tracing",
+  "stage": "21 · Tools, libraries and the compiler",
+  "n": 9,
+  "title": "Runtime events: tracing the garbage collector from inside the program",
+  "minutes": 35,
+  "body": [
+    "OCaml 5's runtime can record what it is doing, such as the start and end of each garbage-collection phase, into a ring buffer with very low overhead. The `Runtime_events` library starts that recording and reads it back: `Runtime_events.start ()` begins tracing, `create_cursor None` opens a cursor on this process's own buffer, and `read_poll cursor callbacks None` calls your callbacks for each event that has been written since the last poll.",
+    "Callbacks are built with `Runtime_events.Callbacks.create`, with an optional function for each kind of event: `~runtime_begin` and `~runtime_end` for runtime phases, `~runtime_counter` for counters, and `~lifecycle` for domain events. A callback receives the domain id, a timestamp and the phase, so it can both count events and time them. External tools such as `olly` read the same buffer from outside a running program, with no change to its code.",
+    "Tracing answers questions that guessing cannot: how many collections did this function cause, and how long did the pauses last? Because the buffer is a fixed-size ring, a program that produces events faster than they are read overwrites the oldest ones, so poll often enough and treat a count as a lower bound."
+  ],
+  "challenge": "`Tracing.count_gc_events` returns 0 without tracing anything. Implement it: start the runtime events, create a cursor on this process, register a `runtime_begin` callback that counts phases, force a full major collection with `Gc.full_major ()`, poll the cursor once, free it and return the count.",
+  "projectInstructions": "Run `dune test --root .`. Edit only src/tracing.ml. The library `runtime_events` is already listed in src/dune.",
+  "question": "Why is the number of events a lower bound rather than an exact count?",
+  "correct": "The events live in a fixed-size ring buffer, so a slow reader can miss events that were overwritten",
+  "wrong": [
+    "Events are only recorded for the main domain",
+    "The runtime records every other event to save time"
+  ],
+  "reasoning": "A ring buffer favours recent events; if the writer laps the reader, the oldest unread events are lost.",
+  "sourceURL": "https://ocaml.org/manual/5.5/runtime_events.html",
+  "projectChecks": [
+    {
+      "name": "starter compiles",
+      "command": [
+        "dune",
+        "build",
+        "--root",
+        "."
+      ],
+      "exit": 0
+    },
+    {
+      "name": "starter test fails",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "test_tracing.ml"
+    },
+    {
+      "name": "solution test passes",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 0,
+      "useSolution": true
+    },
+    {
+      "name": "a callback that ignores events is caught",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "test_tracing.ml",
+      "useSolution": true,
+      "mutations": [
+        {
+          "path": "src/tracing.ml",
+          "find": "incr count",
+          "replace": "()"
+        }
+      ]
+    }
+  ],
+  "additionalReadings": [
+    {
+      "title": "OCaml manual: Runtime tracing with runtime events",
+      "url": "https://ocaml.org/manual/5.5/runtime-tracing.html",
+      "section": "Runtime tracing"
+    }
+  ]
+}

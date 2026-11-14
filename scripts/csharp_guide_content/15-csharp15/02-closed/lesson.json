@@ -1,0 +1,36 @@
+{
+ "key": "closed-hierarchies",
+ "title": "Closed class hierarchies",
+ "sdk": "11",
+ "body": [
+  "C# 15 ships with .NET 11, whose release candidates carry a go-live licence; general availability is expected in November 2026. These examples are checked with SDK 11.0.100-rc.2. Details can still change before release, so re-check the What's new page after GA.",
+  "The `closed` modifier on a class (C# 15) means it can be derived from only inside its own assembly. Because the compiler then knows every direct descendant, a `switch` that handles each one is exhaustive without a discard arm, just as with unions.",
+  "A closed class is implicitly abstract and cannot also be `sealed`, `static` or explicitly `abstract`. It suits state machines and domain alternatives that share data or behaviour through the base class, for example `closed record GateState` with `Open` and `Closed` records.",
+  "Closure is not transitive: a non-closed descendant can still be extended in other assemblies. Mark intermediate classes `closed` too if you want exhaustiveness further down the hierarchy.",
+  "Choose between the two C# 15 tools by shape: a union when the alternatives are unrelated existing types, a closed hierarchy when the alternatives are your own types that share a base. Check that adding a new descendant is meant to break incomplete switches, because that is exactly what it will do."
+ ],
+ "expectedStdout": "closed\n50% open\nfully open\nlocked (night mode)\nOpen { Percent = 75 }\n",
+ "challenge": "Model an expression tree with closed record Expr and descendants Num(double), Add(Expr, Expr), Mul(Expr, Expr). Write Eval with an exhaustive switch and evaluate (2 + 3) * 4.",
+ "solutionStdout": "20\n",
+ "question": "Why does a switch over a closed class need no discard arm when it handles every direct descendant?",
+ "correct": "Only the declaring assembly can add descendants, so the compiler knows them all",
+ "wrong": [
+  "Closed classes are sealed, so only the base type can appear",
+  "The runtime throws for unknown types anyway"
+ ],
+ "reasoning": "closed fixes the set of direct descendants at compile time, enabling exhaustiveness checks.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/closed",
+ "additionalReadings": [
+  {
+   "title": "Closed hierarchy patterns",
+   "url": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/patterns#closed-hierarchy-patterns",
+   "section": "Patterns"
+  }
+ ],
+ "rejected": [
+  {
+   "file": "rejected.cs",
+   "diagnostic": "CS9381"
+  }
+ ]
+}

@@ -1,0 +1,29 @@
+{
+ "key": "equality-and-boxing",
+ "title": "Equality, identity and boxing",
+ "body": [
+  "C# has two questions that look similar: are these the same object (identity), and do these represent the same value (equality)? `ReferenceEquals(a, b)` answers identity. `a.Equals(b)` and `==` answer equality, but what 'equal' means depends on the type.",
+  "For classes, the default `Equals` and `==` compare references. Records (stage 4) and most BCL types such as `string` override equality to compare contents, so two separately created strings 'abc' are `==`. Structs get a default `Equals` that compares fields, but it can be slow (it may use reflection), so performance-sensitive structs implement `IEquatable<T>`.",
+  "If you override `Equals`, you must also override `GetHashCode` so equal objects produce equal hash codes; otherwise dictionaries and hash sets lose your objects. `HashCode.Combine(a, b)` builds a good hash. Implement `==` and `!=` too, or users get reference comparison through the operator but value comparison through `Equals`.",
+  "Boxing happens when a value type is converted to `object` or to an interface it implements: the runtime allocates a heap object containing a copy. Unboxing (`(int)obj`) copies it back out and requires the exact type. Comparing two boxed values with `==` on `object` compares references, so `(object)5 == (object)5` is false while `Equals` is true.",
+  "Boxing costs an allocation and the boxed copy does not track later changes to the original. Before comparing, check which equality a type defines and whether a value type is being boxed by an `object` or non-generic API; generics (stage 7) usually avoid boxing."
+ ],
+ "expectedStdout": "True False\nFalse False\nTrue\nFalse True\n2 1\n2\n",
+ "challenge": "Make class Ticket value-equal by id: override Equals, GetHashCode, == and !=, then show that two tickets with id 7 are equal and that a HashSet<Ticket> holds only one of them.",
+ "solutionStdout": "True True False\n1\n",
+ "question": "Why must an override of Equals be accompanied by GetHashCode?",
+ "correct": "Hash-based collections assume equal objects have equal hash codes",
+ "wrong": [
+  "The compiler cannot generate Equals without it",
+  "GetHashCode decides reference identity"
+ ],
+ "reasoning": "Dictionary and HashSet look in the bucket chosen by GetHashCode before calling Equals; mismatched hashes hide equal keys.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/statements-expressions-operators/equality-comparisons",
+ "additionalReadings": [
+  {
+   "title": "Boxing and unboxing",
+   "url": "https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/types/boxing-and-unboxing",
+   "section": "Boxing"
+  }
+ ]
+}

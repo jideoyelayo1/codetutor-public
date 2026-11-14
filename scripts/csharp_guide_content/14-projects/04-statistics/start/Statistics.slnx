@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="src/Statistics/Statistics.csproj" />
+  <Project Path="src/Statistics.Cli/Statistics.Cli.csproj" />
+  <Project Path="tests/Statistics.Tests/Statistics.Tests.csproj" />
+</Solution>

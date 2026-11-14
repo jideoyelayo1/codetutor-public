@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="src/Pipeline/Pipeline.csproj" />
+  <Project Path="tests/Pipeline.Tests/Pipeline.Tests.csproj" />
+</Solution>

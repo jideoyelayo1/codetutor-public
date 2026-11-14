@@ -1,0 +1,34 @@
+{
+ "key": "guards-and-results",
+ "title": "Guard clauses, the Try pattern and result values",
+ "body": [
+  "Validate arguments at the top of public methods so bad input fails fast with a precise message. The throw helpers make guards one line: `ArgumentNullException.ThrowIfNull(name)`, `ArgumentException.ThrowIfNullOrWhiteSpace(name)`, `ArgumentOutOfRangeException.ThrowIfNegative(count)` and `ThrowIfGreaterThan(value, max)`. They capture the argument's name automatically via `CallerArgumentExpression`.",
+  "For failures that are expected and frequent, such as parsing user input or looking up an optional key, the Try pattern avoids exceptions: `bool TryParse(string s, out T result)`. Annotate the out parameter with `[NotNullWhen(true)]` so nullable analysis knows the result is non-null when the method returns true.",
+  "A result type makes failure part of the return value: a record that holds either a value or an error. Callers must inspect it before using the value, which suits validation pipelines. C# 14 has no built-in union type, so a small record hierarchy or a `Result<T>` record is common; C# 15 unions (final stage) express this directly.",
+  "Choose deliberately. Exceptions: a bug or an unexpected environment problem the immediate caller cannot fix. Try pattern: a cheap yes/no with one result. Result value: several possible failure reasons the caller should handle and report.",
+  "Check that guards run before any state changes, so a rejected call leaves the object unchanged, and that the Try pattern never throws for ordinary bad input."
+ ],
+ "expectedStdout": "summary.txt\nThe value cannot be an empty string or composed entirely of whitespace. (Parameter 'newName')\ncount\n#ff8800 -> rgb(255, 136, 0)\nred -> invalid\n#12 -> invalid\nok ada@example.com\nerror empty\nerror missing @\n",
+ "challenge": "Write TryDivide(int a, int b, out int quotient) that returns false (instead of throwing) when b is 0, and use it for 9/3 and 1/0.",
+ "solutionStdout": "9/3 = 3\n1/0 is undefined\n",
+ "question": "When is the Try pattern a better fit than throwing an exception?",
+ "correct": "When failure is an expected, frequent outcome such as invalid user input",
+ "wrong": [
+  "When the failure indicates a programming bug",
+  "Whenever the method is public"
+ ],
+ "reasoning": "Exceptions are for unexpected failures; Try methods make the common failure path cheap and explicit.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/standard/design-guidelines/exceptions-and-performance",
+ "additionalReadings": [
+  {
+   "title": "ArgumentException throw helpers",
+   "url": "https://learn.microsoft.com/en-us/dotnet/api/system.argumentexception.throwifnullorwhitespace",
+   "section": "ThrowIfNullOrWhiteSpace"
+  },
+  {
+   "title": "Nullable static analysis attributes",
+   "url": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/attributes/nullable-analysis",
+   "section": "NotNullWhen"
+  }
+ ]
+}

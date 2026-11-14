@@ -1,0 +1,32 @@
+{
+  "key": "ppx-jane-derivers",
+  "stage": "11 · Jane Street stack",
+  "n": 2,
+  "title": "ppx_jane derivers: sexp, compare, equal, hash",
+  "minutes": 40,
+  "body": [
+    "A PPX is a compile-time rewriter. Writing `type t = { major : int; minor : int; patch : int } [@@deriving sexp, compare, equal, hash]` asks the `ppx_jane` bundle to generate `sexp_of_t`, `t_of_sexp`, `compare`, `equal` and `hash_fold_t`/`hash` from the type definition. You write the type once, and the boilerplate can never drift out of date.",
+    "Derived functions compose. Because every field type has its own derived functions, a record of records gets structural versions of all of them, and `[%sexp (x : t)]` converts a value to an s-expression inline. S-expressions are Jane Street's universal text format for config files, debug output and expect tests.",
+    "`Comparable.Make (T)` then adds `<`, `>`, `max`, `min`, `ascending` and friends on top of a `compare` and `sexp_of_t`, so you get readable operators without shadowing polymorphic comparison. Derive only what you use: each deriver adds code and compile time."
+  ],
+  "challenge": "Version.t is a plain record with stub functions. Derive sexp, compare, equal and hash for it, include `Comparable.Make`, and implement `of_string` for \"major.minor.patch\" (all three parts must be non-negative integers) and `bump_minor` (increment minor, reset patch to 0).",
+  "projectInstructions": "Run `dune test --root .`. The first failure is a compile error because the derived functions do not exist yet. Edit only src/version.ml.",
+  "question": "What does `[@@deriving compare]` generate?",
+  "correct": "A structural compare function for the type, built from the compare functions of its fields",
+  "wrong": [
+    "A runtime check that the type is sorted",
+    "A copy of the type in another module"
+  ],
+  "reasoning": "Derivers read the type definition at compile time and emit the corresponding functions, so they stay in sync with the type.",
+  "sourceURL": "https://github.com/janestreet/ppx_jane",
+  "projectChecks": [
+    { "name": "starter does not compile against the tests", "command": ["dune", "test", "--root", "."], "exit": 1, "stderrContains": "sexp_of_t" },
+    { "name": "solution tests pass", "command": ["dune", "test", "--root", "."], "exit": 0, "useSolution": true },
+    { "name": "bump regression is caught", "command": ["dune", "test", "--root", "."], "exit": 1, "stderrContains": "1.3.3", "useSolution": true,
+      "mutations": [{ "path": "src/version.ml", "find": "patch = 0 }", "replace": "patch = t.patch }" }] }
+  ],
+  "additionalReadings": [
+    { "title": "ppx_jane", "url": "https://github.com/janestreet/ppx_jane", "section": "Overview" },
+    { "title": "Real World OCaml: Data Serialization with S-Expressions", "url": "https://dev.realworldocaml.org/data-serialization.html", "section": "Deriving s-expression conversions" }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "key": "dynlink-plugins",
+  "stage": "21 · Tools, libraries and the compiler",
+  "n": 8,
+  "title": "Dynlink: loading plug-ins at run time",
+  "minutes": 40,
+  "body": [
+    "A program normally contains every module it will ever run. The `dynlink` library lets a native program load compiled code *while it is running*: `Dynlink.loadfile \"plugin.cmxs\"` links a shared object (`.cmxs`) built with `ocamlopt -shared`, runs its top-level code, and adds its modules to the program. The host and the plug-in must agree on the interfaces they share, which the loader checks with module checksums.",
+    "The usual design is a small *registry* library that both sides link. The host loads whatever plug-in the user names; each plug-in's top-level code calls `Registry.register name f`, and the host then finds the new entries in the registry. Because the plug-in only depends on the registry's interface, new behaviour is added without recompiling or even restarting the host. Dune builds the shared object for a library with the target `plugins/double.cmxs`.",
+    "Loading code is a trust decision: a plug-in runs with the full privileges of the host, so load only code you control. Handle `Dynlink.Error` and report it, since a missing file, a wrong compiler version or an interface mismatch are all normal failure modes."
+  ],
+  "challenge": "plugins/double.ml registers a function named \"double\" that returns its argument unchanged. Fix it so the plug-in doubles its input, so that running the host on the built plug-in prints `double: 42` for the input 21.",
+  "projectInstructions": "Build with `dune build --root . plugins/double.cmxs host/host.exe`, then run `_build/default/host/host.exe _build/default/plugins/double.cmxs`. Edit only plugins/double.ml, then rebuild and run again.",
+  "question": "Why do the host and the plug-in both link the small registry library?",
+  "correct": "It is the interface they share: the plug-in registers into it and the host reads from it, with no recompilation of the host",
+  "wrong": [
+    "Dynlink cannot load a plug-in that has no dependencies",
+    "The registry is the only module the compiler is able to link"
+  ],
+  "reasoning": "A fixed shared interface lets independently built code cooperate at run time while the loader verifies the interfaces still match.",
+  "sourceURL": "https://ocaml.org/manual/5.5/libdynlink.html",
+  "projectChecks": [
+    { "name": "starter builds the host and the plug-in", "command": ["dune", "build", "--root", ".", "plugins/double.cmxs", "host/host.exe"], "exit": 0 },
+    { "name": "starter plug-in loads but is wrong", "command": ["_build/default/host/host.exe", "_build/default/plugins/double.cmxs"], "exit": 0, "stdout": "double: 21\n" },
+    { "name": "solution rebuilds the plug-in", "command": ["dune", "build", "--root", ".", "plugins/double.cmxs", "host/host.exe"], "exit": 0, "useSolution": true },
+    { "name": "solution plug-in doubles its input", "command": ["_build/default/host/host.exe", "_build/default/plugins/double.cmxs"], "exit": 0, "stdout": "double: 42\n", "useSolution": true },
+    { "name": "a missing plug-in is reported, not ignored", "command": ["_build/default/host/host.exe", "no-such-plugin.cmxs"], "exit": 2, "stderrContains": "no-such-plugin", "useSolution": true }
+  ]
+}

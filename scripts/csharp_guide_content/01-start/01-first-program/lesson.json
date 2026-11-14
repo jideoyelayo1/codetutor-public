@@ -1,0 +1,18 @@
+{"key": "first-program", "title": "Your first program and the dotnet toolchain",
+"body": [
+"C# is a statically typed language: the compiler checks every name, type and call before the program runs. The .NET SDK provides the compiler, the runtime and the `dotnet` command. A compile-time error means no program was produced; a runtime exception happens later, while a successfully compiled program executes.",
+"Since .NET 10 you can run a single file directly: save `hello.cs` and run `dotnet run hello.cs`. Larger programs use a project: `dotnet new console -o Hello` creates `Hello.csproj` plus `Program.cs`, and `dotnet run` builds and runs it. `dotnet build` compiles without running, which is the quickest way to check your code. A file-based app can later become a project with `dotnet project convert hello.cs`.",
+"The example uses top-level statements: the statements at the top of one file become the body of the program's entry point. The compiler generates the `Main` method for you. Only one file in a program may contain top-level statements. Older code shows the explicit `static void Main(string[] args)` form inside a class; both compile to the same kind of entry point.",
+"`Console.WriteLine` writes text followed by a newline; `Console.Write` omits the newline. Statements end with a semicolon, and braces group statements into blocks. Identifiers are case-sensitive: `console` and `Console` are different names. `//` starts a comment that runs to the end of the line.",
+"Check that you can explain three outcomes: the compiler rejected the code, the program threw an exception while running, or it ran and printed something unexpected. Each needs a different fix, and reading the exact diagnostic code (for example CS0103, a name that does not exist) is the first step."],
+"expectedStdout": "Hello, C#!\n6 * 7 = 42\n",
+"challenge": "Write a program that prints your name on one line and then the result of 12 * 12 on the next line.",
+"solutionStdout": "Ada\n144\n",
+"question": "What does `dotnet build` do that `dotnet run` also does, but without the final step?",
+"correct": "Compiles the project and reports diagnostics without executing it",
+"wrong": ["Executes the program without compiling it", "Publishes a self-contained installer"],
+"reasoning": "run = build + execute. Use build when you only need the compiler's verdict.",
+"sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/program-structure/top-level-statements",
+"additionalReadings": [{"title": "File-based apps", "url": "https://learn.microsoft.com/en-us/dotnet/core/sdk/file-based-apps", "section": "dotnet run app.cs"}],
+"rejected": [{"file": "rejected.cs", "diagnostic": "CS0103"}],
+"minutes": 15}

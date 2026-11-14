@@ -1,0 +1,29 @@
+{
+ "key": "how-await-works",
+ "title": "How await works: continuations, contexts and pitfalls",
+ "body": [
+  "The compiler rewrites an async method into a state machine. At each `await`, if the task has already completed the method simply continues synchronously; otherwise it registers the rest of the method as a continuation and returns. When the task completes, the continuation runs, possibly on a different thread.",
+  "Where the continuation runs depends on the captured context. In UI frameworks a `SynchronizationContext` brings it back to the UI thread; in ASP.NET Core and console apps there is no such context, so it runs on a thread-pool thread. Library code that does not need the original context can use `await task.ConfigureAwait(false)` to avoid the cost and avoid deadlocks when a caller blocks.",
+  "Blocking on async code (`task.Result`, `task.Wait()`, `GetAwaiter().GetResult()`) is called sync-over-async. On a single-threaded context it can deadlock: the blocked thread waits for a continuation that needs that same thread. Elsewhere it wastes a thread and can starve the pool. Make the call chain async all the way up instead.",
+  "`async void` methods cannot be awaited and their exceptions are raised on the captured context, typically crashing the process. Use them only for event handlers. An exception in an `async Task` method is stored in the task and rethrown at `await`, which is where you catch it.",
+  "Code before the first incomplete `await` runs synchronously on the caller's thread, including argument validation. Check that expensive synchronous work is not hiding before the first await, and that `.Result`/`.Wait()` never appear in code that could run on a context-bound thread."
+ ],
+ "expectedStdout": "before await (runs synchronously)\nafter await\nreturned, completed=True\nbefore await (runs synchronously)\nreturned, completed=False\nafter await\nexception stored, status Faulted\nrethrown at await: failed inside the task\nConfigureAwait(false) result 7\nconsole apps have no SynchronizationContext\n",
+ "challenge": "Write an async method ValidateAndDelayAsync(int ms) that must throw ArgumentOutOfRangeException immediately (at the call, not at await) for negative input. Use a non-async wrapper with a local async function and show the exception is thrown before any await.",
+ "solutionStdout": "thrown at the call site\nvalid call completed\n",
+ "question": "Why is calling `.Result` on a task from a UI thread risky?",
+ "correct": "The continuation may need the blocked UI thread, causing a deadlock",
+ "wrong": [
+  "Result always returns null for incomplete tasks",
+  "Result cancels the task"
+ ],
+ "reasoning": "Sync-over-async blocks the thread the async continuation is waiting to run on; go async all the way.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/asynchronous-programming/async-scenarios",
+ "additionalReadings": [
+  {
+   "title": "ConfigureAwait FAQ",
+   "url": "https://devblogs.microsoft.com/dotnet/configureawait-faq/",
+   "section": "When to use ConfigureAwait(false)"
+  }
+ ]
+}

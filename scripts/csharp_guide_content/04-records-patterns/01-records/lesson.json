@@ -1,0 +1,28 @@
+{
+ "key": "records",
+ "title": "Records: value equality and non-destructive mutation",
+ "body": [
+  "A record is a type designed to hold data. `record Person(string Name, int Age);` is a positional record: the compiler generates a constructor, `init`-only properties, value-based `Equals`/`GetHashCode`/`==`, a readable `ToString` and a `Deconstruct` method. `record` alone means `record class`, a reference type; `record struct` is a value type.",
+  "Two records are equal when they have the same runtime type and equal property values, even if they are distinct objects. This makes records natural for messages, DTOs, keys and results. Equality is shallow: a property holding a `List<T>` compares the list references, not the items.",
+  "Records are immutable by default (positional properties are `init`). The `with` expression creates a copy with some properties changed: `older = person with { Age = person.Age + 1 };`. The original is untouched. `with` also works on structs and anonymous types.",
+  "Records can declare extra members, override `ToString`, and inherit from other records (not from classes). A `readonly record struct` gives a small immutable value type with generated equality and no heap allocation. Positional `record struct` properties are mutable unless the struct is marked `readonly`.",
+  "Use a class when identity matters (two customers with the same name are still two customers) and a record when the data is the identity. Check collection-valued properties: either use an immutable collection or remember that equality and `with` copy only the reference."
+ ],
+ "expectedStdout": "Person { Name = Ada, Age = 36 }\nTrue False\n36 37\nAda is 37\nPoint { X = 1, Y = 2 } Point { X = 1, Y = 5 }\nFalse\n",
+ "challenge": "Declare record Order(int Id, decimal Total, string Status). Create one, then use with to produce a shipped copy, and print both plus whether they are equal.",
+ "solutionStdout": "Order { Id = 1, Total = 99.5, Status = new }\nOrder { Id = 1, Total = 99.5, Status = shipped }\nFalse\n",
+ "question": "Two separately constructed `record Person(string Name)` objects with the same Name compare with `==`. What is the result?",
+ "correct": "true, because records compare property values",
+ "wrong": [
+  "false, because they are different objects",
+  "A compile error; records cannot use =="
+ ],
+ "reasoning": "Records generate value-based equality; ReferenceEquals would still be false.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/record",
+ "rejected": [
+  {
+   "file": "rejected.cs",
+   "diagnostic": "CS8852"
+  }
+ ]
+}

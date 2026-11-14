@@ -1,0 +1,29 @@
+{
+ "key": "tasks-and-await",
+ "title": "Tasks, async and await",
+ "body": [
+  "A `Task` represents an operation that will complete in the future; `Task<T>` also carries a result. Asynchronous APIs (`File.ReadAllTextAsync`, `HttpClient.GetStringAsync`, `Task.Delay`) return tasks immediately and complete them when the I/O or timer finishes, without blocking a thread while waiting.",
+  "An `async` method can use `await task`, which pauses the method until the task completes, then resumes with its result (or rethrows its exception). While paused, the thread is free to do other work. The method itself returns a `Task`/`Task<T>` to its caller as soon as it first awaits something incomplete. Top-level statements may use `await` directly.",
+  "Awaiting one task after another runs them sequentially. To run independent operations concurrently, start them all first (store the tasks) and then await them, for example with `Task.WhenAll`. Starting a task and awaiting it on the next line gives no concurrency.",
+  "`Task.Run(() => Work())` queues CPU-bound work to the thread pool and returns a task for it. Use it to keep a UI thread responsive or to parallelize CPU work; do not wrap I/O-bound async APIs in `Task.Run`, which just wastes a thread. Async is about not blocking threads during waits, not automatically about parallelism.",
+  "Name async methods with an `Async` suffix and return `Task`, not `void`. Check every task you create is awaited (or deliberately observed): an unawaited task's exception is silently lost and analyzers warn with CS4014."
+ ],
+ "expectedStdout": "start a > start b > both started > end b > end a\n3\n5050\nasync I/O\n",
+ "challenge": "Write SquareLaterAsync(int n) that awaits Task.Yield() and returns n * n. Start three calls for 2, 3 and 4 before awaiting any, then await all and print the sum.",
+ "solutionStdout": "29\n",
+ "question": "Two async calls are awaited one after the other: `var x = await A(); var y = await B();`. When does B start?",
+ "correct": "Only after A has completed",
+ "wrong": [
+  "At the same time as A",
+  "Before A, because awaits are reordered"
+ ],
+ "reasoning": "Start both tasks first and then await them (for example with Task.WhenAll) to overlap the waits.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/asynchronous-programming/",
+ "additionalReadings": [
+  {
+   "title": "Task asynchronous programming model",
+   "url": "https://learn.microsoft.com/en-us/dotnet/csharp/asynchronous-programming/task-asynchronous-programming-model",
+   "section": "What happens in an async method"
+  }
+ ]
+}

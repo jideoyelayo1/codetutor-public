@@ -1,0 +1,82 @@
+{
+  "key": "effect-generators",
+  "stage": "12 · Concurrency and parallelism",
+  "n": 3,
+  "title": "Effect handlers: generators and one-shot continuations",
+  "minutes": 45,
+  "body": [
+    "An effect lets code ask its context to do something without knowing how. You declare one with `type _ Effect.t += Yield : int -> unit Effect.t`, and code performs it with `Effect.perform (Yield 3)`. A *handler* installed further up the stack decides what happens: it receives the request together with a continuation `k` that represents the rest of the suspended computation.",
+    "A continuation is *one-shot*: you must resume it exactly once, with `continue k v` to carry on or `discontinue k exn` to raise an exception at the suspension point. Resuming twice raises `Continuation_already_resumed`, and never resuming it leaks the suspended stack along with any resources it holds. When you stop early, `discontinue` is how the producer's `Fun.protect ~finally` and other cleanup run.",
+    "This is the mechanism behind schedulers, async IO libraries and generators. Handlers are written with `Effect.Deep.match_with`: `retc` handles a normal return, `exnc` handles an exception, and `effc` picks the effects you intercept (returning `None` forwards the rest to outer handlers). Keep handlers small and cancellation explicit."
+  ],
+  "challenge": "src/gen.ml declares the `Yield` effect and `yield`, but `take` returns an empty list. Implement `take n producer` with a deep handler that collects up to n yielded values and then stops the producer by discontinuing its continuation with `Stop` so its cleanup runs. Define `to_list` as `take max_int`.",
+  "projectInstructions": "Run `dune test --root .`. Edit only src/gen.ml. The test includes an infinite producer and a producer with `Fun.protect ~finally`, so a leaked continuation shows up as a missing cleanup.",
+  "question": "Why must `take` discontinue the continuation when it has enough values?",
+  "correct": "A continuation must be resumed exactly once; discontinuing unwinds the producer so its cleanup code runs instead of leaking it",
+  "wrong": [
+    "Continuations are garbage collected immediately, so it is optional",
+    "discontinue makes the producer run faster"
+  ],
+  "reasoning": "An unresumed continuation keeps its stack and resources alive; raising Stop inside it lets finally handlers run and releases them.",
+  "sourceURL": "https://ocaml.org/manual/5.5/effects.html",
+  "projectChecks": [
+    {
+      "name": "starter compiles",
+      "command": [
+        "dune",
+        "build",
+        "--root",
+        "."
+      ],
+      "exit": 0
+    },
+    {
+      "name": "starter test fails",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "test_gen.ml"
+    },
+    {
+      "name": "solution test passes",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 0,
+      "useSolution": true
+    },
+    {
+      "name": "off-by-one is caught",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "test_gen.ml",
+      "useSolution": true,
+      "mutations": [
+        {
+          "path": "src/gen.ml",
+          "find": "!count >= n",
+          "replace": "!count > n"
+        }
+      ]
+    }
+  ],
+  "additionalReadings": [
+    {
+      "title": "OCaml manual: Effect handlers",
+      "url": "https://ocaml.org/manual/5.5/effects.html",
+      "section": "Deep handlers"
+    }
+  ]
+}

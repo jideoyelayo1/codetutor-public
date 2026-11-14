@@ -1,0 +1,82 @@
+{
+  "key": "capstone-typed-format",
+  "stage": "14 · Metaprogramming and capstones",
+  "n": 4,
+  "title": "Capstone 3: a typed printf with GADTs",
+  "minutes": 55,
+  "body": [
+    "A format description can compute the type of the function that uses it. With `type ('a, 'r) fmt = Lit : string -> ('r, 'r) fmt | Int : (int -> 'r, 'r) fmt | Str : (string -> 'r, 'r) fmt | Cat : ('a, 'b) fmt * ('b, 'r) fmt -> ('a, 'r) fmt`, the format `Cat (Lit \"x=\", Int)` has type `(int -> 'r, 'r) fmt`: printing with it needs exactly one `int`. Passing a string, or too few arguments, is a compile-time type error.",
+    "`'a` is the type of the printing function and `'r` is what it finally returns. A literal consumes nothing, so its two parameters are equal. `Int` consumes one int, so `'a` is `int -> 'r`. `Cat (f1, f2)` chains: `f1` turns `'a` into an intermediate `'b`, and `f2` turns that `'b` into `'r`, so the arguments of `f1` come before those of `f2`.",
+    "The interpreter is written in continuation-passing style, `kprintf : type a r. (string -> r) -> (a, r) fmt -> string -> a`, because each constructor changes the result type, which needs the explicit polymorphic annotation. `Lit` appends its text and calls the continuation. `Int` returns a function that waits for the int. `Cat` runs `f1` with a continuation that runs `f2`. This is the same idea as the standard library's `Printf`, in thirty lines."
+  ],
+  "challenge": "In src/fmt.ml, `kprintf` only raises. Implement the four cases: `Lit s` calls `k (acc ^ s)`; `Int` and `Str` return a function that appends the converted argument and calls `k`; `Cat (f1, f2)` runs `f1` with a continuation that runs `f2` with the original `k`. `sprintf` is already `kprintf Fun.id f \"\"`.",
+  "projectInstructions": "Run `dune test --root .`. Edit only `kprintf` in src/fmt.ml. Try writing `sprintf (Cat (Lit \"n=\", Int)) \"x\"` in a scratch file and read the type error.",
+  "question": "What does the type of `Cat (Lit \"x=\", Int)` tell you at compile time?",
+  "correct": "That printing with it needs exactly one int argument, so a wrong argument is a type error",
+  "wrong": [
+    "That it prints the letter x",
+    "That the format is checked only when it runs"
+  ],
+  "reasoning": "The GADT indexes the format by the function type it requires, so the type checker rejects mismatched arguments.",
+  "sourceURL": "https://dev.realworldocaml.org/gadts.html",
+  "projectChecks": [
+    {
+      "name": "starter compiles",
+      "command": [
+        "dune",
+        "build",
+        "--root",
+        "."
+      ],
+      "exit": 0
+    },
+    {
+      "name": "starter tests fail",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "todo"
+    },
+    {
+      "name": "solution tests pass",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 0,
+      "useSolution": true
+    },
+    {
+      "name": "reversed text is caught",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "test_fmt.ml",
+      "useSolution": true,
+      "mutations": [
+        {
+          "path": "src/fmt.ml",
+          "find": "acc ^ string_of_int n",
+          "replace": "string_of_int n ^ acc"
+        }
+      ]
+    }
+  ],
+  "additionalReadings": [
+    {
+      "title": "OCaml manual: Generalized algebraic datatypes",
+      "url": "https://ocaml.org/manual/5.5/gadts-tutorial.html",
+      "section": "Type-safe evaluators"
+    }
+  ]
+}

@@ -1,0 +1,122 @@
+[
+  {
+    "key": "result-for-recoverable-errors",
+    "stage": "05 · Errors as values",
+    "title": "result: errors that explain themselves",
+    "body": [
+      "`('a, 'e) result` is `Ok of 'a | Error of 'e`. Unlike `option`, the error side carries information, so a parser can say which character was wrong and a validator can say which rule failed. The type forces callers to look at both outcomes.",
+      "Choose the error type deliberately. A string is quick for scripts, but a variant such as `Empty | Too_long of int | Bad_char of char` lets callers match on the reason and lets the compiler check that every case is handled. The standard library gives `Result.map`, `Result.bind` and `Result.value`.",
+      "Return `result` when failure is an expected part of the function's job, such as parsing user input. Do not wrap a programming error such as an impossible state in `Error`; that is what assertions and exceptions are for."
+    ],
+    "code": "type error = Empty | Too_long of int | Bad_char of char\n\nlet validate name =\n  if name = \"\" then Error Empty\n  else if String.length name > 8 then Error (Too_long (String.length name))\n  else match String.to_seq name |> Seq.find (fun c -> not (Char.lowercase_ascii c >= 'a' && Char.lowercase_ascii c <= 'z')) with\n    | Some c -> Error (Bad_char c)\n    | None -> Ok name\n\nlet show = function\n  | Ok n -> \"ok \" ^ n\n  | Error Empty -> \"empty\"\n  | Error (Too_long n) -> Printf.sprintf \"too long (%d)\" n\n  | Error (Bad_char c) -> Printf.sprintf \"bad char %c\" c\n\nlet () = List.iter (fun n -> print_endline (show (validate n))) [\"ada\"; \"\"; \"abcdefghij\"; \"a1\"]\n",
+    "expectedStdout": "ok ada\nempty\ntoo long (10)\nbad char 1\n",
+    "challenge": "Write `parse_age s` returning `Ok n` for an integer between 0 and 150 and a descriptive `Error` string otherwise, using `int_of_string_opt`. Print results for \"42\", \"abc\" and \"200\".",
+    "solution": "let parse_age s =\n  match int_of_string_opt s with\n  | None -> Error (\"not a number: \" ^ s)\n  | Some n when n < 0 || n > 150 -> Error (\"out of range: \" ^ string_of_int n)\n  | Some n -> Ok n\n\nlet show = function Ok n -> \"ok \" ^ string_of_int n | Error m -> m\nlet () = List.iter (fun s -> print_endline (show (parse_age s))) [\"42\"; \"abc\"; \"200\"]\n",
+    "solutionStdout": "ok 42\nnot a number: abc\nout of range: 200\n",
+    "question": "When is `result` a better return type than `option`?",
+    "correct": "When the caller needs to know why the operation failed",
+    "wrong": [
+      "When the operation can never fail",
+      "When you want the function to raise an exception"
+    ],
+    "reasoning": "Option records only absence; result carries an error value that callers can match on and report.",
+    "sourceURL": "https://dev.realworldocaml.org/error-handling.html",
+    "project": null
+  },
+  {
+    "key": "exceptions",
+    "stage": "05 · Errors as values",
+    "title": "Exceptions: raise, try and custom exceptions",
+    "body": [
+      "An exception is raised with `raise` and caught with `try ... with`. Standard library functions use them for conditions such as `Not_found`, `Invalid_argument` and `Failure`. Exceptions are values of the extensible type `exn`, and you declare your own with `exception Parse_error of string`.",
+      "A `try` handler is an ordinary pattern match on `exn`, so you catch exactly the cases you handle and let the rest propagate. Catching everything with `_` hides bugs, including `Stack_overflow` and `Out_of_memory`; prefer naming the exceptions you expect.",
+      "Exceptions are cheap in OCaml, which is why `List.assoc` raises `Not_found` rather than returning an option. Prefer the `_opt` variants when absence is normal, and keep a `try` body as small as possible so you do not catch an exception from the wrong call."
+    ],
+    "code": "exception Parse_error of string\n\nlet parse_digit c =\n  if c >= '0' && c <= '9' then Char.code c - Char.code '0'\n  else raise (Parse_error (Printf.sprintf \"not a digit: %c\" c))\n\nlet () =\n  Printf.printf \"%d\\n\" (parse_digit '7');\n  (try ignore (parse_digit 'x') with Parse_error m -> print_endline m);\n  (try ignore (List.assoc \"b\" [(\"a\", 1)]) with Not_found -> print_endline \"no key\");\n  (try ignore (10 / 0) with Division_by_zero -> print_endline \"div by zero\");\n  Printf.printf \"%d\\n\" (try int_of_string \"12\" with Failure _ -> -1);\n  Printf.printf \"%d\\n\" (try int_of_string \"1x\" with Failure _ -> -1)\n",
+    "expectedStdout": "7\nnot a digit: x\nno key\ndiv by zero\n12\n-1\n",
+    "challenge": "Declare `exception Negative of int`, write `sqrt_int n` that raises it for negative input, and catch it to print a message.",
+    "solution": "exception Negative of int\n\nlet sqrt_int n = if n < 0 then raise (Negative n) else int_of_float (sqrt (float_of_int n))\n\nlet () =\n  Printf.printf \"%d\\n\" (sqrt_int 49);\n  try ignore (sqrt_int (-4)) with Negative n -> Printf.printf \"negative: %d\\n\" n\n",
+    "solutionStdout": "7\nnegative: -4\n",
+    "question": "Why is `try ... with _ -> ...` usually a mistake?",
+    "correct": "It also swallows unexpected exceptions, hiding bugs",
+    "wrong": [
+      "It is a syntax error",
+      "It makes the body run twice"
+    ],
+    "reasoning": "A catch-all handler cannot tell an expected failure from a bug, so unrelated errors vanish silently.",
+    "sourceURL": "https://dev.realworldocaml.org/error-handling.html",
+    "project": null
+  },
+  {
+    "key": "cleanup-with-fun-protect",
+    "stage": "05 · Errors as values",
+    "title": "Cleanup that survives failure: Fun.protect",
+    "body": [
+      "When code acquires something, such as a file or a lock, it must release it on every path, including when an exception escapes. `Fun.protect ~finally f` runs `f ()` and always runs `finally ()` afterwards, then re-raises any exception from `f`.",
+      "Write acquire-use-release as a higher-order function, `with_resource name f`, so callers cannot forget the cleanup. The standard library does this for files: `In_channel.with_open_text` closes the channel for you.",
+      "If `finally` itself raises, you get `Fun.Finally_raised`, which signals a bug in the cleanup. Keep `finally` small and total, and never use it to hide the original failure."
+    ],
+    "code": "let log = Buffer.create 16\n\nlet with_resource name f =\n  Buffer.add_string log (\"open \" ^ name ^ \";\");\n  Fun.protect ~finally:(fun () -> Buffer.add_string log (\"close \" ^ name ^ \";\")) f\n\nlet () =\n  let ok = with_resource \"a\" (fun () -> 41 + 1) in\n  Printf.printf \"%d\\n\" ok;\n  (try ignore (with_resource \"b\" (fun () -> failwith \"boom\")) with Failure m -> print_endline m);\n  print_endline (Buffer.contents log)\n",
+    "expectedStdout": "42\nboom\nopen a;close a;open b;close b;\n",
+    "challenge": "Use Fun.protect to run a computation that raises `Not_found` and prove the cleanup ran by printing \"cleaned\" from the `finally` before the exception is caught.",
+    "solution": "let () =\n  try Fun.protect ~finally:(fun () -> print_endline \"cleaned\") (fun () -> raise Not_found)\n  with Not_found -> print_endline \"caught\"\n",
+    "solutionStdout": "cleaned\ncaught\n",
+    "question": "What does `Fun.protect ~finally f` guarantee?",
+    "correct": "finally runs whether f returns or raises, and an exception from f is re-raised afterwards",
+    "wrong": [
+      "finally runs only if f succeeds",
+      "Exceptions from f are discarded"
+    ],
+    "reasoning": "It wraps f so the cleanup is unconditional, while still letting the original exception reach the caller.",
+    "sourceURL": "https://ocaml.org/manual/5.5/api/Fun.html",
+    "project": null
+  },
+  {
+    "key": "binding-operators",
+    "stage": "05 · Errors as values",
+    "title": "Binding operators: let* over result and option",
+    "body": [
+      "Chaining several fallible steps with nested matches buries the logic. A binding operator such as `let*` lets you write the happy path in sequence: `let* a = step1 x in let* b = step2 a in Ok (a + b)`, with the first `Error` ending the computation.",
+      "You define the operator yourself: `let ( let* ) = Result.bind`. This is ordinary function definition with a special name, and OCaml translates `let*` into a call to it. `let+` plays the same role for `map`, and `and*` combines independent steps.",
+      "Keep each operator tied to one monad in a small local module so that the code reads cleanly. Do not mix option and result operators in one scope, since the type checker will report a confusing mismatch."
+    ],
+    "code": "let ( let* ) = Result.bind\n\nlet parse s = match int_of_string_opt s with Some n -> Ok n | None -> Error (\"bad int: \" ^ s)\nlet positive n = if n > 0 then Ok n else Error (\"not positive: \" ^ string_of_int n)\n\nlet add_parsed a b =\n  let* x = parse a in\n  let* y = parse b in\n  let* x = positive x in\n  Ok (x + y)\n\nlet show = function Ok n -> string_of_int n | Error m -> m\n\nlet () = List.iter (fun (a, b) -> print_endline (show (add_parsed a b))) [(\"2\", \"3\"); (\"x\", \"3\"); (\"-1\", \"3\")]\n",
+    "expectedStdout": "5\nbad int: x\nnot positive: -1\n",
+    "challenge": "Define `let ( let+ ) r f = Result.map f r` and use it to double the parsed integer of \"21\", printing the result.",
+    "solution": "let ( let+ ) r f = Result.map f r\nlet parse s = match int_of_string_opt s with Some n -> Ok n | None -> Error \"bad\"\nlet doubled = let+ n = parse \"21\" in n * 2\nlet () = match doubled with Ok n -> Printf.printf \"%d\\n\" n | Error m -> print_endline m\n",
+    "solutionStdout": "42\n",
+    "question": "What does `let* x = e in body` translate to?",
+    "correct": "A call to the user-defined ( let* ) operator with e and a function taking x",
+    "wrong": [
+      "A built-in try-with block",
+      "An assignment to a mutable variable"
+    ],
+    "reasoning": "Binding operators are ordinary functions; the syntax rewrites let* into an application of the operator.",
+    "sourceURL": "https://ocaml.org/manual/5.5/bindingops.html",
+    "project": null
+  },
+  {
+    "key": "collecting-results",
+    "stage": "05 · Errors as values",
+    "title": "Working with lists of results",
+    "body": [
+      "Often you validate many items. There are two useful behaviours: stop at the first error, or collect every error. Folding with `Result.bind` gives the first, and partitioning the results gives the second.",
+      "To stop early, fold the list and carry `Ok acc` forward; the first `Error` short-circuits the rest because `Result.bind` does not call its function on an error. To report everything, map each item to a result, then split with `List.partition_map` so users see all the problems at once.",
+      "Pick the behaviour the caller needs. Short-circuiting is right for pipelines that cannot continue. Collecting is right for user-facing validation where fixing one error at a time is annoying."
+    ],
+    "code": "let parse s = match int_of_string_opt s with Some n -> Ok n | None -> Error s\n\nlet all_or_first_error xs =\n  List.fold_left (fun acc s -> Result.bind acc (fun l -> Result.map (fun n -> n :: l) (parse s))) (Ok []) xs\n  |> Result.map List.rev\n\nlet () =\n  (match all_or_first_error [\"1\"; \"2\"; \"3\"] with Ok l -> Printf.printf \"%d items\\n\" (List.length l) | Error e -> print_endline e);\n  (match all_or_first_error [\"1\"; \"b\"; \"c\"] with Ok _ -> () | Error e -> Printf.printf \"first error: %s\\n\" e);\n  let oks, errors = List.partition_map (fun s -> match parse s with Ok n -> Left n | Error e -> Right e) [\"1\"; \"b\"; \"3\"; \"d\"] in\n  Printf.printf \"%d ok, errors: %s\\n\" (List.length oks) (String.concat \",\" errors)\n",
+    "expectedStdout": "3 items\nfirst error: b\n2 ok, errors: b,d\n",
+    "challenge": "Use List.partition_map to split [\"4\"; \"x\"; \"6\"] into parsed numbers and bad strings, and print the sum of the numbers and the count of bad strings.",
+    "solution": "let () =\n  let oks, bad = List.partition_map (fun s -> match int_of_string_opt s with Some n -> Left n | None -> Right s) [\"4\"; \"x\"; \"6\"] in\n  Printf.printf \"%d %d\\n\" (List.fold_left ( + ) 0 oks) (List.length bad)\n",
+    "solutionStdout": "10 1\n",
+    "question": "Which approach reports every invalid item instead of only the first?",
+    "correct": "Map each item to a result and partition the Ok and Error values",
+    "wrong": [
+      "Fold with Result.bind",
+      "Wrap the whole list in a single try-with"
+    ],
+    "reasoning": "Result.bind stops at the first error; partitioning inspects all results so none is lost.",
+    "sourceURL": "https://dev.realworldocaml.org/error-handling.html",
+    "project": null
+  }
+]

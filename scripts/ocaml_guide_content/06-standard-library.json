@@ -1,0 +1,146 @@
+[
+  {
+    "key": "list-module-tour",
+    "stage": "06 · Standard library",
+    "title": "The List module in practice",
+    "body": [
+      "`List` is the workhorse of everyday OCaml. Learn the families: transform (`map`, `mapi`, `filter_map`, `concat_map`), summarise (`fold_left`, `exists`, `for_all`, `length`), search (`find_opt`, `assoc_opt`, `mem`), reorder (`sort`, `rev`, `sort_uniq`) and split or join (`partition`, `combine`, `split`, `flatten`).",
+      "Pick the function that states your intent. `filter_map` replaces a filter followed by a map when the mapping can fail, and `concat_map` replaces map followed by flatten. A clear combinator is easier to read and to optimise than a hand-written recursion.",
+      "Remember cost. `List.nth` and `@` walk the list, so using them in a loop makes it quadratic. If you index often, convert to an array once. Many `List` functions are not tail-recursive on very long lists in older compilers, so check the manual if you process millions of elements."
+    ],
+    "code": "let () =\n  let xs = [5; 3; 8; 1; 9; 2] in\n  let show l = String.concat \" \" (List.map string_of_int l) in\n  print_endline (show (List.sort compare xs));\n  print_endline (show (List.filter_map (fun n -> if n > 4 then Some (n * 10) else None) xs));\n  print_endline (show (List.concat_map (fun n -> [n; n]) [1; 2]));\n  let evens, odds = List.partition (fun n -> n mod 2 = 0) xs in\n  Printf.printf \"%s | %s\\n\" (show evens) (show odds);\n  print_endline (show (List.mapi (fun i n -> i * n) [10; 10; 10]));\n  print_endline (show (List.sort_uniq compare [3; 1; 3; 2; 1]))\n",
+    "expectedStdout": "1 2 3 5 8 9\n50 80 90\n1 1 2 2\n8 2 | 5 3 1 9\n0 10 20\n1 2 3\n",
+    "challenge": "Given words, use List.filter_map to keep the lengths of words longer than 3 characters, then print their sum.",
+    "solution": "let () =\n  let words = [\"a\"; \"tree\"; \"is\"; \"green\"] in\n  let lens = List.filter_map (fun w -> let n = String.length w in if n > 3 then Some n else None) words in\n  Printf.printf \"%d\\n\" (List.fold_left ( + ) 0 lens)\n",
+    "solutionStdout": "9\n",
+    "question": "Which function replaces a filter followed by a map when the mapping can fail?",
+    "correct": "List.filter_map",
+    "wrong": [
+      "List.concat",
+      "List.partition"
+    ],
+    "reasoning": "filter_map applies a function returning an option and keeps only the Some results, doing both steps in one pass.",
+    "sourceURL": "https://ocaml.org/manual/5.5/api/List.html",
+    "project": null
+  },
+  {
+    "key": "arrays-and-bytes",
+    "stage": "06 · Standard library",
+    "title": "Arrays, strings and bytes",
+    "body": [
+      "An `array` has a fixed length, constant-time indexing and in-place update with `a.(i) <- v`. Create one with `Array.make`, `Array.init` or a literal `[| 1; 2; 3 |]`. Index out of range raises `Invalid_argument`, which the compiler cannot catch in advance.",
+      "`string` is immutable text. Operations like `String.sub`, `String.split_on_char` and `String.concat` return new strings. When you need to build or change text efficiently, use `Bytes` (mutable) or `Buffer` (growable), and convert at the end with `Bytes.to_string` or `Buffer.contents`.",
+      "Prefer `Buffer` for appending in a loop, because repeated `^` copies the whole string every time and becomes quadratic. Treat strings as byte sequences, so `String.length` counts bytes, not Unicode characters."
+    ],
+    "code": "let () =\n  let a = Array.init 5 (fun i -> i * i) in\n  a.(0) <- 100;\n  Array.iter (Printf.printf \"%d \") a;\n  print_newline ();\n  Printf.printf \"%d\\n\" (Array.fold_left ( + ) 0 a);\n  let b = Buffer.create 16 in\n  for i = 1 to 3 do Buffer.add_string b (string_of_int i); Buffer.add_char b ',' done;\n  print_endline (Buffer.contents b);\n  print_endline (String.concat \"-\" (String.split_on_char ' ' \"a b c\"));\n  let by = Bytes.of_string \"cat\" in\n  Bytes.set by 0 'b';\n  print_endline (Bytes.to_string by);\n  print_endline (String.sub \"abcdef\" 2 3);\n  print_endline (String.uppercase_ascii \"ocaml\")\n",
+    "expectedStdout": "100 1 4 9 16 \n130\n1,2,3,\na-b-c\nbat\ncde\nOCAML\n",
+    "challenge": "Reverse the string \"stressed\" by copying its characters into Bytes in reverse order, then print the result.",
+    "solution": "let () =\n  let s = \"stressed\" in\n  let n = String.length s in\n  let r = Bytes.create n in\n  String.iteri (fun i c -> Bytes.set r (n - 1 - i) c) s;\n  print_endline (Bytes.to_string r)\n",
+    "solutionStdout": "desserts\n",
+    "question": "Why use Buffer instead of repeated `^` when building a long string in a loop?",
+    "correct": "Each ^ copies the whole string, so a loop becomes quadratic; Buffer appends in amortised constant time",
+    "wrong": [
+      "Because ^ only works for two characters",
+      "Because Buffer sorts the characters"
+    ],
+    "reasoning": "Strings are immutable, so each concatenation allocates a new copy; a Buffer grows in place and copies once at the end.",
+    "sourceURL": "https://ocaml.org/manual/5.5/api/Buffer.html",
+    "project": null
+  },
+  {
+    "key": "hashtbl-mutable-maps",
+    "stage": "06 · Standard library",
+    "title": "Hashtbl for mutable lookup tables",
+    "body": [
+      "`Hashtbl` is a mutable hash table: `Hashtbl.create 16`, `add`/`replace`, `find_opt`, `mem` and `remove`. Lookup and update are on average constant time, which is what you want for counting, caching and memoisation.",
+      "Know the difference between `add` and `replace`. `add` hides an older binding for the same key but keeps it underneath, so `find_all` returns every binding, while `replace` overwrites. Most code wants `replace`, and `find_opt` instead of the exception-raising `find`.",
+      "Iteration order is unspecified, so sort the keys before printing. The default `Hashtbl.hash` is structural and only looks at a bounded amount of a value; for keys with custom equality, use the functor `Hashtbl.Make` with your own `equal` and `hash`."
+    ],
+    "code": "let count_words words =\n  let t = Hashtbl.create 16 in\n  List.iter (fun w ->\n    let n = Option.value (Hashtbl.find_opt t w) ~default:0 in\n    Hashtbl.replace t w (n + 1)) words;\n  t\n\nlet () =\n  let t = count_words [\"a\"; \"b\"; \"a\"; \"c\"; \"a\"; \"b\"] in\n  let pairs = Hashtbl.fold (fun k v acc -> (k, v) :: acc) t [] |> List.sort compare in\n  List.iter (fun (k, v) -> Printf.printf \"%s=%d \" k v) pairs;\n  print_newline ();\n  Printf.printf \"%b %b\\n\" (Hashtbl.mem t \"a\") (Hashtbl.mem t \"z\");\n  Hashtbl.remove t \"a\";\n  Printf.printf \"%d\\n\" (Hashtbl.length t)\n",
+    "expectedStdout": "a=3 b=2 c=1 \ntrue false\n2\n",
+    "challenge": "Memoise a slow Fibonacci with a Hashtbl and print fib 40.",
+    "solution": "let memo = Hashtbl.create 64\n\nlet rec fib n =\n  if n < 2 then n\n  else match Hashtbl.find_opt memo n with\n    | Some v -> v\n    | None -> let v = fib (n - 1) + fib (n - 2) in Hashtbl.replace memo n v; v\n\nlet () = Printf.printf \"%d\\n\" (fib 40)\n",
+    "solutionStdout": "102334155\n",
+    "question": "Why sort the keys before printing a Hashtbl's contents?",
+    "correct": "Iteration order is unspecified, so output would otherwise vary",
+    "wrong": [
+      "Hashtbl stores keys in sorted order already",
+      "Sorting is required by Hashtbl.fold"
+    ],
+    "reasoning": "Hash tables do not guarantee any traversal order, so deterministic output needs an explicit sort.",
+    "sourceURL": "https://dev.realworldocaml.org/maps-and-hashtables.html",
+    "project": null
+  },
+  {
+    "key": "map-and-set-functors",
+    "stage": "06 · Standard library",
+    "title": "Persistent Map and Set",
+    "body": [
+      "`Map.Make` and `Set.Make` are functors: you give them a module with a type `t` and a `compare` function, and you get a persistent (immutable) balanced tree. `module IntMap = Map.Make (Int)` yields maps with int keys.",
+      "Operations return new maps and leave the old one intact, so you can keep previous versions cheaply. Lookup, insert and remove are logarithmic. Iteration with `fold` or `bindings` is in sorted key order, which makes the output deterministic.",
+      "Use `Map` when you need ordered keys, sharing or immutability, and `Hashtbl` when you want mutable constant-time updates. A common mistake is expecting a `Map` operation to modify its argument; remember to bind the result."
+    ],
+    "code": "module SMap = Map.Make (String)\nmodule ISet = Set.Make (Int)\n\nlet () =\n  let m0 = SMap.empty in\n  let m1 = SMap.add \"b\" 2 (SMap.add \"a\" 1 m0) in\n  let m2 = SMap.add \"c\" 3 m1 in\n  SMap.iter (fun k v -> Printf.printf \"%s=%d \" k v) m2;\n  print_newline ();\n  Printf.printf \"%d %d\\n\" (SMap.cardinal m1) (SMap.cardinal m2);\n  Printf.printf \"%s\\n\" (match SMap.find_opt \"z\" m2 with None -> \"none\" | Some _ -> \"some\");\n  let s = ISet.of_list [3; 1; 2; 3] in\n  Printf.printf \"%d %b\\n\" (ISet.cardinal s) (ISet.mem 2 s);\n  let u = ISet.union s (ISet.of_list [9]) in\n  List.iter (Printf.printf \"%d \") (ISet.elements u);\n  print_newline ()\n",
+    "expectedStdout": "a=1 b=2 c=3 \n2 3\nnone\n3 true\n1 2 3 9 \n",
+    "challenge": "Build a Map from string to int counting how many times each letter appears in \"banana\" (use SMap.update) and print it in key order.",
+    "solution": "module CMap = Map.Make (Char)\n\nlet () =\n  let m = String.fold_left (fun m c -> CMap.update c (function None -> Some 1 | Some n -> Some (n + 1)) m) CMap.empty \"banana\" in\n  CMap.iter (fun c n -> Printf.printf \"%c=%d \" c n) m;\n  print_newline ()\n",
+    "solutionStdout": "a=3 b=1 n=2 \n",
+    "question": "What happens to the original map after `SMap.add \"c\" 3 m1`?",
+    "correct": "It is unchanged; add returns a new map that shares structure with it",
+    "wrong": [
+      "It gains the new binding in place",
+      "It is deleted"
+    ],
+    "reasoning": "Map is a persistent data structure, so every update produces a new value while old versions stay valid.",
+    "sourceURL": "https://ocaml.org/manual/5.5/api/Map.html",
+    "project": null
+  },
+  {
+    "key": "seq-lazy-sequences",
+    "stage": "06 · Standard library",
+    "title": "Seq: lazy sequences",
+    "body": [
+      "A `Seq.t` is a lazy, possibly infinite sequence: a function that produces the next element only when asked. This lets you describe `naturals`, `primes` or a file's lines without building a whole list in memory.",
+      "Combinators such as `Seq.map`, `Seq.filter`, `Seq.take` and `Seq.fold_left` mirror the `List` functions but compute on demand. Nothing runs until a consumer like `fold_left`, `iter` or `List.of_seq` forces it, so you must bound an infinite sequence with `take` before collecting it.",
+      "Sequences are ephemeral by default: an effectful source may produce different results if you traverse it twice. Use `Seq.memoize` when you need to traverse a costly sequence more than once, and prefer a list when the data is small and reused."
+    ],
+    "code": "let naturals = Seq.iterate (fun n -> n + 1) 0\n\nlet () =\n  let squares_of_evens =\n    naturals |> Seq.filter (fun n -> n mod 2 = 0) |> Seq.map (fun n -> n * n) |> Seq.take 5\n  in\n  List.iter (Printf.printf \"%d \") (List.of_seq squares_of_evens);\n  print_newline ();\n  let total = naturals |> Seq.take 101 |> Seq.fold_left ( + ) 0 in\n  Printf.printf \"%d\\n\" total;\n  let calls = ref 0 in\n  let s = Seq.map (fun n -> incr calls; n) (Seq.take 3 naturals) in\n  Printf.printf \"%d\\n\" !calls;\n  ignore (List.of_seq s);\n  Printf.printf \"%d\\n\" !calls\n",
+    "expectedStdout": "0 4 16 36 64 \n5050\n0\n3\n",
+    "challenge": "Use Seq.unfold to produce the first 8 powers of two and print them.",
+    "solution": "let () =\n  let powers = Seq.unfold (fun n -> Some (n, n * 2)) 1 |> Seq.take 8 in\n  List.iter (Printf.printf \"%d \") (List.of_seq powers);\n  print_newline ()\n",
+    "solutionStdout": "1 2 4 8 16 32 64 128 \n",
+    "question": "When does a Seq pipeline actually compute elements?",
+    "correct": "When a consumer such as fold_left, iter or List.of_seq demands them",
+    "wrong": [
+      "As soon as each combinator is applied",
+      "At program start"
+    ],
+    "reasoning": "Seq values are functions producing the next element on demand, so combinators only build the plan.",
+    "sourceURL": "https://ocaml.org/manual/5.5/api/Seq.html",
+    "project": null
+  },
+  {
+    "key": "format-and-sprintf",
+    "stage": "06 · Standard library",
+    "title": "Formatting text: sprintf, Format and custom printers",
+    "body": [
+      "`Printf.sprintf` returns a string instead of printing, so it is the standard way to build messages. The format string is typed, which is why `sprintf \"%d\" \"x\"` is a compile error. Padding and precision work as in C: `%5d`, `%-5s`, `%05.1f`.",
+      "The `Format` module adds pretty-printing: boxes, break hints and automatic line breaking at a margin. A printer for your type has the shape `Format.formatter -> t -> unit`, and you use it with `%a`, such as `Format.asprintf \"%a\" pp_point p`.",
+      "Write a `pp` function for every public type. Doing so gives toplevel printers, test failure messages and logging a single readable place, and later lessons on `ppx_deriving`/`ppx_jane` generate this boilerplate for you."
+    ],
+    "code": "type point = { x : int; y : int }\n\nlet pp_point fmt p = Format.fprintf fmt \"(%d, %d)\" p.x p.y\n\nlet () =\n  print_endline (Printf.sprintf \"[%5d][%-5s][%05.1f]\" 42 \"ab\" 3.14159);\n  let s = Format.asprintf \"%a and %a\" pp_point { x = 1; y = 2 } pp_point { x = 3; y = 4 } in\n  print_endline s;\n  Format.printf \"@[<v>%a@,%a@]@.\" pp_point { x = 0; y = 0 } pp_point { x = 9; y = 9 };\n  print_endline (String.concat \", \" (List.map (Format.asprintf \"%a\" pp_point) [{ x = 5; y = 5 }]))\n",
+    "expectedStdout": "[   42][ab   ][003.1]\n(1, 2) and (3, 4)\n(0, 0)\n(9, 9)\n(5, 5)\n",
+    "challenge": "Write `pp_list pp_elt` that prints a list as `[a; b; c]` using Format.pp_print_list with a \"; \" separator, and print `[1; 2; 3]` with it.",
+    "solution": "let pp_list pp_elt fmt l =\n  Format.fprintf fmt \"[%a]\" (Format.pp_print_list ~pp_sep:(fun f () -> Format.fprintf f \"; \") pp_elt) l\n\nlet () = print_endline (Format.asprintf \"%a\" (pp_list Format.pp_print_int) [1; 2; 3])\n",
+    "solutionStdout": "[1; 2; 3]\n",
+    "question": "What is the shape of a Format printer for type t?",
+    "correct": "Format.formatter -> t -> unit, used with %a",
+    "wrong": [
+      "t -> string, used with %s",
+      "unit -> t"
+    ],
+    "reasoning": "%a takes a function that writes to a formatter and then the value to print, so printers compose.",
+    "sourceURL": "https://ocaml.org/manual/5.5/api/Format.html",
+    "project": null
+  }
+]

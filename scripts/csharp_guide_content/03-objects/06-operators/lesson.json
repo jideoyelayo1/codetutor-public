@@ -1,0 +1,29 @@
+{
+ "key": "operator-overloading",
+ "title": "Object members and operator overloading",
+ "body": [
+  "Every type derives from `object`, which supplies `ToString`, `Equals`, `GetHashCode` and `GetType`. Override `ToString` to produce readable output for logs and debugging; interpolation and `Console.WriteLine` call it automatically.",
+  "A type can define operators as `public static` methods: `public static Vector operator +(Vector a, Vector b)`. Overload operators only when the meaning is obvious (numbers, vectors, money). Some operators come in required pairs: `==` with `!=`, `<` with `>`, `<=` with `>=`.",
+  "Conversion operators define casts. An `implicit` conversion should never lose information or throw; an `explicit` one is for conversions that can. A `Celsius` to `double` conversion can be explicit to make the unit change visible at call sites.",
+  "C# 14 adds user-defined compound assignment operators. Before C# 14, `a += b` always meant `a = a + b`, creating a new object. Now a class can declare an instance `public void operator +=(Vector other)` that mutates in place, which avoids allocations for large mutable types. Types without it keep the old behaviour.",
+  "Operators must not surprise readers: `+` should not have side effects, and an in-place `+=` must leave the object consistent with what `+` would produce. Check that equality operators agree with `Equals` and that conversions say clearly whether they can lose data."
+ ],
+ "expectedStdout": "(4, 6)\n(3, 6)\n(-1, -2)\nTrue\n12 after 2 in-place updates\n21.5\n",
+ "challenge": "Create a readonly record struct Money(decimal Amount, string Currency) with a + operator that throws InvalidOperationException when currencies differ. Print 5 USD + 7 USD and the message for USD + EUR.",
+ "solutionStdout": "12 USD\nCannot add USD to EUR\n",
+ "question": "In C# 14, what can `public void operator +=(int value)` on a class achieve that `operator +` cannot?",
+ "correct": "Update the existing object in place instead of creating a new one",
+ "wrong": [
+  "Make + and += have unrelated meanings legally required",
+  "Allow += on types that have no + operator only at runtime"
+ ],
+ "reasoning": "User-defined compound assignment lets mutable types avoid allocating a new result for every +=.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/operator-overloading",
+ "additionalReadings": [
+  {
+   "title": "User-defined compound assignment (C# 14)",
+   "url": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/proposals/csharp-14.0/user-defined-compound-assignment",
+   "section": "Specification"
+  }
+ ]
+}

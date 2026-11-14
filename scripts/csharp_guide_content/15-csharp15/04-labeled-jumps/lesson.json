@@ -1,0 +1,30 @@
+{
+ "key": "labeled-break-continue",
+ "title": "Labeled break and continue",
+ "sdk": "11",
+ "body": [
+  "C# 15 ships with .NET 11, whose release candidates carry a go-live licence; general availability is expected in November 2026. These examples are checked with SDK 11.0.100-rc.2. Details can still change before release, so re-check the What's new page after GA.",
+  "Stage 1 noted that `break` and `continue` affect only the innermost loop, so leaving nested loops needed a flag, a `goto` or an extracted method. C# 15 lets them name a label on an enclosing loop or switch: `continue outer;` starts the next iteration of the loop labelled `outer`, and `break outer;` leaves it.",
+  "Put the label directly on the loop statement it names (`outer: for (...)`). Without a label, `break` and `continue` keep their old meaning. The IDE0410 style rule suggests labeled jumps where code uses the flag or `goto` workarounds.",
+  "Labeled jumps help in searches over grids or nested collections and in parsers that skip ahead. Very deep nesting is still a sign that extracting a method with `return` might read better.",
+  "Check that the label names the loop you mean; `continue outer` re-evaluates the outer loop's condition and increment, which is easy to forget when the outer loop also maintains state."
+ ],
+ "expectedStdout": "1,2,3,4,7\n2x6\n",
+ "challenge": "Given lines of comma-separated numbers, sum each line but skip the whole line (continue to the next line) as soon as a non-number appears, using a labeled continue. Lines: \"1,2,3\", \"4,x,5\", \"6\".",
+ "solutionStdout": "6,6\n",
+ "question": "What does `continue outer;` do inside a nested loop in C# 15?",
+ "correct": "Starts the next iteration of the loop labelled outer",
+ "wrong": [
+  "Restarts the inner loop from its first element",
+  "Jumps to the statement after the outer loop"
+ ],
+ "reasoning": "A labeled continue targets the named enclosing loop; break outer would leave it instead.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/jump-statements",
+ "additionalReadings": [
+  {
+   "title": "IDE0410",
+   "url": "https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/style-rules/ide0410",
+   "section": "Prefer labeled jumps"
+  }
+ ]
+}

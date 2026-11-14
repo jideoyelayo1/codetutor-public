@@ -1,0 +1,289 @@
+[
+  {
+    "key": "lexical-conventions-and-precedence",
+    "stage": "20 · The language reference in depth",
+    "title": "Lexical conventions, literals and operator precedence",
+    "body": [
+      "The lexer turns characters into tokens before anything else happens. Integers may contain underscores for readability (`1_000_000`) and be written in hexadecimal (`0xFF`), octal (`0o17`) or binary (`0b1010`). A character literal can be an escape such as `'\\n'`, a decimal code `'\\065'` or a hexadecimal one `'\\x41'`. A string may contain escapes, may continue over a line with a trailing backslash, and may be written in the quoted form `{|...|}` or `{id|...|id}` in which nothing is an escape.",
+      "Comments nest: `(* a (* b *) c *)` is one comment, so you can comment out code that already contains comments. Operators are ordinary identifiers made of symbol characters, and their *first* characters decide precedence and associativity: names starting with `+` or `-` are additive and left-associative, `*`, `/` and `%` multiplicative, and `**` right-associative. You may define your own, such as `let ( +++ ) a b = a * 10 + b`.",
+      "Function application binds tighter than any operator, so `f x + g y` is `(f x) + (g y)`, and the prefix `-` binds tighter than `*`. `@@` and `|>` are ordinary operators that follow the leading-character rule: `@@` starts with `@`, so it is right-associative and binds more loosely than `+` but more tightly than the comparisons (`f @@ x = y` is `(f @@ x) = y`), while `|>` starts with `|` and sits at the comparison level, grouping from the left. That is why `print_endline @@ string_of_int 3` needs no parentheses. When you are unsure how an expression groups, add parentheses: they cost nothing."
+    ],
+    "code": "let ( +++ ) a b = (a * 10) + b\n\nlet () =\n  Printf.printf \"%d %d %d %d\\n\" 1_000_000 0xFF 0b1010 0o17;\n  Printf.printf \"%.1f %.1f\\n\" 1.5e2 2.;\n  Printf.printf \"%c%c%c|%d\\n\" 'A' '\\065' '\\x41' (Char.code '\\n');\n  print_endline \"tab:\\tend\";\n  print_endline \"line one \\\n                 continues\";\n  print_endline {|raw \"quotes\" and \\n are not escaped|};\n  print_endline {xx|can contain |} inside|xx};\n  (* a comment (* with a nested comment *) is still one comment *)\n  Printf.printf \"%d\\n\" (1 +++ 2 +++ 3);\n  print_endline @@ string_of_int (1 + 2);\n  (* @@ binds tighter than =, so this is (string_of_int @@ 1 + 2) = \"3\" *)\n  Printf.printf \"%b\\n\" (string_of_int @@ 1 + 2 = \"3\");\n  Printf.printf \"%.0f\\n\" (2. ** 3. ** 2.);\n  Printf.printf \"%d\\n\" (- 2 * 3);\n  Printf.printf \"%d\\n\" (List.length [ 1; 2 ] + List.length [ 3 ])\n",
+    "expectedStdout": "1000000 255 10 15\n150.0 2.0\nAAA|10\ntab:\tend\nline one continues\nraw \"quotes\" and \\n are not escaped\ncan contain |} inside\n123\n3\ntrue\n512\n-6\n3\n",
+    "challenge": "Define a right-associative operator `**>` such that `1 **> 2 **> 3` means `1 **> (2 **> 3)` using the rule that names starting with `**` are right-associative, with `a **> b = a - b`, and print the result.",
+    "solution": "let ( **> ) a b = a - b\n\nlet () = Printf.printf \"%d\\n\" (1 **> 2 **> 3)\n",
+    "solutionStdout": "2\n",
+    "question": "What decides the precedence and associativity of a user-defined operator?",
+    "correct": "Its first characters: for example names starting with + or - are additive and left-associative",
+    "wrong": [
+      "The order in which operators are defined",
+      "The length of the operator name"
+    ],
+    "reasoning": "The language fixes a table by leading characters, so any operator that starts with them inherits that behaviour.",
+    "sourceURL": "https://ocaml.org/manual/5.5/lex.html",
+    "additionalReadings": [
+      {
+        "title": "OCaml manual: The language",
+        "url": "https://ocaml.org/manual/5.5/language.html",
+        "section": "Lexical conventions and expressions"
+      }
+    ],
+    "project": null
+  },
+  {
+    "key": "names-namespaces-and-scope",
+    "stage": "20 · The language reference in depth",
+    "title": "Names, namespaces and scope",
+    "body": [
+      "OCaml keeps several namespaces apart, so one spelling can mean different things in different positions: values, type constructors, data constructors, record labels, modules, module types and classes each have their own. `type t = A | B`, `let t = 5`, `module T = struct ... end` and `type r = { t : int }` can all coexist, and the context says which `t` or `T` you mean.",
+      "Within one namespace a later definition shadows an earlier one. Constructors are shadowed too: after `type u = A of int`, the name `A` refers to `u` unless a type annotation such as `(A : t)` says otherwise, because OCaml uses the expected type to disambiguate. `type nonrec t = t list` says the right-hand `t` is the *previous* definition, and a qualified name such as `Stdlib.List.length` reaches a module that your own `List` has hidden.",
+      "Scope is lexical and nested. `let module M = ... in`, `let open M in` and `M.(expr)` limit a name's reach to one expression. Use shadowing deliberately and sparingly: it is safe for a value you transform step by step, and a trap when it hides a module from the standard library that other code expects."
+    ],
+    "code": "type t = A | B\ntype u = A of int          (* the constructor A now belongs to u *)\n\nlet t = 5                  (* a value named t, in a different namespace from the type t *)\nmodule T = struct let t = \"module value\" end\nmodule type T = sig val t : string end\ntype r = { t : int }       (* a record label named t *)\n\ntype nonrec v = t list     (* the t on the right is the earlier type *)\n\nmodule List = struct let length _ = -1 end   (* shadows Stdlib.List inside this file *)\n\nlet () =\n  let r = { t } in\n  Printf.printf \"%d %s %d\\n\" t T.t r.t;\n  let x : t = A in\n  let y = A 3 in\n  Printf.printf \"%b %s\\n\" (x = A) (match y with A n -> string_of_int n);\n  let l : v = [ A; B ] in\n  Printf.printf \"%d %d\\n\" (Stdlib.List.length l) (List.length l);\n  let x = 1 in\n  let x = x + 1 in\n  Printf.printf \"%d\\n\" x;\n  let module M = struct let v = 3 end in\n  Printf.printf \"%d\\n\" M.v;\n  let open Stdlib.String in\n  Printf.printf \"%d\\n\" (length \"ocaml\")\n",
+    "expectedStdout": "5 module value 5\ntrue 3\n2 -1\n2\n3\n5\n",
+    "challenge": "Define a module `Option` of your own with a value `get = 0`, then print both `Option.get` and `Stdlib.Option.get (Some 7)` to show how the qualified name reaches the standard one.",
+    "solution": "module Option = struct let get = 0 end\n\nlet () = Printf.printf \"%d %d\\n\" Option.get (Stdlib.Option.get (Some 7))\n",
+    "solutionStdout": "0 7\n",
+    "question": "What does the annotation in `let x : t = A` do when both `t` and `u` have a constructor `A`?",
+    "correct": "It tells the compiler to pick the constructor of type t instead of the most recent A",
+    "wrong": [
+      "It converts A to a string",
+      "It makes the earlier type shadow the later one everywhere"
+    ],
+    "reasoning": "OCaml uses the expected type to disambiguate constructors and labels, so the annotation selects the right one.",
+    "sourceURL": "https://ocaml.org/manual/5.5/names.html",
+    "project": null
+  },
+  {
+    "key": "polymorphism-and-its-limitations",
+    "stage": "20 · The language reference in depth",
+    "title": "Polymorphism and its limitations",
+    "body": [
+      "Inference is fully automatic for the basic language, but some polymorphism cannot be inferred. A recursive function is monomorphic inside its own body, which breaks *polymorphic recursion*, where the recursive call is at a different type: for `type 'a nested = Flat of 'a | Nested of 'a list nested` the call inside `depth` has type `'a list nested`. You must write the explicit polymorphic annotation `let rec depth : 'a. 'a nested -> int = ...` to tell the checker that the function is polymorphic within its own definition.",
+      "A function argument is also monomorphic: `fun f -> (f 1, f \"s\")` does not type-check because `f` has one type. The way to pass something polymorphic as an argument is *higher-rank polymorphism* through a record with a polymorphic field, `type id = { f : 'a. 'a -> 'a }`, or an object method. Locally abstract types, `fun (type a) (x : a) -> ...`, introduce a type name that the checker treats as abstract inside the body and that you can use in annotations.",
+      "These are exactly the places where you add annotations. The compiler error messages point at the recursive call or the argument, and the cure is an explicit `'a.` or a record. If you find yourself needing them often, consider whether a module or functor expresses the same idea more simply."
+    ],
+    "code": "type 'a nested = Flat of 'a | Nested of 'a list nested\n\nlet rec depth : 'a. 'a nested -> int = function\n  | Flat _ -> 0\n  | Nested n -> 1 + depth n\n\ntype id = { f : 'a. 'a -> 'a }\n\nlet apply_both (r : id) = (r.f 1, r.f \"s\")\nlet make_pair (type a) (x : a) (y : a) : a list = [ x; y ]\n\nlet () =\n  Printf.printf \"%d %d %d\\n\" (depth (Flat 'x')) (depth (Nested (Flat [ 1 ]))) (depth (Nested (Nested (Flat [ [ 1 ] ]))));\n  let a, b = apply_both { f = (fun x -> x) } in\n  Printf.printf \"%d %s\\n\" a b;\n  print_endline (String.concat \",\" (make_pair \"a\" \"b\"))\n",
+    "expectedStdout": "0 1 2\n1 s\na,b\n",
+    "challenge": "Explain in a comment why `depth` needs the explicit `'a.` annotation, then build a value nested three levels deep with `Nested` and print its depth.",
+    "solution": "type 'a nested = Flat of 'a | Nested of 'a list nested\n\n(* The recursive call is at type 'a list nested, so depth must be polymorphic\n   inside its own body; only the explicit 'a. annotation allows that. *)\nlet rec depth : 'a. 'a nested -> int = function\n  | Flat _ -> 0\n  | Nested n -> 1 + depth n\n\nlet () = Printf.printf \"%d\\n\" (depth (Nested (Nested (Nested (Flat [ [ [ 1 ] ] ])))))\n",
+    "solutionStdout": "3\n",
+    "question": "Why does a polymorphically recursive function need an explicit `'a.` annotation?",
+    "correct": "Inference treats a function as monomorphic inside its own body, so a call at a different type is rejected without the annotation",
+    "wrong": [
+      "Because recursion is not allowed on variants",
+      "Because the compiler cannot print polymorphic types"
+    ],
+    "reasoning": "The annotation states the function is polymorphic within its own definition, which inference alone cannot discover.",
+    "sourceURL": "https://ocaml.org/manual/5.5/polymorphism.html",
+    "project": null
+  },
+  {
+    "key": "recursive-values-and-modules",
+    "stage": "20 · The language reference in depth",
+    "title": "Recursive values, recursive modules and mutually recursive types",
+    "body": [
+      "`let rec` is not only for functions. A *value* may be defined in terms of itself if the right-hand side is a constructor application, a record, a lazy value or a function: `let rec ones = 1 :: ones` builds a cyclic list in which the tail points back to the head. The compiler accepts only definitions whose recursion is guarded by such a constructor; something like `let rec evens = 0 :: List.map succ evens` is rejected because the recursive use sits inside a function call.",
+      "Types can be mutually recursive with `and`: an expression type that holds statements and a statement type that holds expressions must be defined together. Modules can too, with `module rec A : SIG = ... and B : SIG = ...`; every recursive module needs a full signature so the checker can see through the cycle. Use this sparingly, since it hides the dependency order that normally keeps programs easy to read.",
+      "Cyclic data is easy to create and dangerous to traverse: a naive `List.length ones` never terminates, and structural equality or printing of a cycle can loop forever. Always bound the traversal, as `take` does below."
+    ],
+    "code": "let rec ones = 1 :: ones\n\nlet rec take n l =\n  if n = 0 then [] else match l with x :: rest -> x :: take (n - 1) rest | [] -> []\n\ntype expr = Num of int | Block of stmt list\nand stmt = Expr of expr | Seq of stmt list\n\nlet rec count_expr = function Num _ -> 1 | Block ss -> List.fold_left (fun acc s -> acc + count_stmt s) 1 ss\nand count_stmt = function Expr e -> count_expr e | Seq ss -> List.fold_left (fun acc s -> acc + count_stmt s) 0 ss\n\nmodule rec Even : sig\n  val is_even : int -> bool\nend = struct\n  let is_even n = n = 0 || Odd.is_odd (n - 1)\nend\n\nand Odd : sig\n  val is_odd : int -> bool\nend = struct\n  let is_odd n = n <> 0 && Even.is_even (n - 1)\nend\n\nlet () =\n  print_endline (String.concat \",\" (List.map string_of_int (take 5 ones)));\n  Printf.printf \"%b\\n\" (ones == List.tl ones);\n  Printf.printf \"%d\\n\" (count_expr (Block [ Expr (Num 1); Seq [ Expr (Num 2); Expr (Block []) ] ]));\n  Printf.printf \"%b %b %b\\n\" (Even.is_even 10) (Odd.is_odd 7) (Even.is_even 7)\n",
+    "expectedStdout": "1,1,1,1,1\ntrue\n4\ntrue true false\n",
+    "challenge": "Define a cyclic list `let rec cycle = 1 :: 2 :: 3 :: cycle` and print its first seven elements with a bounded `take`.",
+    "solution": "let rec cycle = 1 :: 2 :: 3 :: cycle\n\nlet rec take n l =\n  if n = 0 then [] else match l with x :: rest -> x :: take (n - 1) rest | [] -> []\n\nlet () = print_endline (String.concat \" \" (List.map string_of_int (take 7 cycle)))\n",
+    "solutionStdout": "1 2 3 1 2 3 1\n",
+    "question": "Why must every recursive module have a full signature?",
+    "correct": "The checker needs to see the interface of each module to type the references across the cycle",
+    "wrong": [
+      "So the modules can be compiled in any order at runtime",
+      "Because recursive modules cannot contain functions"
+    ],
+    "reasoning": "Without declared signatures the modules would depend on each other's inferred types, which does not terminate, so the interfaces break the cycle.",
+    "sourceURL": "https://ocaml.org/manual/5.5/recursivemodules.html",
+    "additionalReadings": [
+      {
+        "title": "OCaml manual: Language extensions",
+        "url": "https://ocaml.org/manual/5.5/extn.html",
+        "section": "Recursive definitions of values"
+      }
+    ],
+    "project": null
+  },
+  {
+    "key": "private-extensible-and-inline-records",
+    "stage": "20 · The language reference in depth",
+    "title": "Private types, extensible variants and inline records",
+    "body": [
+      "A *private* type abbreviation, `type t = private float`, can be read as a float (`(m :> float)`) but cannot be created except through the module's own functions. It is a lightweight abstract type: users keep the convenience of the representation while you keep control over how values are made, which is useful for validated numbers such as lengths that must not be negative.",
+      "An *extensible variant* type, declared `type event = ..`, has no fixed list of cases; any module can add constructors with `type event += Click of int`. Exceptions are the best-known example: `exn` is an extensible type. A match must end with a catch-all `_` case because new constructors may appear later, which makes extensible types the right tool for plug-in style events and the wrong one when you want exhaustiveness checking.",
+      "*Inline records* give a constructor named fields, `Circle of { radius : float }`, without a separate record type. The record is not a first-class value and cannot escape the pattern that binds it, which avoids an allocation and keeps the fields close to the constructor that owns them. Choose them when a constructor has several fields that are easy to confuse positionally."
+    ],
+    "code": "module Meters : sig\n  type t = private float\n\n  val of_float : float -> t\n  val to_float : t -> float\nend = struct\n  type t = float\n\n  let of_float x = if x < 0. then invalid_arg \"negative length\" else x\n  let to_float x = x\nend\n\ntype event = ..\ntype event += Click of int | Key of char\n\nlet describe = function\n  | Click n -> Printf.sprintf \"click %d\" n\n  | Key c -> Printf.sprintf \"key %c\" c\n  | _ -> \"unknown event\"\n\ntype event += Scroll\n\ntype shape = Circle of { radius : float } | Rect of { w : float; h : float }\n\nlet area = function\n  | Circle { radius } -> 3. *. radius *. radius\n  | Rect { w; h } -> w *. h\n\nlet () =\n  let m = Meters.of_float 2.5 in\n  Printf.printf \"%.1f %.1f\\n\" (m :> float) (Meters.to_float m);\n  (try ignore (Meters.of_float (-1.)) with Invalid_argument msg -> print_endline msg);\n  List.iter (fun e -> print_endline (describe e)) [ Click 3; Key 'x'; Scroll ];\n  Printf.printf \"%.1f %.1f\\n\" (area (Circle { radius = 2. })) (area (Rect { w = 2.; h = 4.5 }))\n",
+    "expectedStdout": "2.5 2.5\nnegative length\nclick 3\nkey x\nunknown event\n12.0 9.0\n",
+    "challenge": "Add a `Triangle of { base : float; height : float }` inline-record constructor with area half the base times the height, and print its area for base 4 and height 3.",
+    "solution": "type shape =\n  | Circle of { radius : float }\n  | Triangle of { base : float; height : float }\n\nlet area = function\n  | Circle { radius } -> 3. *. radius *. radius\n  | Triangle { base; height } -> base *. height /. 2.\n\nlet () = Printf.printf \"%.1f\\n\" (area (Triangle { base = 4.; height = 3. }))\n",
+    "solutionStdout": "6.0\n",
+    "question": "Why must a match on an extensible variant end with a catch-all case?",
+    "correct": "Other modules can add constructors later, so the compiler can never know every case",
+    "wrong": [
+      "Because extensible variants have only one constructor",
+      "Because the match would be too slow"
+    ],
+    "reasoning": "The set of constructors is open, so exhaustiveness cannot be checked and a wildcard handles whatever is added.",
+    "sourceURL": "https://ocaml.org/manual/5.5/extn.html",
+    "project": null
+  },
+  {
+    "key": "attributes-and-extension-points",
+    "stage": "20 · The language reference in depth",
+    "title": "Attributes and extension points",
+    "body": [
+      "An *attribute*, written `[@name payload]` on an expression or `[@@name]` on a declaration, attaches information to the syntax tree. The compiler understands a few: `[@inline]` asks for a function to be inlined, `[@tailcall]` makes the compiler warn if a call is not a tail call, `[@deprecated \"message\"]` makes uses of a definition produce an alert, `[@@unboxed]` removes the box around a single-constructor type, and `[@warning \"-8\"]` changes warnings for a region.",
+      "Unknown attributes are ignored by the compiler and left for PPX rewriters to read, which is how `[@@deriving show]` works. An *extension point*, `[%name payload]`, is different: it marks a place where a rewriter must produce code, and the compiler rejects an extension node that no rewriter has handled. Attributes annotate code; extension points ask for code.",
+      "Because `[@@unboxed]` changes the runtime representation, `Id 5` is stored as the integer 5 itself. You can observe that with `Obj.is_int`, a function meant for debugging and not for production code. Use attributes for performance tuning only after measuring, since the compiler already inlines small functions without being asked."
+    ],
+    "code": "type id = Id of int [@@unboxed]\n\nlet[@inline] square x = x * x\nlet[@deprecated \"use square\"] old_square x = x * x\n\nlet rec sum acc = function\n  | [] -> acc\n  | x :: xs -> (sum [@tailcall]) (acc + x) xs\n\nlet[@warning \"-8\"] only_some (Some x) = x\n\nlet () =\n  Printf.printf \"%d %d\\n\" (square 6) (sum 0 [ 1; 2; 3; 4 ]);\n  Printf.printf \"%b\\n\" (Obj.is_int (Obj.repr (Id 5)));\n  Printf.printf \"%b\\n\" (Obj.is_int (Obj.repr (Some 5)));\n  Printf.printf \"%d\\n\" (only_some (Some 9));\n  Printf.printf \"%d\\n\" ((old_square [@alert \"-deprecated\"]) 3)\n",
+    "expectedStdout": "36 10\ntrue\nfalse\n9\n9\n",
+    "challenge": "Mark a recursive `count_down` function with `[@tailcall]` on its recursive call and a `[@inline]` helper, and print `count_down 100000`.",
+    "solution": "let[@inline] pred n = n - 1\n\nlet rec count_down n acc = if n = 0 then acc else (count_down [@tailcall]) (pred n) (acc + 1)\n\nlet () = Printf.printf \"%d\\n\" (count_down 100000 0)\n",
+    "solutionStdout": "100000\n",
+    "question": "What is the difference between `[@name]` and `[%name]`?",
+    "correct": "An attribute annotates existing code, while an extension point marks a place a rewriter must replace with code",
+    "wrong": [
+      "They are two spellings of the same thing",
+      "Attributes run at runtime and extension points at compile time"
+    ],
+    "reasoning": "Attributes are metadata the compiler may ignore; extension nodes must be expanded by a rewriter or compilation fails.",
+    "sourceURL": "https://ocaml.org/manual/5.5/attributes.html",
+    "additionalReadings": [
+      {
+        "title": "OCaml manual: Extension nodes",
+        "url": "https://ocaml.org/manual/5.5/extensionnodes.html",
+        "section": "Extension nodes"
+      }
+    ],
+    "project": null
+  },
+  {
+    "key": "module-system-in-depth",
+    "stage": "20 · The language reference in depth",
+    "title": "The module system in depth: substitution, aliases and functor styles",
+    "body": [
+      "A signature constraint `S with type t = int` makes the abstract type equal to `int`, and keeps `t` in the signature. *Destructive substitution*, `S with type t := int`, goes further and removes `t` from the signature, replacing every use by `int`. It is the neat way to specialise a generic signature without leaving a redundant type behind.",
+      "A *module alias*, `module M = List`, makes `M` another name for the same module, with no copy and no new types. A functor can be *applicative* (`module F (X : S) = ...`), where applying it twice to the same argument yields compatible types, or *generative* (`module G () = ...`), where each application creates fresh abstract types. Generativity is what you want when each application should own distinct state or types, such as a unique-identifier generator.",
+      "`module type of M` gives the signature of an existing module, and `include` copies a module's contents into another, so a wrapper module can extend a library module by including it and adding functions. These tools together let you reshape module interfaces after the fact, which is how large libraries expose a small public API over a big implementation."
+    ],
+    "code": "module type S = sig\n  type t\n\n  val x : t\n  val show : t -> string\nend\n\nmodule type S_int = S with type t := int\n\nmodule A : S_int = struct\n  let x = 5\n  let show = string_of_int\nend\n\nmodule L = List\n\nmodule Fresh () : sig\n  type id\n\n  val next : unit -> id\n  val to_int : id -> int\nend = struct\n  type id = int\n\n  let counter = ref 0\n  let next () = incr counter; !counter\n  let to_int i = i\nend\n\nmodule Ids1 = Fresh ()\nmodule Ids2 = Fresh ()\n\nmodule Extended_list = struct\n  include List\n\n  let second = function _ :: x :: _ -> Some x | _ -> None\nend\n\nlet () =\n  Printf.printf \"%s %d\\n\" (A.show A.x) (A.x + 1);\n  Printf.printf \"%d\\n\" (L.length [ 1; 2; 3 ]);\n  let a = Ids1.next () in\n  let b = Ids1.next () in\n  let c = Ids2.next () in\n  Printf.printf \"%d %d %d\\n\" (Ids1.to_int a) (Ids1.to_int b) (Ids2.to_int c);\n  Printf.printf \"%s\\n\" (match Extended_list.second [ 10; 20; 30 ] with Some n -> string_of_int n | None -> \"none\")\n",
+    "expectedStdout": "5 6\n3\n1 2 1\n20\n",
+    "challenge": "Create a second generative instance `Ids3 = Fresh ()` and show that its counter starts again at 1 by printing the first id it returns.",
+    "solution": "module Fresh () : sig\n  type id\n\n  val next : unit -> id\n  val to_int : id -> int\nend = struct\n  type id = int\n\n  let counter = ref 0\n  let next () = incr counter; !counter\n  let to_int i = i\nend\n\nmodule Ids1 = Fresh ()\nmodule Ids3 = Fresh ()\n\nlet () =\n  ignore (Ids1.next ());\n  ignore (Ids1.next ());\n  Printf.printf \"%d\\n\" (Ids3.to_int (Ids3.next ()))\n",
+    "solutionStdout": "1\n",
+    "question": "What is the difference between `S with type t = int` and `S with type t := int`?",
+    "correct": "With = keeps t in the signature as an equation; with := removes t and replaces its uses by int",
+    "wrong": [
+      "They are identical",
+      "The first applies to values and the second to types"
+    ],
+    "reasoning": "Destructive substitution deletes the abstract type from the signature, leaving a smaller interface.",
+    "sourceURL": "https://ocaml.org/manual/5.5/moduleexamples.html",
+    "additionalReadings": [
+      {
+        "title": "OCaml manual: Language extensions",
+        "url": "https://ocaml.org/manual/5.5/extn.html",
+        "section": "Generative functors"
+      }
+    ],
+    "project": null
+  },
+  {
+    "key": "classes-inheritance-and-virtual-methods",
+    "stage": "20 · The language reference in depth",
+    "title": "Classes, inheritance and virtual methods",
+    "body": [
+      "A class describes objects with state (`val`) and behaviour (`method`). `inherit parent` reuses the parent's fields and methods, `object (self) ... end` gives the object a name for calling its own methods with `self#m`, and `inherit parent as super` lets an override call `super#m`. A *virtual* class declares methods without implementing them (`method virtual area : float`) and cannot be instantiated, so it works as an abstract base whose subclasses must fill the gaps.",
+      "An `initializer` block runs when an object is created, after the fields are set. Objects are mutable by default through `val mutable`, but an *immutable* style works too: the functional update `{< x = x + d >}` returns a copy of the object with some fields changed. Classes can be polymorphic, `class ['a] stack`, and a *class type* lists the methods an object must have without any implementation.",
+      "Method calls are resolved at runtime through the object, which is *open recursion*: a method in a parent calling `self#area` uses the subclass's `area`. That flexibility is what objects offer beyond modules and records, and its price is weaker static guarantees and harder reasoning. Most OCaml code reaches for modules first and keeps classes for open-ended extension."
+    ],
+    "code": "class virtual shape name =\n  object (self)\n    method virtual area : float\n    method describe = Printf.sprintf \"%s with area %.1f\" name self#area\n  end\n\nclass circle r = object inherit shape \"circle\" method area = 3.0 *. r *. r end\nclass square s = object inherit shape \"square\" method area = s *. s end\n\nclass big_circle r =\n  object\n    inherit circle r as super\n    method! area = super#area *. 2.0\n  end\n\nclass greeter name =\n  object\n    initializer print_endline (\"created \" ^ name)\n    method hi = \"hi \" ^ name\n  end\n\nclass point x =\n  object\n    val x = x\n    method get = x\n    method move d = {< x = x + d >}\n  end\n\nclass ['a] stack =\n  object\n    val items : 'a list = []\n    method push (v : 'a) = {< items = v :: items >}\n    method top = match items with [] -> None | v :: _ -> Some v\n  end\n\nclass type printable = object method describe : string end\n\nlet () =\n  let shapes : printable list = [ (new circle 1.0 :> printable); (new square 2.0 :> printable); (new big_circle 1.0 :> printable) ] in\n  List.iter (fun s -> print_endline s#describe) shapes;\n  let g = new greeter \"ada\" in\n  print_endline g#hi;\n  let p = new point 1 in\n  let q = p#move 5 in\n  Printf.printf \"%d %d\\n\" p#get q#get;\n  let s = (new stack)#push 1 in\n  let s = s#push 2 in\n  Printf.printf \"%s\\n\" (match s#top with Some n -> string_of_int n | None -> \"empty\")\n",
+    "expectedStdout": "circle with area 3.0\nsquare with area 4.0\ncircle with area 6.0\ncreated ada\nhi ada\n1 6\n2\n",
+    "challenge": "Add a `triangle base height` class that inherits `shape` and implements `area`, and print the description of `new triangle 4.0 3.0`.",
+    "solution": "class virtual shape name =\n  object (self)\n    method virtual area : float\n    method describe = Printf.sprintf \"%s with area %.1f\" name self#area\n  end\n\nclass triangle base height =\n  object\n    inherit shape \"triangle\"\n    method area = base *. height /. 2.0\n  end\n\nlet () = print_endline (new triangle 4.0 3.0)#describe\n",
+    "solutionStdout": "triangle with area 6.0\n",
+    "question": "What makes a class `virtual`?",
+    "correct": "It declares at least one method without implementing it, so it cannot be instantiated directly",
+    "wrong": [
+      "It runs its methods on another thread",
+      "Its fields are always immutable"
+    ],
+    "reasoning": "A virtual class is an abstract base: subclasses must supply the missing methods before objects can be created.",
+    "sourceURL": "https://dev.realworldocaml.org/classes.html",
+    "additionalReadings": [
+      {
+        "title": "OCaml manual: Objects in OCaml",
+        "url": "https://ocaml.org/manual/5.5/objectexamples.html",
+        "section": "Objects and classes"
+      },
+      {
+        "title": "OCaml manual: Advanced examples with classes and modules",
+        "url": "https://ocaml.org/manual/5.5/advexamples.html",
+        "section": "Advanced examples"
+      }
+    ],
+    "project": null
+  },
+  {
+    "key": "standard-library-tour",
+    "stage": "20 · The language reference in depth",
+    "title": "A tour of the standard library",
+    "body": [
+      "The standard library is a set of modules named for the types they serve, all opened by default through `Stdlib`: `Int`, `Float`, `Char`, `Bool`, `String`, `Bytes`, `Option`, `Result`, `Either`, `Fun`, `Lazy`, `Seq`, `List`, `Array`, `Stack`, `Queue`, `Hashtbl`, `Map`, `Set`, `Buffer`, `Format`, `Scanf`, `Filename`, `Digest`, `In_channel` and `Out_channel`. Learning the library is largely learning which module holds the function you need, so the module name is the first place to look.",
+      "The conventions repeat across modules: a type `t`, `create`/`of_...` constructors, `to_string`, `compare`, `equal`, and `_opt` variants that return an option instead of raising. A module with `compare` and `t` can be passed to `Map.Make` or `Set.Make`, which is why `Int`, `String` and `Float` all provide them. Functions that may fail come in pairs, such as `List.find` and `List.find_opt`.",
+      "The tour below touches many modules with deterministic output. Reading the documentation for a module you rarely use is cheap compared with rewriting what it already does, and the OCaml manual lists every module with its types and functions."
+    ],
+    "code": "let () =\n  Printf.printf \"%d %.0f %c %s\\n\" (Int.max 3 4) (Float.round 2.5) (Char.uppercase_ascii 'q') (Bool.to_string true);\n  Printf.printf \"%s %b %b\\n\" (match String.index_opt \"ocaml\" 'a' with Some i -> string_of_int i | None -> \"-\") (Result.is_ok (Ok 1)) (Option.is_none None);\n  Printf.printf \"%d %s\\n\" (Fun.flip ( - ) 1 10) (match Either.Left 3 with Either.Left n -> \"left \" ^ string_of_int n | Either.Right _ -> \"right\");\n  let stack = Stack.create () in\n  Stack.push 1 stack; Stack.push 2 stack;\n  let queue = Queue.create () in\n  Queue.add 1 queue; Queue.add 2 queue;\n  Printf.printf \"%d %d\\n\" (Stack.pop stack) (Queue.take queue);\n  let module IS = Set.Make (Int) in\n  Printf.printf \"%d\\n\" (IS.cardinal (IS.of_list [ 3; 1; 3; 2 ]));\n  Scanf.sscanf \"12 abc\" \"%d %s\" (fun n s -> Printf.printf \"%d %s\\n\" (n * 2) (String.uppercase_ascii s));\n  Printf.printf \"%s %s\\n\" (Filename.basename \"/a/b/file.txt\") (Filename.extension \"x.tar.gz\");\n  Printf.printf \"%s\\n\" (Digest.to_hex (Digest.string \"ocaml\"));\n  let path = Filename.temp_file \"tour\" \".txt\" in\n  Out_channel.with_open_text path (fun oc -> Out_channel.output_string oc \"hello\\nworld\\n\");\n  let lines = In_channel.with_open_text path In_channel.input_all |> String.split_on_char '\\n' |> List.filter (fun l -> l <> \"\") in\n  Sys.remove path;\n  Printf.printf \"%s\\n\" (String.concat \"+\" lines);\n  Printf.printf \"%d\\n\" (Seq.length (Seq.take 5 (Seq.ints 0)));\n  let a = [| 5; 2; 9 |] in\n  Array.sort compare a;\n  Printf.printf \"%s\\n\" (String.concat \",\" (Array.to_list (Array.map string_of_int a)))\n",
+    "expectedStdout": "4 3 Q true\n2 true true\n9 left 3\n2 1\n3\n24 ABC\nfile.txt .gz\n6217c07ff169f6ab2eb2731f855095f1\nhello+world\n5\n2,5,9\n",
+    "challenge": "Use `Scanf.sscanf` to parse the string \"7,4\" with the format \"%d,%d\" and print the sum, then print `Filename.remove_extension \"report.pdf\"`.",
+    "solution": "let () =\n  Scanf.sscanf \"7,4\" \"%d,%d\" (fun a b -> Printf.printf \"%d\\n\" (a + b));\n  print_endline (Filename.remove_extension \"report.pdf\")\n",
+    "solutionStdout": "11\nreport\n",
+    "question": "Why do many standard modules provide both `find` and `find_opt` style functions?",
+    "correct": "One raises an exception when nothing matches and the other returns an option, so callers can choose how to handle absence",
+    "wrong": [
+      "They search in different directions",
+      "One is for lists and the other for arrays"
+    ],
+    "reasoning": "The _opt variants make absence part of the return type, which is usually safer than catching an exception.",
+    "sourceURL": "https://ocaml.org/manual/5.5/stdlib.html",
+    "additionalReadings": [
+      {
+        "title": "OCaml manual: The core library",
+        "url": "https://ocaml.org/manual/5.5/core.html",
+        "section": "Predefined types and exceptions"
+      }
+    ],
+    "project": null
+  },
+  {
+    "key": "runtime-value-representation",
+    "stage": "20 · The language reference in depth",
+    "title": "How values are laid out in memory",
+    "body": [
+      "Every OCaml value is one machine word. An *immediate* value, such as an `int`, a `char`, a `bool`, `()`, `[]`, `None` or a constant constructor, is stored directly with its lowest bit set, so it needs no allocation. Anything else is a pointer to a *block* in the heap, which begins with a header recording the block's size in words and a *tag* byte, followed by the fields.",
+      "The tag tells the runtime and the garbage collector what the block holds. Constructors with arguments are numbered in order of declaration starting at 0, separately from the constant constructors, so `type c = A | B of int | C of int * int` stores `A` as an immediate, `B 1` as a one-field block with tag 0, and `C (1, 2)` as a two-field block with tag 1. Tuples, records, `Some x` and list cells are blocks with tag 0, floats and strings have special tags, and a float array is stored unboxed.",
+      "The `Obj` module can look at this layout, which is the way to see it for yourself, but it bypasses the type system and its functions can crash a program if misused. Use it for exploration and never for application logic. Knowing the layout explains costs such as why a list of floats allocates a box per element while a `float array` does not."
+    ],
+    "code": "type c = A | B of int | C of int * int\n\nlet describe x =\n  let r = Obj.repr x in\n  if Obj.is_int r then Printf.sprintf \"immediate %d\" (Obj.obj r : int)\n  else\n    let tag = Obj.tag r in\n    if tag = Obj.double_tag then \"boxed float\"\n    else if tag = Obj.string_tag then \"string\"\n    else if tag = Obj.double_array_tag then Printf.sprintf \"float array of %d\" (Obj.size r)\n    else if tag = Obj.closure_tag then \"closure\"\n    else Printf.sprintf \"block tag=%d size=%d\" tag (Obj.size r)\n\nlet () =\n  List.iter print_endline\n    [ describe 42; describe true; describe (); describe None; describe [];\n      describe (Some 3); describe (1, 2, 3); describe [ 1; 2 ]; describe (ref 0);\n      describe 1.5; describe \"hi\"; describe [| 1.; 2. |]; describe (fun x -> x);\n      describe A; describe (B 1); describe (C (1, 2)) ];\n  Printf.printf \"%d %d\\n\" (Obj.reachable_words (Obj.repr [ 1; 2; 3 ])) (Obj.reachable_words (Obj.repr (1, 2, 3)))\n",
+    "expectedStdout": "immediate 42\nimmediate 1\nimmediate 0\nimmediate 0\nimmediate 0\nblock tag=0 size=1\nblock tag=0 size=3\nblock tag=0 size=2\nblock tag=0 size=1\nboxed float\nstring\nfloat array of 2\nclosure\nimmediate 0\nblock tag=0 size=1\nblock tag=1 size=2\n9 4\n",
+    "challenge": "Print the description of the record `{ x = 1; y = 2 }` and of `Some (Some 1)` with `describe`, and say in a comment what the tags tell you.",
+    "solution": "type p = { x : int; y : int }\n\nlet describe x =\n  let r = Obj.repr x in\n  if Obj.is_int r then \"immediate\" else Printf.sprintf \"block tag=%d size=%d\" (Obj.tag r) (Obj.size r)\n\nlet () =\n  (* both are plain blocks with tag 0: a record or Some stores its fields directly *)\n  print_endline (describe { x = 1; y = 2 });\n  print_endline (describe (Some (Some 1)))\n",
+    "solutionStdout": "block tag=0 size=2\nblock tag=0 size=1\n",
+    "question": "How is the constant constructor `A` of `type c = A | B of int` stored?",
+    "correct": "As an immediate integer, with no heap block",
+    "wrong": [
+      "As a block with tag 0 and size 0",
+      "As a pointer to a shared static string"
+    ],
+    "reasoning": "Constant constructors carry no data, so the runtime represents them as small tagged integers in the word itself.",
+    "sourceURL": "https://dev.realworldocaml.org/runtime-memory-layout.html",
+    "project": null
+  }
+]

@@ -1,0 +1,75 @@
+{
+  "key": "str-library",
+  "stage": "21 · Tools, libraries and the compiler",
+  "n": 6,
+  "title": "The str library: regular expressions",
+  "minutes": 30,
+  "body": [
+    "The `str` library provides simple regular expressions for text processing. `Str.regexp \"[0-9]+\"` compiles a pattern, `Str.search_forward re s pos` finds the next match at or after `pos` and returns its position (raising `Not_found` when there is none), and `Str.matched_string s` returns the text of the last match. `Str.split` cuts a string on a separator pattern and `Str.global_replace` substitutes every match.",
+    "Its syntax is older and smaller than the Perl-style syntax of most languages: the special characters `+`, `?`, `*`, `[...]` and `^` work as usual, but grouping and alternation are written with backslashes, `\\(` `\\)` and `\\|`, and there are no lookaheads or non-greedy operators. The library is also not thread-safe, because the last match is global state. For anything heavier, libraries such as `re` or `ocaml-re` are the usual choice.",
+    "A search loop needs care about where to resume. After a match, continue from the end of the match, `p + String.length m`, or an empty match would loop forever. Collect results in an accumulator and reverse at the end, and test with strings that contain no match, adjacent matches and leading or trailing separators, because those are the cases that expose off-by-one errors."
+  ],
+  "challenge": "Implement `numbers` (every run of digits in a string, as ints, in order), `words` (split on runs of spaces, tabs and newlines, dropping empty pieces) and `squeeze` (collapse runs of blanks to a single space and trim) in src/textutil.ml using `Str`.",
+  "projectInstructions": "Run `dune test --root .`. Edit only src/textutil.ml. The `str` library is already listed in src/dune.",
+  "question": "Why must a regexp search loop resume from the end of the previous match?",
+  "correct": "Otherwise the same match, or an empty one, would be found again and the loop would never advance",
+  "wrong": [
+    "Str only allows one match per string",
+    "Because search_forward resets the string"
+  ],
+  "reasoning": "The next search must start after the text already consumed, or the loop repeats the same position.",
+  "sourceURL": "https://ocaml.org/manual/5.5/libstr.html",
+  "projectChecks": [
+    {
+      "name": "starter compiles",
+      "command": [
+        "dune",
+        "build",
+        "--root",
+        "."
+      ],
+      "exit": 0
+    },
+    {
+      "name": "starter tests fail",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "test_textutil.ml"
+    },
+    {
+      "name": "solution tests pass",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 0,
+      "useSolution": true
+    },
+    {
+      "name": "a wrong pattern is caught",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "test_textutil.ml",
+      "useSolution": true,
+      "mutations": [
+        {
+          "path": "src/textutil.ml",
+          "find": "\"[0-9]+\"",
+          "replace": "\"[0-9]\""
+        }
+      ]
+    }
+  ]
+}

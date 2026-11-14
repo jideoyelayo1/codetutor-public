@@ -1,0 +1,35 @@
+{
+ "key": "value-and-reference",
+ "title": "Value types and reference types",
+ "body": [
+  "Every C# type is either a value type or a reference type. Structs (including `int`, `double`, `bool`, `DateTime`) and enums are value types: a variable of a value type directly contains the value, and assignment copies it. Classes, arrays, strings, delegates and records declared with `record class` are reference types: a variable holds a reference to an object on the managed heap, and assignment copies the reference, not the object.",
+  "After `var b = a;` with a struct, `a` and `b` are independent: changing `b.X` leaves `a.X` alone. With a class, both variables refer to the same object, so a change through one name is visible through the other. This aliasing is the single most important thing to predict when reading C#.",
+  "Passing an argument copies the variable's contents too. A method that receives a class reference can mutate the shared object, but assigning a new object to its parameter only changes the method's local copy of the reference. To replace the caller's variable itself, the parameter must be `ref`.",
+  "Value types are not always on the stack: a struct field inside a class lives inside that object on the heap, and an array of structs stores the structs inline. Think in terms of copy semantics, not storage location. Small, immutable structs (marked `readonly struct`) are cheap to copy and avoid accidental mutation of a copy.",
+  "A classic bug is mutating a copy: `list[0].X = 5` on a `List<MutablePoint>` struct is a compile error (CS1612) because the indexer returns a copy. Before mutating, check whether the expression gives you the original storage or a copy, and prefer immutable structs so the question rarely matters."
+ ],
+ "expectedStdout": "struct: p1.X=1 p2.X=99\nclass: c1.X=99 c2.X=99 same=True\nafter Mutate: 7\nafter Replace: 7\nafter ReplaceRef: -1\n",
+ "challenge": "Declare a readonly record struct Money(decimal Amount) and a method Add that returns a new Money. Show that adding to a copy leaves the original unchanged.",
+ "solutionStdout": "10 15\n",
+ "question": "After `var b = a;` where `a` is a class instance, what does changing `b.Name` do?",
+ "correct": "Changes the object that a also refers to",
+ "wrong": [
+  "Changes only b's private copy",
+  "Is rejected because a and b alias"
+ ],
+ "reasoning": "Class assignment copies the reference, so both variables name the same object.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/value-types",
+ "additionalReadings": [
+  {
+   "title": "Reference types",
+   "url": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/reference-types",
+   "section": "Reference semantics"
+  }
+ ],
+ "rejected": [
+  {
+   "file": "rejected.cs",
+   "diagnostic": "CS1612"
+  }
+ ]
+}

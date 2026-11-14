@@ -1,0 +1,117 @@
+{
+ "key": "text-search-cli",
+ "title": "Project: a tested text-search CLI",
+ "minutes": 45,
+ "body": [
+  "This project is a small solution with three projects: a `TextSearch` class library holding the logic, a `TextSearch.Cli` console app that handles arguments, files and exit codes, and a `TextSearch.Tests` xUnit v3 project. Keeping logic in a library makes it testable without starting processes or touching the file system.",
+  "`Searcher.Search` reads from any `TextReader`, so tests pass a `StringReader` and the CLI passes a file. It validates eagerly and then returns a local iterator, combining stage 9's lazy evaluation with immediate argument checks; the `ReadsLazily` test proves only one line is read when the caller takes one match.",
+  "The CLI uses a list pattern (`args is not [var query, var path]`) to validate arguments, writes errors to standard error and returns distinct exit codes (1 for usage, 2 for a missing file) so scripts can react. `using var reader` disposes the file even if enumeration throws.",
+  "Repository-level files carry shared settings: `global.json` pins SDK 10.0.402 and opts into Microsoft.Testing.Platform for `dotnet test`; `Directory.Build.props` enables nullable, warnings as errors and recommended analyzers for every project; `Directory.Packages.props` pins xUnit v3 centrally; `TextSearch.slnx` lists the projects.",
+  "Run `dotnet test` from the solution folder, then `dotnet run --project src/TextSearch.Cli -- fox poem.txt`. The guide's validator also injects a bug (case-insensitive matching in the base version) and confirms the tests fail, showing they actually guard the behaviour.",
+  "Practice: add an `ignoreCase` option to `Search` (default false so existing callers keep their behaviour), accept `-i`/`--ignore-case` as the first CLI argument, and add tests for both modes. The answer replaces `Searcher.cs` and `Program.cs` and adds `IgnoreCaseTests.cs`."
+ ],
+ "projectInstructions": "From the solution folder run: dotnet test, then dotnet run --project src/TextSearch.Cli -- fox poem.txt. Practice: add case-insensitive search behind -i/--ignore-case with tests.",
+ "projectChecks": [
+  {
+   "name": "start: dotnet test",
+   "args": [
+    "test"
+   ],
+   "stdoutContains": [
+    "succeeded: 4",
+    "failed: 0"
+   ]
+  },
+  {
+   "name": "start: CLI search",
+   "args": [
+    "run",
+    "--project",
+    "src/TextSearch.Cli",
+    "--",
+    "fox",
+    "poem.txt"
+   ],
+   "stdout": "1: The quick fox\n4: foxglove\n"
+  },
+  {
+   "name": "start: CLI missing file exits 2",
+   "args": [
+    "run",
+    "--project",
+    "src/TextSearch.Cli",
+    "--",
+    "fox",
+    "missing.txt"
+   ],
+   "exit": 2,
+   "stderr": "file not found: missing.txt\n"
+  },
+  {
+   "name": "start: injected bug is caught by tests",
+   "args": [
+    "test"
+   ],
+   "exit": 2,
+   "stdoutContains": [
+    "IsCaseSensitive"
+   ],
+   "mutations": [
+    {
+     "path": "src/TextSearch/Searcher.cs",
+     "find": "StringComparison.Ordinal)",
+     "replace": "StringComparison.OrdinalIgnoreCase)"
+    }
+   ]
+  },
+  {
+   "name": "answer: dotnet test",
+   "args": [
+    "test"
+   ],
+   "useSolution": true,
+   "stdoutContains": [
+    "succeeded: 6",
+    "failed: 0"
+   ]
+  },
+  {
+   "name": "answer: CLI -i",
+   "args": [
+    "run",
+    "--project",
+    "src/TextSearch.Cli",
+    "--",
+    "-i",
+    "fox",
+    "poem.txt"
+   ],
+   "useSolution": true,
+   "stdout": "1: The quick fox\n3: A FOX again\n4: foxglove\n"
+  }
+ ],
+ "expectedStdout": "",
+ "solutionStdout": "",
+ "challenge": "Add case-insensitive search behind -i/--ignore-case, keeping the default case-sensitive, and test both modes.",
+ "question": "Why does Searcher.Search validate its arguments before returning a local iterator function?",
+ "correct": "So invalid arguments throw at the call instead of on first enumeration",
+ "wrong": [
+  "Because iterators cannot accept parameters",
+  "To read the whole file into memory first"
+ ],
+ "reasoning": "Iterator bodies are deferred; splitting validation from iteration makes failures immediate while keeping lazy reading.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/core/tutorials/testing-library-with-visual-studio-code",
+ "additionalReadings": [
+  {
+   "title": "xUnit.net v3",
+   "url": "https://xunit.net/docs/getting-started/v3/getting-started",
+   "section": "Getting started"
+  },
+  {
+   "title": "Microsoft.Testing.Platform with dotnet test",
+   "url": "https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-with-dotnet-test",
+   "section": "Microsoft.Testing.Platform mode"
+  }
+ ],
+ "recallAnswer": "Keep logic in a library that reads from a TextReader so tests need no files; validate arguments eagerly before a lazy iterator; send errors to stderr with distinct exit codes; and prove tests catch a deliberately injected bug."
+}

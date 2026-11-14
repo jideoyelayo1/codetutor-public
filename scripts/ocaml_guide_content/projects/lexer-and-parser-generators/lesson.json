@@ -1,0 +1,87 @@
+{
+  "key": "lexer-and-parser-generators",
+  "stage": "21 · Tools, libraries and the compiler",
+  "n": 2,
+  "title": "Lexer and parser generators: ocamllex and Menhir",
+  "minutes": 45,
+  "body": [
+    "Writing a lexer and parser by hand, as in the interpreter capstone, is fine for small languages and tedious for large ones. `ocamllex` generates a lexer from a `.mll` file of regular expressions and actions, and Menhir generates an LR parser from a `.mly` grammar. Dune runs both with the stanzas `(ocamllex lexer)` and `(menhir (modules parser))`, so the generated OCaml never needs to be checked in.",
+    "In the grammar, `%token` declares the tokens the lexer produces, each production names its parts and returns an abstract-syntax value, and `%start` names the entry point with its result type. A grammar like `expr: expr PLUS expr | expr STAR expr | ...` is *ambiguous*: `1 + 2 * 3` can be grouped two ways. Menhir reports the shift/reduce conflicts and picks one arbitrarily, which gives wrong answers, so you resolve them with precedence declarations: `%left PLUS MINUS` binds more loosely than the later `%left STAR`, and `%nonassoc UMINUS` with `%prec UMINUS` handles unary minus.",
+    "Treat conflict warnings as bugs in the grammar, not noise. Each declaration line adds a precedence level, later lines bind tighter, and `%left` makes an operator group from the left, so `2-3-4` means `(2-3)-4`. Test the parser on the examples that expose associativity and precedence, because a grammar can accept every string and still build the wrong tree."
+  ],
+  "challenge": "src/parser.mly declares precedence only for unary minus, so binary operators group the wrong way. Add `%left PLUS MINUS` and then `%left STAR` above the existing `%nonassoc UMINUS` so that `1+2*3` is 7, `2-3-4` is -5 and `-(2+3)*2` is -10.",
+  "projectInstructions": "Run `dune test --root .`; Menhir will print conflict warnings for the starter. Edit only src/parser.mly. After your change the warnings should disappear.",
+  "question": "What do the `%left` lines in a Menhir grammar do?",
+  "correct": "They resolve shift/reduce conflicts by giving operators a precedence (later lines bind tighter) and left associativity",
+  "wrong": [
+    "They tell the lexer which characters to skip",
+    "They make the parser reject left recursion"
+  ],
+  "reasoning": "Without them, the ambiguous grammar leaves the parser to choose a grouping arbitrarily; the declarations state which one is intended.",
+  "sourceURL": "https://dev.realworldocaml.org/parsing-with-ocamllex-and-menhir.html",
+  "projectChecks": [
+    {
+      "name": "starter compiles",
+      "command": [
+        "dune",
+        "build",
+        "--root",
+        "."
+      ],
+      "exit": 0
+    },
+    {
+      "name": "starter parses the wrong tree",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "test_calc.ml"
+    },
+    {
+      "name": "solution tests pass",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 0,
+      "useSolution": true
+    },
+    {
+      "name": "weakened precedence is caught",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "test_calc.ml",
+      "useSolution": true,
+      "mutations": [
+        {
+          "path": "src/parser.mly",
+          "find": "%left PLUS MINUS\n%left STAR",
+          "replace": "%left STAR\n%left PLUS MINUS"
+        }
+      ]
+    }
+  ],
+  "additionalReadings": [
+    {
+      "title": "OCaml manual: Lexer and parser generators",
+      "url": "https://ocaml.org/manual/5.5/lexyacc.html",
+      "section": "ocamllex and ocamlyacc"
+    },
+    {
+      "title": "Menhir manual",
+      "url": "https://gallium.inria.fr/~fpottier/menhir/manual.html",
+      "section": "Grammar specifications"
+    }
+  ]
+}

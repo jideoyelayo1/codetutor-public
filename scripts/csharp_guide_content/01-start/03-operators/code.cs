@@ -1,0 +1,13 @@
+Console.WriteLine(7 / 2);
+Console.WriteLine(7 / 2.0);
+Console.WriteLine(-7 % 3);
+int i = 5;
+Console.WriteLine($"i++ gives {i++}, now {i}");
+Console.WriteLine($"++i gives {++i}, now {i}");
+string? text = null;
+if (text != null && text.Length > 0) Console.WriteLine("non-empty");
+else Console.WriteLine("short-circuit kept us safe");
+Console.WriteLine(i % 2 == 0 ? "even" : "odd");
+string? name = null;
+name ??= "guest";
+Console.WriteLine(name);

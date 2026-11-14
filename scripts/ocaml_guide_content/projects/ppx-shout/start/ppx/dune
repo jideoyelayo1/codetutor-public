@@ -1,0 +1,4 @@
+(library
+ (name ppx_shout)
+ (kind ppx_rewriter)
+ (libraries ppxlib))

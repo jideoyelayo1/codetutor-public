@@ -1,0 +1,29 @@
+{
+ "key": "sets-queues-stacks",
+ "title": "Sets, queues, stacks and priority queues",
+ "body": [
+  "`HashSet<T>` stores unique elements with O(1) average `Add`, `Remove` and `Contains`; `Add` returns false for a duplicate. Set operations (`UnionWith`, `IntersectWith`, `ExceptWith`, `IsSubsetOf`) modify the set in place. `SortedSet<T>` keeps elements ordered at O(log n) per operation.",
+  "`Queue<T>` is first-in first-out: `Enqueue`, `Dequeue`, `Peek`. `Stack<T>` is last-in first-out: `Push`, `Pop`, `Peek`. Both throw `InvalidOperationException` when empty; `TryDequeue` and `TryPop` avoid that. A queue drives breadth-first search; a stack drives depth-first search and undo histories.",
+  "`PriorityQueue<TElement, TPriority>` dequeues the element with the smallest priority first (a min-heap). Enqueue and dequeue are O(log n). Elements with equal priority come out in no guaranteed order, so add a tie-breaker to the priority (for example a tuple of priority and sequence number) when stability matters.",
+  "`LinkedList<T>` offers O(1) insertion and removal at a known node but poor cache behaviour; it is rarely the fastest choice in practice. Measure before reaching for it.",
+  "Check empty-collection behaviour before every Dequeue, Pop or Peek, and check whether ties in a priority queue need a deterministic order."
+ ],
+ "expectedStdout": "+3 +1 dup3 +2 dup1 \n2\nfirst then second\ntype b\ntype a\nempty\noutage(1) deploy(2) email(3) lunch(3) \n",
+ "challenge": "Use a Queue to do a breadth-first search on the graph a->[b,c], b->[d], c->[d,e], d->[], e->[] starting at a, printing nodes in visit order without repeats.",
+ "solutionStdout": "abcde\n",
+ "question": "Which item does PriorityQueue<TElement, int> dequeue first?",
+ "correct": "The element with the smallest priority value",
+ "wrong": [
+  "The element enqueued first",
+  "The element with the largest priority value"
+ ],
+ "reasoning": "It is a min-heap; ties are not ordered, so add a sequence number to the priority for stability.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.priorityqueue-2",
+ "additionalReadings": [
+  {
+   "title": "HashSet<T>",
+   "url": "https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.hashset-1",
+   "section": "Set operations"
+  }
+ ]
+}

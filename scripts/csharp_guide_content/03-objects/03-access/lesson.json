@@ -1,0 +1,28 @@
+{
+ "key": "access-and-immutability",
+ "title": "Encapsulation, access modifiers and immutability",
+ "body": [
+  "Access modifiers decide who can use a member. `public`: anyone. `private`: only the containing type (the default for members). `protected`: the type and its derived types. `internal`: any code in the same assembly (the default for top-level types). `protected internal` and `private protected` combine these. `file` (C# 11) limits a type to its source file.",
+  "Encapsulation means callers can change an object only through members that keep its invariants. A `BankAccount` with a public `Balance` setter cannot guarantee the balance never goes negative; one with a private setter and a `Withdraw` method that checks the amount can.",
+  "`readonly` fields can be assigned only in their declaration or a constructor. `const` values are compile-time constants baked into callers, so changing a public const requires recompiling every consumer; prefer `static readonly` for values that might change between versions.",
+  "Exposing a mutable collection breaks encapsulation even when the property is get-only: callers can still add or remove items. Return `IReadOnlyList<T>` (or a copy) and keep the `List<T>` private. Note that a read-only view is not a frozen copy; it reflects later internal changes.",
+  "Immutability makes objects easier to share across threads and to reason about. Before adding a setter or a public field, check which invariant could be broken through it and whether a method with validation, `init` or a new object would serve better."
+ ],
+ "expectedStdout": "2\n3\nTrue\n3\nTrue 70\nFalse 70\n10\n",
+ "challenge": "Write a Counter class whose Value can only increase through Increment(int by) that rejects non-positive amounts by returning false. Show one accepted and one rejected call.",
+ "solutionStdout": "True 5\nFalse 5\n",
+ "question": "A class exposes `public List<string> Items { get; }`. What can callers still do?",
+ "correct": "Add and remove items through the returned list",
+ "wrong": [
+  "Nothing; get-only makes the list immutable",
+  "Only read items, because the setter is missing"
+ ],
+ "reasoning": "get-only stops callers replacing the reference, not mutating the object it refers to.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/classes-and-structs/access-modifiers",
+ "rejected": [
+  {
+   "file": "rejected.cs",
+   "diagnostic": "CS0272"
+  }
+ ]
+}

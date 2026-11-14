@@ -1,0 +1,48 @@
+# macOS
+.DS_Store
+
+# Xcode and Swift
+DerivedData/
+build/
+.build/
+.swiftpm/
+xcuserdata/
+*.xcuserstate
+*.xcresult
+*.xcarchive
+*.ipa
+*.dSYM.zip
+
+# Signing material and credentials
+*.p12
+*.mobileprovision
+*.provisionprofile
+*.pem
+*.key
+.env
+.env.*
+!.env.example
+
+# Local-only app resources (personal PDFs, offline Rust manuals)
+CodingTeacher/PersonalBooks/
+CodingTeacher/OfflineReferenceResources/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Toolchain build output from validators
+_build/
+target/
+
+# Editors
+.idea/
+.vscode/

@@ -1,0 +1,35 @@
+{
+ "key": "classes-and-constructors",
+ "title": "Classes, constructors and static members",
+ "body": [
+  "A class is a blueprint for objects: it declares fields (stored data), methods (behaviour) and constructors (initialization). `new Account(\"Ada\")` allocates an object on the heap, runs the matching constructor and returns a reference. Members are private by default; mark the members other code needs as `public`.",
+  "A constructor has the class's name and no return type. Constructors can chain with `: this(...)` to avoid duplicating setup. If a class declares no constructor, the compiler supplies a public parameterless one; once you declare any constructor, that default disappears. Object initializers (`new Account(\"Ada\") { Limit = 50 }`) set accessible properties after the constructor runs.",
+  "Primary constructors (C# 12) put parameters on the type declaration: `class Account(string owner)`. The parameters are in scope throughout the class body. If a member uses one, the compiler captures it in a hidden field; it is not a property and stays mutable inside the class. Assign it to a `readonly` field or property when you want an explicit, immutable member.",
+  "`static` members belong to the type, not to an instance: `Account.Count` is shared by all accounts. A static constructor runs once before the type is first used. A `static class` contains only static members and cannot be instantiated; it is the home for helpers and, as you will see later, extension members.",
+  "`this` refers to the current instance and disambiguates a field from a parameter of the same name. Before adding state, check whether it belongs to each object (instance) or to the type (static), and whether a constructor leaves every field in a valid state."
+ ],
+ "expectedStdout": "Ada: 25\nBob (B): 100\naccounts created: 2\n",
+ "challenge": "Rewrite a Temperature class with a primary constructor (double celsius), a readonly Celsius property initialized from it, a computed Fahrenheit property and a static FromFahrenheit factory. Print 100 C in F and 212 F in C.",
+ "solutionStdout": "212\n100\n",
+ "question": "What happens to the compiler-supplied parameterless constructor once a class declares its own constructor?",
+ "correct": "It is no longer generated",
+ "wrong": [
+  "It is still generated alongside yours",
+  "It becomes private"
+ ],
+ "reasoning": "The implicit default constructor exists only when you declare none, so `new Account()` stops compiling once you add Account(string).",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/types/classes",
+ "additionalReadings": [
+  {
+   "title": "Primary constructors",
+   "url": "https://learn.microsoft.com/en-us/dotnet/csharp/whats-new/tutorials/primary-constructors",
+   "section": "Primary constructors"
+  }
+ ],
+ "rejected": [
+  {
+   "file": "rejected.cs",
+   "diagnostic": "CS7036"
+  }
+ ]
+}

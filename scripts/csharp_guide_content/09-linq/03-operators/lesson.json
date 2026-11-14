@@ -1,0 +1,34 @@
+{
+ "key": "linq-operators",
+ "title": "Filtering, projection, ordering, grouping and joins",
+ "body": [
+  "`Where` filters, `Select` projects each element (optionally with its index), and `SelectMany` flattens a sequence of sequences. `OrderBy`/`OrderByDescending` sort by a key, `ThenBy` adds tie-breakers; LINQ sorting is stable. `Order()` and `OrderDescending()` (.NET 7) sort by the elements themselves.",
+  "`GroupBy(key)` produces `IGrouping<TKey, TElement>` objects, each with a `Key` and its elements. `ToDictionary` and `ToLookup` build indexes; `ToDictionary` throws on duplicate keys while `ToLookup` allows several values per key.",
+  "`Join(inner, outerKey, innerKey, result)` is an inner join that matches elements with equal keys using hashing. `GroupJoin` gives each outer element its group of matches. .NET 10 adds `LeftJoin` and `RightJoin`, so an outer join no longer needs the `GroupJoin` + `SelectMany` + `DefaultIfEmpty` pattern; unmatched elements get `null`/default for the other side.",
+  "Query syntax (`from c in customers where c.Active orderby c.Name select c.Name`) compiles to the same method calls. It reads well for joins and `let` clauses; method syntax covers every operator. Mix them freely.",
+  "Check sort keys for ties, choose ToLookup when keys repeat, and in outer joins check how the code handles the missing side."
+ ],
+ "expectedStdout": "Ada,Cy\nFR:1 UK:2 US:1 \nAda=70 Bob=99\nAda:50 Ada:20 Bob:99 Cy:none Di:none\nAda,Cy\nFalse\nBob,Ada,Cy,Di\n6\n",
+ "challenge": "Using the same customers and orders, list each country with the total order amount of its customers (0 when none), sorted by total descending then country.",
+ "solutionStdout": "US 99\nUK 70\nFR 0\n",
+ "question": "Which .NET 10 operator keeps outer elements that have no match in the inner sequence?",
+ "correct": "LeftJoin",
+ "wrong": [
+  "Join",
+  "Zip"
+ ],
+ "reasoning": "Join is an inner join. LeftJoin passes null/default for the missing inner element, replacing the GroupJoin + DefaultIfEmpty idiom.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/linq/standard-query-operators/join-operations",
+ "additionalReadings": [
+  {
+   "title": "Grouping data",
+   "url": "https://learn.microsoft.com/en-us/dotnet/csharp/linq/standard-query-operators/grouping-data",
+   "section": "GroupBy"
+  },
+  {
+   "title": "What's new in .NET 10 libraries",
+   "url": "https://learn.microsoft.com/en-us/dotnet/core/whats-new/dotnet-10/libraries",
+   "section": "LINQ"
+  }
+ ]
+}

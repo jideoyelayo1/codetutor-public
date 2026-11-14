@@ -1,0 +1,29 @@
+{
+ "key": "interfaces",
+ "title": "Interfaces and type tests",
+ "body": [
+  "An interface is a contract: a set of members that implementing types promise to provide. `interface IShape { double Area(); }` and `class Circle : IShape`. A type can implement many interfaces, which is how C# expresses 'can do' capabilities such as `IComparable<T>`, `IDisposable` and `IEnumerable<T>` without a shared base class.",
+  "Code written against an interface works with any implementation: a method taking `IShape` accepts circles, squares and test doubles. Depending on small interfaces rather than concrete classes makes code easier to test and change. Structs can implement interfaces too, but converting a struct to an interface type boxes it.",
+  "Explicit implementation (`double IShape.Area() => ...`) makes a member callable only through the interface, which resolves name clashes between two interfaces. Default interface methods (C# 8) give an interface member a body that implementers may override; use them to evolve published interfaces without breaking implementers. Static abstract members are covered with generic math in stage 7.",
+  "`is` tests a runtime type and can declare a variable (`if (shape is Circle c)`); `as` returns null instead of throwing when the cast fails; a direct cast `(Circle)shape` throws `InvalidCastException`. Prefer pattern-based `is` checks, and prefer virtual or interface members over long chains of type tests.",
+  "Before adding an interface, check that there are (or will be) multiple implementations or a testing seam; an interface for a single class adds indirection without benefit. Keep interfaces small and named for a capability."
+ ],
+ "expectedStdout": "circle: 3.1\nrectangle: 6.0\nrect 2x3\nTrue\nprinted\nexported\nstarted\nERROR disk full\n",
+ "challenge": "Make a Version class (int Major, int Minor) implement IComparable<Version>, then sort [1.4, 0.9, 1.10] with List.Sort and print them.",
+ "solutionStdout": "0.9 1.4 1.10\n",
+ "question": "What does `obj as Circle` return when obj is a Rect?",
+ "correct": "null",
+ "wrong": [
+  "It throws InvalidCastException",
+  "A Circle converted from the Rect"
+ ],
+ "reasoning": "as never throws for reference conversions; a direct cast (Circle)obj would throw.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/types/interfaces",
+ "additionalReadings": [
+  {
+   "title": "Type-testing operators",
+   "url": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/type-testing-and-cast",
+   "section": "is and as"
+  }
+ ]
+}

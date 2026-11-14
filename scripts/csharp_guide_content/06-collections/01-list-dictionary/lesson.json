@@ -1,0 +1,29 @@
+{
+ "key": "list-and-dictionary",
+ "title": "List<T> and Dictionary<TKey, TValue>",
+ "body": [
+  "`List<T>` is a growable array: `Add` appends in amortized O(1), indexing is O(1), and `Insert`/`RemoveAt` in the middle shift elements in O(n). `Count` is the number of elements, `Capacity` the allocated size; when it fills, the list allocates a larger array and copies. Pass an initial capacity when you know the size.",
+  "`Dictionary<TKey, TValue>` maps keys to values with average O(1) lookup using the key's `GetHashCode` and `Equals`. The indexer `dict[key]` throws `KeyNotFoundException` for a missing key; `TryGetValue` returns false instead. Assigning through the indexer adds or overwrites, while `Add` throws on a duplicate key.",
+  "Keys must not change in ways that affect their hash while stored; a mutated key becomes unreachable. Strings and records make good keys. Supply a comparer for alternative equality, such as `new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)`.",
+  "`CollectionsMarshal.GetValueRefOrAddDefault(dict, key, out bool existed)` returns a reference to the value slot so counting with structs avoids a second lookup; for most code `dict[key] = dict.GetValueOrDefault(key) + 1` is clear enough. Dictionary enumeration order is not guaranteed; sort keys when output order matters.",
+  "Before choosing, check the operations you perform most often: indexed access and appends suit List; lookups by key suit Dictionary. Check missing-key behaviour on every read."
+ ],
+ "expectedStdout": "Ada,Bob,Zed count=3\n1\nand=2 bat=1 cat=1 hat=1 the=3 \n-1\nduplicate key rejected by Add\nTrue\n",
+ "challenge": "Group the words apple, avocado, banana, blueberry, cherry by first letter into a Dictionary<char, List<string>> and print each letter with its words in key order.",
+ "solutionStdout": "a: apple,avocado\nb: banana,blueberry\nc: cherry\n",
+ "question": "What does `dict[key]` do when the key is absent and you are reading?",
+ "correct": "Throws KeyNotFoundException",
+ "wrong": [
+  "Returns default(TValue)",
+  "Adds the key with a default value"
+ ],
+ "reasoning": "Reading through the indexer requires the key; use TryGetValue or GetValueOrDefault for optional keys.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/standard/collections/selecting-a-collection-class",
+ "additionalReadings": [
+  {
+   "title": "Dictionary<TKey,TValue>",
+   "url": "https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2",
+   "section": "Remarks"
+  }
+ ]
+}

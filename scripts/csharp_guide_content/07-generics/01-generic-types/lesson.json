@@ -1,0 +1,29 @@
+{
+ "key": "generic-types-and-methods",
+ "title": "Generic types and methods",
+ "body": [
+  "Generics let you write a type or method once and use it with many types while keeping static type checking. `List<int>` and `List<string>` are constructed from the generic definition `List<T>`; `T` is a type parameter. Without generics you would use `object` and lose type safety, pay for boxing and need casts.",
+  "A generic method declares its own type parameters: `static T Max<T>(T a, T b) where T : IComparable<T>`. The compiler usually infers the type argument from the arguments, so `Max(3, 7)` means `Max<int>(3, 7)`. Inference uses only arguments, not the return type.",
+  "In .NET, generics are reified: the runtime knows `List<int>` and `List<string>` are different types, and value-type instantiations get specialized machine code with no boxing. `typeof(T)` and `default(T)` work at runtime. `default(T)` is 0 for numbers, null for reference types and a zeroed struct otherwise.",
+  "Static fields in a generic type exist once per closed type: `Counter<int>.Count` and `Counter<string>.Count` are separate. This is useful for per-type caches.",
+  "Prefer generics whenever the algorithm does not care about the element type. Check that `default(T)` is a meaningful value for your algorithm, especially when `T` may be a non-nullable value type."
+ ],
+ "expectedStdout": "3\nHI\nhi|0\n7\npear\nInt32 String List`1\n2 1\n",
+ "challenge": "Write a generic Pair<TFirst, TSecond> record with a Swap() method returning Pair<TSecond, TFirst>, and a generic method FirstOrFallback<T>(IEnumerable<T> xs, T fallback). Demonstrate both.",
+ "solutionStdout": "Pair { First = one, Second = 1 }\nnone\n5\n",
+ "question": "Does `List<int>` box its integers?",
+ "correct": "No; .NET generates specialized code for value-type instantiations",
+ "wrong": [
+  "Yes; generics always store object references",
+  "Only when the list grows beyond its capacity"
+ ],
+ "reasoning": "Reified generics keep List<int> storing raw ints, unlike the old non-generic ArrayList.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/types/generics",
+ "additionalReadings": [
+  {
+   "title": "Generics in .NET",
+   "url": "https://learn.microsoft.com/en-us/dotnet/standard/generics/",
+   "section": "Overview"
+  }
+ ]
+}

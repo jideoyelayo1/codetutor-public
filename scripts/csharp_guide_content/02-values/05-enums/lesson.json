@@ -1,0 +1,29 @@
+{
+ "key": "enums",
+ "title": "Enums and flags",
+ "body": [
+  "An enum gives names to a set of integral constants: `enum Status { Pending, Active, Closed }`. By default the underlying type is `int` and members count up from 0. Enums make code self-documenting and let the compiler reject passing an arbitrary string where a status is expected.",
+  "An enum value is just its underlying number, so any int can be cast to the enum even if no member has that value: `(Status)42` is legal. Validate input with `Enum.IsDefined` or `Enum.TryParse(text, ignoreCase: true, out Status s)` and handle unknown values in switches with a default arm.",
+  "`ToString()` returns the member name, which is convenient for logging but couples output to identifiers; renaming a member changes the text. `Enum.GetValues<Status>()` enumerates the members in numeric order.",
+  "A `[Flags]` enum uses powers of two so members can be combined with `|`: `Permissions.Read | Permissions.Write`. Test a flag with `(value & Permissions.Write) != 0` or `HasFlag`. Include a `None = 0` member and never use 0 for a real flag, because `x & 0` is always 0.",
+  "When adding a member later, check every switch over the enum; the compiler only warns about missing cases in switch expressions without a discard arm. Treat enums read from files or networks as untrusted numbers until validated."
+ ],
+ "expectedStdout": "Active = 1\nClosed\n42 defined=False\nPending,Active,Closed\nRead, Write\nTrue\nRead\ndone\n",
+ "challenge": "Define [Flags] enum Days with Monday..Sunday as powers of two, plus Weekend = Saturday | Sunday. Print whether Weekend includes Sunday and print Weekend itself.",
+ "solutionStdout": "True\nWeekend\nWeekend\n",
+ "question": "Is `(Status)42` legal when Status has only members 0, 1 and 2?",
+ "correct": "Yes; enums accept any value of the underlying type",
+ "wrong": [
+  "No; it is a compile-time error",
+  "It throws InvalidCastException at runtime"
+ ],
+ "reasoning": "Enums are named integers. Validate with Enum.IsDefined or TryParse and keep a default arm in switches.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/enum",
+ "additionalReadings": [
+  {
+   "title": "FlagsAttribute",
+   "url": "https://learn.microsoft.com/en-us/dotnet/api/system.flagsattribute",
+   "section": "Flags"
+  }
+ ]
+}

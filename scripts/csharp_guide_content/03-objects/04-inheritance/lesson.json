@@ -1,0 +1,35 @@
+{
+ "key": "inheritance-and-polymorphism",
+ "title": "Inheritance, virtual dispatch and abstract classes",
+ "body": [
+  "A derived class inherits the members of its base class: `class Circle : Shape`. C# supports single class inheritance (one base class) and multiple interface implementation. Constructors are not inherited; a derived constructor chains to a base constructor with `: base(...)`, and the base part is initialized first.",
+  "A `virtual` member can be replaced with `override` in a derived class. Calls through a base-typed reference dispatch to the most derived override at runtime: `Shape s = new Circle(1); s.Area()` runs `Circle.Area`. That runtime choice is polymorphism. `base.Describe()` calls the base implementation from inside an override.",
+  "An `abstract` class cannot be instantiated and may declare `abstract` members with no body that every concrete derived class must override. Use it when derived types share state or implementation. `sealed` on a class prevents further derivation; on an override it stops deeper overrides.",
+  "Declaring a member with the same name but without `override` hides the base member (the compiler warns CS0114 or CS0108; use `new` to say it is deliberate). Hidden members are chosen by the static type of the reference, not the runtime type, which surprises readers. Prefer override.",
+  "Calling a virtual method from a base constructor runs the derived override before the derived constructor has initialized its fields. Before designing a hierarchy, check whether composition or an interface would be simpler, and mark classes `sealed` unless they are designed for inheritance."
+ ],
+ "expectedStdout": "circle shape area=3.14\nshape area=4.00\ntile area=1.00\nbase\nderived\n",
+ "challenge": "Add an abstract Employee class with an abstract MonthlyPay() and a virtual Title, then Salaried(decimal annual) and Hourly(decimal rate, int hours) subclasses. Print the total pay for one of each.",
+ "solutionStdout": "salaried: 5000\nemployee: 3200\n8200\n",
+ "question": "Given `Shape s = new Circle();` and a virtual Area overridden in Circle, which Area runs for `s.Area()`?",
+ "correct": "Circle.Area, chosen at runtime",
+ "wrong": [
+  "Shape.Area, because s is declared as Shape",
+  "Whichever was declared last in the file"
+ ],
+ "reasoning": "virtual/override dispatches on the runtime type; only hiding with new uses the static type.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/object-oriented/inheritance",
+ "additionalReadings": [
+  {
+   "title": "Polymorphism",
+   "url": "https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/object-oriented/polymorphism",
+   "section": "Virtual members"
+  }
+ ],
+ "rejected": [
+  {
+   "file": "rejected.cs",
+   "diagnostic": "CS0144"
+  }
+ ]
+}

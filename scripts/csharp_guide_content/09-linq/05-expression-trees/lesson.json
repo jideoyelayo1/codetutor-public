@@ -1,0 +1,29 @@
+{
+ "key": "expression-trees",
+ "title": "IQueryable and expression trees",
+ "body": [
+  "LINQ has two worlds. `IEnumerable<T>` operators take delegates and run your lambdas in memory. `IQueryable<T>` operators take `Expression<Func<...>>`: the compiler turns the lambda into a data structure describing the code, so a provider such as Entity Framework Core can translate it to SQL or another query language.",
+  "The same lambda text can become either a delegate or an expression tree depending on the target type. `Func<int, bool> f = x => x > 2;` compiles to code; `Expression<Func<int, bool>> e = x => x > 2;` compiles to a tree with a `Parameter`, a `Constant` and a `GreaterThan` node that you can inspect, rewrite or compile with `e.Compile()`.",
+  "Providers can only translate what they understand. Calling your own C# method inside a query is fine in memory but a database provider throws at runtime because it cannot turn the method into SQL. Expression lambdas also cannot contain statement bodies, assignments or some newer syntax.",
+  "Switching from `IQueryable` to `IEnumerable` with `AsEnumerable()` moves the rest of the query into memory: filtering after that point downloads every row first. Keep filters and projections on the queryable side when a database is involved.",
+  "Check the static type of a query variable: `IQueryable<T>` means the predicate becomes data for a provider, `IEnumerable<T>` means it runs as your code, possibly after fetching everything."
+ ],
+ "expectedStdout": "True\nx => (x > 2)\nGreaterThan x 2\nFalse\nn => (n * 3) -> 21\nTrue\n20,40\n",
+ "challenge": "Build an expression Expression<Func<string, bool>> that tests s.Length > 3 using the Expression factory methods (Parameter, Property, Constant, GreaterThan, Lambda), print it, and use the compiled delegate to filter [\"to\", \"tree\", \"leaf\"].",
+ "solutionStdout": "s => (s.Length > 3)\ntree,leaf\n",
+ "question": "What does assigning a lambda to `Expression<Func<int, bool>>` produce?",
+ "correct": "A tree of objects describing the lambda's code",
+ "wrong": [
+  "A compiled delegate identical to Func<int, bool>",
+  "A SQL string"
+ ],
+ "reasoning": "Expression trees are data a provider can inspect and translate; Compile() turns them into a delegate.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/advanced-topics/expression-trees/",
+ "additionalReadings": [
+  {
+   "title": "IQueryable<T>",
+   "url": "https://learn.microsoft.com/en-us/dotnet/api/system.linq.iqueryable-1",
+   "section": "Remarks"
+  }
+ ]
+}

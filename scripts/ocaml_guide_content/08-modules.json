@@ -1,0 +1,174 @@
+[
+  {
+    "key": "structures-and-signatures",
+    "stage": "08 · Modules",
+    "title": "Structures and signatures",
+    "body": [
+      "A module is a named bundle of types, values and other modules. `module Stack = struct ... end` creates a structure, and `Stack.push` reaches inside it. Every `.ml` file is itself a module named after the file, so the language of modules is how large programs are organised.",
+      "A signature is the type of a module: the list of names and types it promises to expose. `module type STACK = sig type 'a t val empty : 'a t val push : 'a -> 'a t -> 'a t end` describes an interface, and `module S : STACK = struct ... end` checks that the structure provides at least those items.",
+      "Think of the signature as the contract and the structure as one implementation of it. Anything not listed in the signature is invisible to users, which is the mechanism for hiding helper functions."
+    ],
+    "code": "module type STACK = sig\n  type 'a t\n  val empty : 'a t\n  val push : 'a -> 'a t -> 'a t\n  val pop : 'a t -> ('a * 'a t) option\n  val size : 'a t -> int\nend\n\nmodule ListStack : STACK = struct\n  type 'a t = 'a list\n  let empty = []\n  let push x s = x :: s\n  let pop = function [] -> None | x :: rest -> Some (x, rest)\n  let helper_not_exported = 42\n  let size = List.length\nend\n\nlet () =\n  let s = ListStack.(push 2 (push 1 empty)) in\n  Printf.printf \"%d\\n\" (ListStack.size s);\n  match ListStack.pop s with Some (x, _) -> Printf.printf \"%d\\n\" x | None -> ()\n",
+    "expectedStdout": "2\n2\n",
+    "challenge": "Add a `peek : 'a t -> 'a option` to both the signature and the structure, and print the peek of a stack holding 7.",
+    "solution": "module type STACK = sig\n  type 'a t\n  val empty : 'a t\n  val push : 'a -> 'a t -> 'a t\n  val peek : 'a t -> 'a option\nend\n\nmodule ListStack : STACK = struct\n  type 'a t = 'a list\n  let empty = []\n  let push x s = x :: s\n  let peek = function [] -> None | x :: _ -> Some x\nend\n\nlet () = match ListStack.(peek (push 7 empty)) with Some x -> Printf.printf \"%d\\n\" x | None -> ()\n",
+    "solutionStdout": "7\n",
+    "question": "What does a signature control?",
+    "correct": "Which names and types of a module are visible to users",
+    "wrong": [
+      "How fast the module runs",
+      "Which file the module is stored in"
+    ],
+    "reasoning": "A signature lists what a module exposes; anything omitted is hidden from outside code.",
+    "sourceURL": "https://ocaml.org/docs/modules",
+    "project": null,
+    "additionalReadings": [
+      {
+        "title": "5.2. Modules",
+        "url": "https://cs3110.github.io/textbook/chapters/modules/modules.html",
+        "section": "5.2. Modules"
+      }
+    ]
+  },
+  {
+    "key": "abstract-types",
+    "stage": "08 · Modules",
+    "title": "Abstract types protect invariants",
+    "body": [
+      "Leaving a type's definition out of a signature makes it abstract: users can name `t` but cannot see that it is an `int` or a record. They can only create and inspect values through the functions you export, so you control every way a value can come into being.",
+      "That is how you maintain an invariant such as 'a percentage is between 0 and 100'. The constructor `of_int` returns an option and rejects bad input, and since nobody else can build a `t`, every `t` in the program has passed the check.",
+      "The compiler enforces the boundary. Trying to add an abstract `Percent.t` to an int is a type error, which protects you from mixing units. Expose a `to_int` or a printer when users need to see the value."
+    ],
+    "code": "module Percent : sig\n  type t\n  val of_int : int -> t option\n  val to_int : t -> int\n  val add : t -> t -> t\nend = struct\n  type t = int\n  let of_int n = if n >= 0 && n <= 100 then Some n else None\n  let to_int n = n\n  let add a b = min 100 (a + b)\nend\n\nlet () =\n  match Percent.of_int 70, Percent.of_int 50, Percent.of_int 101 with\n  | Some a, Some b, None ->\n    Printf.printf \"%d\\n\" (Percent.to_int (Percent.add a b))\n  | _ -> print_endline \"unexpected\"\n",
+    "expectedStdout": "100\n",
+    "challenge": "Define a module `Even` with an abstract type that only holds even integers: `of_int` returns None for odd input. Print `Even.to_int` for 8 and whether 7 is accepted.",
+    "solution": "module Even : sig\n  type t\n  val of_int : int -> t option\n  val to_int : t -> int\nend = struct\n  type t = int\n  let of_int n = if n mod 2 = 0 then Some n else None\n  let to_int n = n\nend\n\nlet () =\n  (match Even.of_int 8 with Some e -> Printf.printf \"%d\\n\" (Even.to_int e) | None -> ());\n  Printf.printf \"%b\\n\" (Even.of_int 7 <> None)\n",
+    "solutionStdout": "8\nfalse\n",
+    "question": "Why does hiding a type's representation help maintain an invariant?",
+    "correct": "Only the module's own functions can create values, so every value has passed its checks",
+    "wrong": [
+      "It makes the type smaller in memory",
+      "It lets users modify the value directly"
+    ],
+    "reasoning": "With the representation hidden, outside code cannot construct or alter a value except through the validated interface.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/modules/encapsulation.html",
+    "project": null
+  },
+  {
+    "key": "open-include-local",
+    "stage": "08 · Modules",
+    "title": "open, include and local modules",
+    "body": [
+      "`open M` brings every name of `M` into scope for the rest of the file, which can shadow your own names and make the origin of an identifier unclear. Prefer the local forms `M.(expr)` and `let open M in expr`, which limit the scope to the expression.",
+      "`include M` copies the contents of `M` into the current structure, so you can extend a module: `include List` followed by new functions yields a module that has everything from `List` plus your additions. In a signature, `include S` repeats the items of `S`.",
+      "A module can also be defined locally with `let module M = ... in`. Use these tools sparingly. The more names a reader must remember, the harder code review becomes, so keep `open` out of widely used files except for well-known, deliberately designed modules."
+    ],
+    "code": "module Ext = struct\n  include List\n  let sum = fold_left ( + ) 0\nend\n\nmodule Shapes = struct\n  let pi = 3.0\n  let area r = pi *. r *. r\nend\n\nlet () =\n  Printf.printf \"%d %d\\n\" (Ext.length [1; 2; 3]) (Ext.sum [1; 2; 3]);\n  Printf.printf \"%.1f\\n\" Shapes.(area 2.0);\n  let open Shapes in\n  Printf.printf \"%.1f\\n\" (pi *. 2.0);\n  let module Local = struct let greeting = \"hi\" end in\n  print_endline Local.greeting\n",
+    "expectedStdout": "3 6\n12.0\n6.0\nhi\n",
+    "challenge": "Extend String with an `exclaim s = s ^ \"!\"` using include, and print `Loud.exclaim (Loud.uppercase_ascii \"ok\")`.",
+    "solution": "module Loud = struct\n  include String\n  let exclaim s = s ^ \"!\"\nend\n\nlet () = print_endline (Loud.exclaim (Loud.uppercase_ascii \"ok\"))\n",
+    "solutionStdout": "OK!\n",
+    "question": "Why prefer `M.(expr)` over a file-level `open M`?",
+    "correct": "It limits the scope of M's names to one expression so identifiers stay traceable",
+    "wrong": [
+      "It is required by the compiler",
+      "It runs faster"
+    ],
+    "reasoning": "A global open can silently shadow names and hide where an identifier came from; local opens keep the effect small.",
+    "sourceURL": "https://dev.realworldocaml.org/files-modules-and-programs.html",
+    "project": null,
+    "additionalReadings": [
+      {
+        "title": "5.8. Includes",
+        "url": "https://cs3110.github.io/textbook/chapters/modules/includes.html",
+        "section": "5.8. Includes"
+      }
+    ]
+  },
+  {
+    "key": "functors",
+    "stage": "08 · Modules",
+    "title": "Functors: modules parameterised by modules",
+    "body": [
+      "A functor is a function from modules to modules. `module Make (Ord : sig type t val compare : t -> t -> int end) = struct ... end` builds a new module for any ordered type. The standard library uses this for `Map.Make`, `Set.Make` and `Hashtbl.Make`.",
+      "The parameter has a signature, which states exactly what the functor needs from its argument. The functor body can then use `Ord.compare` without knowing the concrete type, and the result is a fresh module for each application.",
+      "Use a functor when an algorithm should be written once but depends on a type together with operations on it, such as ordering, hashing or printing. If you only need one function, pass the function instead of building a module."
+    ],
+    "code": "module type ORDERED = sig\n  type t\n  val compare : t -> t -> int\nend\n\nmodule MakeSorter (O : ORDERED) = struct\n  let max_of = function\n    | [] -> None\n    | x :: rest -> Some (List.fold_left (fun m y -> if O.compare y m > 0 then y else m) x rest)\n  let sort l = List.sort O.compare l\nend\n\nmodule IntSorter = MakeSorter (Int)\nmodule ByLength = MakeSorter (struct type t = string let compare a b = compare (String.length a) (String.length b) end)\n\nlet () =\n  List.iter (Printf.printf \"%d \") (IntSorter.sort [3; 1; 2]);\n  print_newline ();\n  (match ByLength.max_of [\"aa\"; \"bbbb\"; \"c\"] with Some s -> print_endline s | None -> ());\n  List.iter print_endline (ByLength.sort [\"ccc\"; \"a\"; \"bb\"])\n",
+    "expectedStdout": "1 2 3 \nbbbb\na\nbb\nccc\n",
+    "challenge": "Write a functor `Counter (K : sig type t val compare : t -> t -> int end)` exposing `count : K.t list -> (K.t * int) list` with sorted keys, and apply it to Int to print the counts of [2; 1; 2].",
+    "solution": "module Counter (K : sig type t val compare : t -> t -> int end) = struct\n  let count l =\n    let sorted = List.sort K.compare l in\n    List.fold_left (fun acc x ->\n      match acc with\n      | (y, n) :: rest when K.compare x y = 0 -> (y, n + 1) :: rest\n      | _ -> (x, 1) :: acc) [] sorted\n    |> List.rev\nend\n\nmodule IntCounter = Counter (Int)\n\nlet () = List.iter (fun (k, n) -> Printf.printf \"%d:%d \" k n) (IntCounter.count [2; 1; 2]); print_newline ()\n",
+    "solutionStdout": "1:1 2:2 \n",
+    "question": "What does a functor take and return?",
+    "correct": "It takes a module and returns a module",
+    "wrong": [
+      "It takes a value and returns a type",
+      "It takes a type and returns a value"
+    ],
+    "reasoning": "Functors operate at the module level, mapping one structure to another according to the parameter's signature.",
+    "sourceURL": "https://ocaml.org/docs/functors",
+    "project": null,
+    "additionalReadings": [
+      {
+        "title": "5.9. Functors",
+        "url": "https://cs3110.github.io/textbook/chapters/modules/functors.html",
+        "section": "5.9. Functors"
+      }
+    ]
+  },
+  {
+    "key": "sharing-constraints",
+    "stage": "08 · Modules",
+    "title": "Sharing constraints with with type",
+    "body": [
+      "A functor's result signature often hides the type that it was parameterised over. If `MakeSet (E : ELEMENT) : SET`, the result's `elt` is abstract, so you cannot add an int to it even when `E.t` is `int`. A sharing constraint `with type elt = E.t` re-exposes the equality.",
+      "Write `module Make (E : ELEMENT) : SET with type elt = E.t = struct ... end`. The result stays abstract in the representation of the set but is no longer abstract in its element type, so users can pass ordinary values.",
+      "You will see `with type` constantly in library signatures. If the compiler says two types are different when you know they must be the same, look for a missing sharing constraint in a functor result."
+    ],
+    "code": "module type ELEMENT = sig type t val compare : t -> t -> int end\n\nmodule type SET = sig\n  type elt\n  type t\n  val empty : t\n  val add : elt -> t -> t\n  val mem : elt -> t -> bool\nend\n\nmodule Make (E : ELEMENT) : SET with type elt = E.t = struct\n  type elt = E.t\n  type t = elt list\n  let empty = []\n  let mem x s = List.exists (fun y -> E.compare x y = 0) s\n  let add x s = if mem x s then s else x :: s\nend\n\nmodule IntSet = Make (Int)\n\nlet () =\n  let s = IntSet.(add 3 (add 3 (add 4 empty))) in\n  Printf.printf \"%b %b\\n\" (IntSet.mem 3 s) (IntSet.mem 9 s)\n",
+    "expectedStdout": "true false\n",
+    "challenge": "Remove the `with type elt = E.t` constraint and read the compiler error from `IntSet.add 3`. Then restore it and print whether IntSet.mem 4 holds for a set containing 4.",
+    "solution": "module type ELEMENT = sig type t val compare : t -> t -> int end\nmodule type SET = sig type elt type t val empty : t val add : elt -> t -> t val mem : elt -> t -> bool end\n\nmodule Make (E : ELEMENT) : SET with type elt = E.t = struct\n  type elt = E.t\n  type t = elt list\n  let empty = []\n  let mem x s = List.exists (fun y -> E.compare x y = 0) s\n  let add x s = if mem x s then s else x :: s\nend\n\nmodule IntSet = Make (Int)\nlet () = Printf.printf \"%b\\n\" IntSet.(mem 4 (add 4 empty))\n",
+    "solutionStdout": "true\n",
+    "question": "What does `SET with type elt = E.t` change?",
+    "correct": "It makes the result's elt type equal to E.t instead of abstract, so callers can use ordinary values",
+    "wrong": [
+      "It renames the module",
+      "It makes the set mutable"
+    ],
+    "reasoning": "A sharing constraint tells the type checker that two otherwise abstract types are the same type.",
+    "sourceURL": "https://dev.realworldocaml.org/functors.html",
+    "project": null,
+    "additionalReadings": [
+      {
+        "title": "5.7. Module Type Constraints",
+        "url": "https://cs3110.github.io/textbook/chapters/modules/module_type_constraints.html",
+        "section": "5.7. Module Type Constraints"
+      }
+    ]
+  },
+  {
+    "key": "first-class-modules",
+    "stage": "08 · Modules",
+    "title": "First-class modules",
+    "body": [
+      "A module is not a value, but you can pack one into a value with `(module M : S)` and unpack it with `(module X : S)` in a function parameter or a `let module` binding. This lets you choose an implementation at runtime and store modules in lists or records.",
+      "The type of a packed module is `(module S)`. When a function takes a packed module and uses its types, the unpacking pattern gives the module a name, so later annotations like `(x : M.t)` can refer to it. That is the idiom for runtime-selected plug-ins.",
+      "Use first-class modules for dynamic choice, such as selecting a backend from configuration. If the choice is known at compile time, an ordinary functor is simpler and leaves more to the type checker."
+    ],
+    "code": "module type SHOWABLE = sig type t val default : t val show : t -> string end\n\nmodule I = struct type t = int let default = 7 let show = string_of_int end\nmodule B = struct type t = bool let default = true let show = string_of_bool end\n\nlet describe (module M : SHOWABLE) = M.show M.default\nlet describe_with (module M : SHOWABLE) (x : M.t) = M.show x\n\nlet all : (string * (module SHOWABLE)) list = [(\"int\", (module I)); (\"bool\", (module B))]\n\nlet () =\n  List.iter (fun (name, m) -> Printf.printf \"%s=%s\\n\" name (describe m)) all;\n  print_endline (describe_with (module I) 41)\n",
+    "expectedStdout": "int=7\nbool=true\n41\n",
+    "challenge": "Add a module `S` (type t = string, default \"x\") to the list under the name \"string\" and print every entry again.",
+    "solution": "module type SHOWABLE = sig type t val default : t val show : t -> string end\nmodule I = struct type t = int let default = 7 let show = string_of_int end\nmodule S = struct type t = string let default = \"x\" let show s = s end\nlet describe (module M : SHOWABLE) = M.show M.default\nlet all : (string * (module SHOWABLE)) list = [(\"int\", (module I)); (\"string\", (module S))]\nlet () = List.iter (fun (n, m) -> Printf.printf \"%s=%s\\n\" n (describe m)) all\n",
+    "solutionStdout": "int=7\nstring=x\n",
+    "question": "When should you prefer a functor to a first-class module?",
+    "correct": "When the implementation is known at compile time and you want the type checker to do more of the work",
+    "wrong": [
+      "When you need to pick an implementation from user input",
+      "When you want to store modules in a list"
+    ],
+    "reasoning": "Functors are resolved statically and keep more type information; first-class modules are for genuinely dynamic choices.",
+    "sourceURL": "https://dev.realworldocaml.org/first-class-modules.html",
+    "project": null
+  }
+]

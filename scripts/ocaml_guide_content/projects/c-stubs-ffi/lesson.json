@@ -1,0 +1,87 @@
+{
+  "key": "c-stubs-ffi",
+  "stage": "13 · Runtime and performance",
+  "n": 5,
+  "title": "Calling C: external declarations and stubs",
+  "minutes": 45,
+  "body": [
+    "An `external sum_ints : int array -> int = \"ml_sum_ints\"` declaration says that the function is implemented in C under that symbol. Dune compiles and links the C file when the library has `(foreign_stubs (language c) (names fastsum_stubs))`. The attribute `[@@noalloc]` promises that the stub never allocates or raises, which lets the compiler call it with less overhead.",
+    "C sees OCaml values through the `value` type. An `int` is stored tagged (`Val_long(n)` and `Long_val(v)` convert), and an array is a block whose elements are read with `Field(v, i)` and whose length is `Wosize_val(v)`. These macros come from `<caml/mlvalues.h>`, and getting a conversion wrong silently produces garbage rather than a type error.",
+    "If a stub allocates or calls back into OCaml, the collector may move values, so you must register roots with `CAMLparam`/`CAMLlocal` and return with `CAMLreturn`. Immediate integers need no protection, which is why this lesson's stubs are simple. Prefer `ctypes` for bindings that are not performance-critical, and keep stubs small and tested."
+  ],
+  "challenge": "src/fastsum_stubs.c compiles but `ml_sum_ints` returns 0. Implement it: read the array length with `Wosize_val`, add up `Long_val(Field(arr, i))` for each element in a `long`, and return `Val_long(total)`.",
+  "projectInstructions": "Run `dune test --root .`. Edit only src/fastsum_stubs.c. The `ml_range` stub shows how a stub allocates and fills an array.",
+  "question": "Why must C code use `Long_val` and `Val_long` on OCaml ints?",
+  "correct": "OCaml stores ints tagged in the low bit, so raw C arithmetic would read or write the wrong value",
+  "wrong": [
+    "Because OCaml ints are 8-bit",
+    "To make the compiler inline the call"
+  ],
+  "reasoning": "A tagged representation lets the collector tell ints from pointers; the macros add and remove the tag.",
+  "sourceURL": "https://dev.realworldocaml.org/foreign-function-interface.html",
+  "projectChecks": [
+    {
+      "name": "starter compiles",
+      "command": [
+        "dune",
+        "build",
+        "--root",
+        "."
+      ],
+      "exit": 0
+    },
+    {
+      "name": "starter test fails",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "test_fastsum.ml"
+    },
+    {
+      "name": "solution test passes",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 0,
+      "useSolution": true
+    },
+    {
+      "name": "wrong arithmetic is caught",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "test_fastsum.ml",
+      "useSolution": true,
+      "mutations": [
+        {
+          "path": "src/fastsum_stubs.c",
+          "find": "total += Long_val(Field(arr, i));",
+          "replace": "total += Long_val(Field(arr, i)) + 1;"
+        }
+      ]
+    }
+  ],
+  "additionalReadings": [
+    {
+      "title": "OCaml manual: Interfacing C with OCaml",
+      "url": "https://ocaml.org/manual/5.5/intfc.html",
+      "section": "Overview"
+    },
+    {
+      "title": "Real World OCaml: Foreign Function Interface",
+      "url": "https://dev.realworldocaml.org/foreign-function-interface.html",
+      "section": "Ctypes and C stubs"
+    }
+  ]
+}

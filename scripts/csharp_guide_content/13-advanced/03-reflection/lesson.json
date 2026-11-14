@@ -1,0 +1,35 @@
+{
+ "key": "attributes-and-reflection",
+ "title": "Attributes and reflection",
+ "body": [
+  "Attributes attach metadata to code: `[Obsolete(\"use V2\")]`, `[Flags]`, `[JsonPropertyName(\"id\")]`. They do nothing by themselves; the compiler, the runtime, frameworks or your own code read them. Define your own by deriving from `Attribute` and restrict where it may appear with `[AttributeUsage]`.",
+  "Reflection inspects types at runtime: `typeof(T)` or `obj.GetType()` returns a `Type`, from which you can list properties, methods and attributes, read and write values, and invoke members. Serializers, test runners, dependency-injection containers and ORMs rely on it.",
+  "Reflection is slow compared with direct calls, bypasses compile-time checking and breaks when code is trimmed or compiled ahead of time (Native AOT), because the trimmer cannot see which members are used. Mark APIs that need it with `[DynamicallyAccessedMembers]`, or prefer source generators, which produce ordinary code at compile time.",
+  "Generic attributes (C# 11) take type arguments: `[Validator<EmailRule>]`. Caller-information attributes (`[CallerMemberName]`, `[CallerArgumentExpression]`) let the compiler pass names and source text into parameters, which is how `ArgumentNullException.ThrowIfNull` reports parameter names.",
+  "Use reflection at boundaries (startup, configuration, tooling), cache what you discover, and check whether the app will be trimmed or AOT-compiled before depending on it."
+ ],
+ "allowWarnings": true,
+ "expectedStdout": "Name: String max 20\nEmail: String\nvalid\nName exceeds 20\n9\nUse SignupV2\ncalled from <Main>$\nform.Name.Length > 100 is False\n",
+ "challenge": "Write a [Description(\"...\")] attribute for enum members and a Describe(Enum value) helper that returns the description via reflection, or the member name when there is none. Test with an enum Level { [Description(\"Very low\")] Low, High }.",
+ "solutionStdout": "Very low\nHigh\n",
+ "question": "Why is heavy reflection a problem for Native AOT and trimmed apps?",
+ "correct": "The trimmer cannot see members used only via reflection and may remove them",
+ "wrong": [
+  "Reflection is unavailable on 64-bit platforms",
+  "Attributes are stripped by the C# compiler"
+ ],
+ "reasoning": "Annotate with DynamicallyAccessedMembers or replace reflection with source-generated code.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/advanced-topics/reflection-and-attributes/",
+ "additionalReadings": [
+  {
+   "title": "Caller information",
+   "url": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/attributes/caller-information",
+   "section": "CallerArgumentExpression"
+  },
+  {
+   "title": "Prepare libraries for trimming",
+   "url": "https://learn.microsoft.com/en-us/dotnet/core/deploying/trimming/prepare-libraries-for-trimming",
+   "section": "DynamicallyAccessedMembers"
+  }
+ ]
+}

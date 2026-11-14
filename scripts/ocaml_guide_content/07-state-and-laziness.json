@@ -1,0 +1,153 @@
+[
+  {
+    "key": "refs-and-loops",
+    "stage": "07 · State and laziness",
+    "title": "References, sequencing and loops",
+    "body": [
+      "A `ref` is a mutable cell: `let n = ref 0` creates it, `!n` reads it and `n := !n + 1` updates it. A ref is an ordinary record with one mutable field, so it is a value you can pass around, and the name itself is still immutable.",
+      "Sequence effects with `;`, which evaluates the left side, discards its `unit` result and continues. `for i = 1 to n do ... done` and `while cond do ... done` are the imperative loops. They have type `unit`, so they are used for their effects.",
+      "Reach for loops and refs when an algorithm is naturally imperative, such as filling an array, and keep the mutable state local to a function so that callers see a pure interface. A forgotten `;` or a missing `!` is the classic beginner error, and the type checker usually catches it."
+    ],
+    "code": "let sum_to n =\n  let total = ref 0 in\n  for i = 1 to n do total := !total + i done;\n  !total\n\nlet collatz_steps n =\n  let n = ref n and steps = ref 0 in\n  while !n <> 1 do\n    n := if !n mod 2 = 0 then !n / 2 else 3 * !n + 1;\n    incr steps\n  done;\n  !steps\n\nlet () =\n  Printf.printf \"%d\\n\" (sum_to 100);\n  Printf.printf \"%d\\n\" (collatz_steps 27);\n  let counter = ref 0 in\n  let tick () = incr counter; !counter in\n  let a = tick () in\n  let b = tick () in\n  Printf.printf \"%d %d\\n\" a b\n",
+    "expectedStdout": "5050\n111\n1 2\n",
+    "challenge": "Write `factorial_loop n` using a for loop and a ref, and print `factorial_loop 6`.",
+    "solution": "let factorial_loop n =\n  let r = ref 1 in\n  for i = 2 to n do r := !r * i done;\n  !r\n\nlet () = Printf.printf \"%d\\n\" (factorial_loop 6)\n",
+    "solutionStdout": "720\n",
+    "question": "What is `r := !r + 1` doing?",
+    "correct": "Reading the cell with !, adding one and storing the result back with :=",
+    "wrong": [
+      "Declaring a new variable r",
+      "Comparing r with r plus one"
+    ],
+    "reasoning": "! dereferences a ref and := assigns to it; the name r keeps pointing at the same mutable cell.",
+    "sourceURL": "https://dev.realworldocaml.org/imperative-programming.html",
+    "project": null
+  },
+  {
+    "key": "mutable-fields-and-state",
+    "stage": "07 · State and laziness",
+    "title": "Mutable record fields and encapsulated state",
+    "body": [
+      "A record field marked `mutable` can be assigned with `r.field <- v`. This is useful for counters, buffers and caches that really change over time, such as `type counter = { mutable count : int }`.",
+      "Encapsulate state behind functions. A closure over a ref gives you a private counter with no global variable, and a module with an abstract type hides the mutable record so that only your operations can change it. Callers then cannot break an invariant by writing to a field directly.",
+      "Keep mutation out of the data you share widely. Two names for the same mutable record see each other's changes, which is called aliasing, and it is the usual source of bugs when you copy a record by sharing it."
+    ],
+    "code": "type account = { owner : string; mutable balance : int }\n\nlet deposit a n = a.balance <- a.balance + n\n\nlet make_counter () =\n  let n = ref 0 in\n  (fun () -> incr n; !n), (fun () -> n := 0)\n\nlet () =\n  let a = { owner = \"ada\"; balance = 10 } in\n  let alias = a in\n  deposit alias 5;\n  Printf.printf \"%s %d\\n\" a.owner a.balance;\n  let copy = { a with balance = a.balance } in\n  deposit copy 100;\n  Printf.printf \"%d %d\\n\" a.balance copy.balance;\n  let next, reset = make_counter () in\n  let x = next () in\n  let y = next () in\n  reset ();\n  Printf.printf \"%d %d %d\\n\" x y (next ())\n",
+    "expectedStdout": "ada 15\n15 115\n1 2 1\n",
+    "challenge": "Add a `withdraw` that refuses to take the balance below zero by returning false, and print the balance after trying to withdraw 20 from 15.",
+    "solution": "type account = { mutable balance : int }\n\nlet withdraw a n = if n > a.balance then false else (a.balance <- a.balance - n; true)\n\nlet () =\n  let a = { balance = 15 } in\n  let ok = withdraw a 20 in\n  Printf.printf \"%b %d\\n\" ok a.balance\n",
+    "solutionStdout": "false 15\n",
+    "question": "After `let alias = a`, what does updating `alias.balance` do to `a`?",
+    "correct": "a sees the change, because both names refer to the same mutable record",
+    "wrong": [
+      "a is unaffected because alias is a copy",
+      "It raises an exception"
+    ],
+    "reasoning": "Binding a record to a second name copies the pointer, not the contents, so mutations are visible through both.",
+    "sourceURL": "https://dev.realworldocaml.org/imperative-programming.html",
+    "project": null,
+    "additionalReadings": [
+      {
+        "title": "6.2. Mutable Fields",
+        "url": "https://cs3110.github.io/textbook/chapters/mut/mutable_fields.html",
+        "section": "6.2. Mutable Fields"
+      }
+    ]
+  },
+  {
+    "key": "in-place-array-algorithms",
+    "stage": "07 · State and laziness",
+    "title": "In-place algorithms on arrays",
+    "body": [
+      "Some algorithms are clearest and fastest in place. Insertion sort, binary search and swapping elements all rely on constant-time array indexing. Write the algorithm as a function that takes the array, mutates it, and returns `unit`.",
+      "State the invariant before writing the loop. For insertion sort: before step `i`, the prefix `a.(0..i-1)` is sorted. Writing the invariant in a comment makes off-by-one mistakes visible. Use `Array.copy` when you want to keep the original.",
+      "Check bounds explicitly. Array access is bounds-checked by default, so an off-by-one raises `Invalid_argument \"index out of bounds\"` rather than corrupting memory; compiling with `-unsafe` removes the check and should only be used on code you have proven."
+    ],
+    "code": "let swap a i j = let t = a.(i) in a.(i) <- a.(j); a.(j) <- t\n\nlet insertion_sort a =\n  for i = 1 to Array.length a - 1 do\n    (* invariant: a.(0..i-1) is sorted *)\n    let j = ref i in\n    while !j > 0 && a.(!j - 1) > a.(!j) do\n      swap a !j (!j - 1);\n      decr j\n    done\n  done\n\nlet binary_search a x =\n  let lo = ref 0 and hi = ref (Array.length a - 1) and found = ref (-1) in\n  while !found < 0 && !lo <= !hi do\n    let mid = (!lo + !hi) / 2 in\n    if a.(mid) = x then found := mid\n    else if a.(mid) < x then lo := mid + 1\n    else hi := mid - 1\n  done;\n  !found\n\nlet () =\n  let a = [| 5; 2; 9; 1; 7 |] in\n  let original = Array.copy a in\n  insertion_sort a;\n  Array.iter (Printf.printf \"%d \") a;\n  print_newline ();\n  Printf.printf \"%d %d\\n\" original.(0) (binary_search a 7);\n  Printf.printf \"%d\\n\" (binary_search a 4)\n",
+    "expectedStdout": "1 2 5 7 9 \n5 3\n-1\n",
+    "challenge": "Write `reverse_in_place a` using swap and a loop over the first half, and print the reversed array [|1;2;3;4|].",
+    "solution": "let reverse_in_place a =\n  let n = Array.length a in\n  for i = 0 to n / 2 - 1 do\n    let t = a.(i) in\n    a.(i) <- a.(n - 1 - i);\n    a.(n - 1 - i) <- t\n  done\n\nlet () =\n  let a = [| 1; 2; 3; 4 |] in\n  reverse_in_place a;\n  Array.iter (Printf.printf \"%d \") a;\n  print_newline ()\n",
+    "solutionStdout": "4 3 2 1 \n",
+    "question": "Why state a loop invariant before writing an in-place algorithm?",
+    "correct": "It tells you exactly what is true at each iteration, which exposes off-by-one errors",
+    "wrong": [
+      "The compiler requires it",
+      "It makes the loop run faster"
+    ],
+    "reasoning": "An invariant is the claim your loop maintains; checking it at the start, in the body and at the end is how you prove the algorithm correct.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/mut/arrays.html",
+    "project": null
+  },
+  {
+    "key": "lazy-values",
+    "stage": "07 · State and laziness",
+    "title": "Lazy values and memoised computation",
+    "body": [
+      "`lazy e` delays evaluating `e` until it is forced with `Lazy.force`. The result is computed once and cached, so a second force returns the stored value without running the code again. This is the standard way to defer an expensive initialisation.",
+      "Laziness interacts with effects. A `lazy` body that prints runs its effects at force time, once. Forcing a lazy value from inside its own computation raises `Lazy.Undefined`, and a lazy value that raised an exception re-raises the same exception on each force.",
+      "Use `lazy` for optional expensive data and for knot-tying definitions. Do not use it to hide control flow that matters; an explicit function call is clearer when the computation should run each time."
+    ],
+    "code": "let expensive = lazy (print_endline \"computing\"; 6 * 7)\n\nlet () =\n  print_endline \"before\";\n  Printf.printf \"%d\\n\" (Lazy.force expensive);\n  Printf.printf \"%d\\n\" (Lazy.force expensive);\n  Printf.printf \"%b\\n\" (Lazy.is_val expensive);\n  let broken = lazy (failwith \"nope\") in\n  for _ = 1 to 2 do\n    try ignore (Lazy.force broken) with Failure m -> print_endline m\n  done;\n  let l = Lazy.from_val 5 in\n  Printf.printf \"%d\\n\" (Lazy.force l)\n",
+    "expectedStdout": "before\ncomputing\n42\n42\ntrue\nnope\nnope\n5\n",
+    "challenge": "Create a lazy value whose evaluation prints \"init\" and returns 10, force it twice, and observe that \"init\" prints once.",
+    "solution": "let v = lazy (print_endline \"init\"; 10)\nlet () = Printf.printf \"%d %d\\n\" (Lazy.force v) (Lazy.force v)\n",
+    "solutionStdout": "init\n10 10\n",
+    "question": "How many times does the body of a `lazy` expression run when forced repeatedly?",
+    "correct": "Once; the result is cached for later forces",
+    "wrong": [
+      "Every time it is forced",
+      "Never, until the program ends"
+    ],
+    "reasoning": "A lazy value memoises its result after the first successful force.",
+    "sourceURL": "https://ocaml.org/manual/5.5/api/Lazy.html",
+    "project": null
+  },
+  {
+    "key": "persistent-vs-mutable",
+    "stage": "07 · State and laziness",
+    "title": "Persistent versus mutable data structures",
+    "body": [
+      "A persistent structure keeps old versions valid after an update; a mutable one changes in place. Immutable lists and `Map` are persistent, while `Hashtbl`, `Array` and `Queue` are mutable. The trade-off is sharing and safety against raw speed and memory.",
+      "A functional queue shows the idea: keep a front list and a reversed back list. Push onto the back in constant time, and when the front is empty reverse the back once. Operations are amortised constant time, and every old queue remains usable.",
+      "Pick persistent when you need undo, backtracking or safe concurrent reads, and mutable when you profile a hot loop that needs it. A good design exposes a persistent interface and hides local mutation inside."
+    ],
+    "code": "type 'a queue = { front : 'a list; back : 'a list }\n\nlet empty = { front = []; back = [] }\nlet push x q = { q with back = x :: q.back }\n\nlet pop q =\n  match q.front with\n  | x :: rest -> Some (x, { q with front = rest })\n  | [] -> (match List.rev q.back with\n           | [] -> None\n           | x :: rest -> Some (x, { front = rest; back = [] }))\n\nlet () =\n  let q1 = push 3 (push 2 (push 1 empty)) in\n  (match pop q1 with\n   | Some (x, q2) ->\n     Printf.printf \"%d\\n\" x;\n     (match pop q2 with Some (y, _) -> Printf.printf \"%d\\n\" y | None -> ());\n     (match pop q1 with Some (z, _) -> Printf.printf \"again %d\\n\" z | None -> ())\n   | None -> ());\n  let mq = Queue.create () in\n  Queue.add 1 mq; Queue.add 2 mq;\n  let first = Queue.take mq in\n  Printf.printf \"%d %d\\n\" first (Queue.length mq)\n",
+    "expectedStdout": "1\n2\nagain 1\n1 1\n",
+    "challenge": "Write `size q` for the persistent queue as the sum of the two list lengths, and print the size after three pushes.",
+    "solution": "type 'a queue = { front : 'a list; back : 'a list }\nlet empty = { front = []; back = [] }\nlet push x q = { q with back = x :: q.back }\nlet size q = List.length q.front + List.length q.back\nlet () = Printf.printf \"%d\\n\" (size (push 3 (push 2 (push 1 empty))))\n",
+    "solutionStdout": "3\n",
+    "question": "What is the main benefit of a persistent queue over Queue.t?",
+    "correct": "Old versions remain valid after pushing or popping, which suits undo and backtracking",
+    "wrong": [
+      "It is always faster",
+      "It uses no memory"
+    ],
+    "reasoning": "Updates return new values and never overwrite the old structure, so earlier states can still be used.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/mut/refs.html",
+    "project": null
+  },
+  {
+    "key": "evaluation-order",
+    "stage": "07 · State and laziness",
+    "title": "Evaluation order: what is and is not specified",
+    "body": [
+      "OCaml does not specify the order in which the arguments of a function, the fields of a record or the elements of a tuple are evaluated. The native compiler happens to go right to left, but you must not depend on it. With pure expressions it makes no difference; with effects it changes the answer.",
+      "Order is specified in a few places: `let x = a in b` evaluates `a` first, `a; b` evaluates `a` then `b`, and `&&` and `||` evaluate left to right and stop as soon as the result is known. Use these to sequence effects deliberately.",
+      "When two arguments have effects, bind them with `let` in the order you want before the call. The same rule applies to reading input, taking from a queue and incrementing a counter inside an argument list."
+    ],
+    "code": "let counter = ref 0\nlet next () = incr counter; !counter\n\nlet () =\n  let a = next () in\n  let b = next () in\n  Printf.printf \"%d %d\\n\" a b;\n  let log = Buffer.create 8 in\n  let check name v = Buffer.add_string log name; v in\n  let r = check \"a\" false && check \"b\" true in\n  let s = check \"c\" true || check \"d\" false in\n  Printf.printf \"%b %b %s\\n\" r s (Buffer.contents log)\n",
+    "expectedStdout": "1 2\nfalse true ac\n",
+    "challenge": "Read two values from a queue holding 10 and 20 into `x` then `y` using `let`, and print `x - y` so the answer does not depend on argument evaluation order.",
+    "solution": "let () =\n  let q = Queue.create () in\n  Queue.add 10 q; Queue.add 20 q;\n  let x = Queue.take q in\n  let y = Queue.take q in\n  Printf.printf \"%d\\n\" (x - y)\n",
+    "solutionStdout": "-10\n",
+    "question": "Which construct guarantees left-to-right evaluation?",
+    "correct": "Binding with let ... in, or sequencing with ;",
+    "wrong": [
+      "Passing arguments to a function",
+      "Writing the fields of a record in a literal"
+    ],
+    "reasoning": "The language specifies the order of let-bindings and sequences, but leaves argument and field order unspecified.",
+    "sourceURL": "https://ocaml.org/manual/5.5/expr.html",
+    "project": null
+  }
+]

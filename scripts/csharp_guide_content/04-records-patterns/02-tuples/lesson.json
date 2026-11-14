@@ -1,0 +1,29 @@
+{
+ "key": "tuples-and-deconstruction",
+ "title": "Tuples and deconstruction",
+ "body": [
+  "A tuple groups a few values without declaring a type: `(string Name, int Score) best = (\"Ada\", 97);`. Tuples are value types (`System.ValueTuple`), so assignment copies them. Element names are compile-time conveniences; the underlying fields are `Item1`, `Item2`.",
+  "Methods can return several values as a tuple: `static (int Min, int Max) Range(int[] xs)`. That is often clearer than out parameters. When a grouping gets a name and behaviour, promote it to a record.",
+  "Deconstruction unpacks a tuple or any type with a `Deconstruct` method into variables: `var (min, max) = Range(data);`. Use `_` to discard elements you do not need. Deconstruction also enables swapping without a temporary: `(a, b) = (b, a);`.",
+  "Tuples support `==` and `!=` element by element, and they make convenient composite keys for dictionaries and switch expressions (`(x, y) switch { (0, 0) => ... }`).",
+  "Tuple element names do not participate in type identity: `(int A, int B)` and `(int X, int Y)` convert to each other silently. Check that positional order, not just names, matches when passing tuples between methods."
+ ],
+ "expectedStdout": "1..9\nAda 97\n2 1\n8\nTrue\nG\n7\n",
+ "challenge": "Write a method Stats(int[] xs) returning (int Count, double Mean) and deconstruct the result for [2, 4, 9], printing the mean with one decimal.",
+ "solutionStdout": "3 values, mean 5.0\n",
+ "question": "What does `(a, b) = (b, a);` do?",
+ "correct": "Swaps a and b",
+ "wrong": [
+  "Sets both to b",
+  "Creates a new tuple but leaves a and b unchanged"
+ ],
+ "reasoning": "The right-hand tuple is built first from the old values, then deconstructed into a and b.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/value-tuples",
+ "additionalReadings": [
+  {
+   "title": "Deconstruction",
+   "url": "https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/functional/deconstruct",
+   "section": "Deconstruct"
+  }
+ ]
+}

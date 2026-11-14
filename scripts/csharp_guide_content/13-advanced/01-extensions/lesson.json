@@ -1,0 +1,35 @@
+{
+ "key": "extension-members",
+ "title": "Extension methods and C# 14 extension members",
+ "minutes": 25,
+ "body": [
+  "Extension methods add methods to existing types without modifying them. The classic form is a static method in a static class whose first parameter has `this`: `public static bool IsBlank(this string? s)`. Callers write `name.IsBlank()` once the namespace is imported. LINQ is built this way. Extensions cannot access private members and lose to an instance method with the same signature.",
+  "C# 14 adds extension blocks, a new syntax that also supports extension properties, static extension members and operators. Inside a static class, `extension(string? text) { public bool IsBlank => string.IsNullOrWhiteSpace(text); }` declares an extension property used as `name.IsBlank`. The parameter in parentheses is the receiver.",
+  "A block with only a receiver type and no name, `extension(Temperature) { public static Temperature Freezing => ... }`, declares static extension members called as if they were static members of the type: `Temperature.Freezing`. Static extension operators are allowed too, so you can define `+` for a type you do not own.",
+  "Extension blocks may be generic, `extension<T>(IEnumerable<T> source)`, with constraints. The new syntax is source- and binary-compatible with classic extension methods: both can coexist and callers cannot tell them apart. C# 15 adds extension indexers (final stage).",
+  "Extensions are resolved statically from the variable's compile-time type and the imported namespaces. Check for ambiguity when two imported namespaces define the same extension, and prefer instance members when you own the type."
+ ],
+ "expectedStdout": "True\nFalse\n2\nFalse\n2\nTemperature { Celsius = 0 }\nTemperature { Celsius = 21.5 }\n",
+ "challenge": "Add an extension block for DateOnly that provides an IsWeekend property and a static extension property DateOnly.Epoch returning 1970-01-01. Print both for 2026-10-17.",
+ "solutionStdout": "True\n1970-01-01\n",
+ "question": "What does an `extension(Temperature) { public static ... }` block without a parameter name declare?",
+ "correct": "Static extension members called like Temperature.Member",
+ "wrong": [
+  "Instance extension methods with an implicit this",
+  "A nested class named Temperature"
+ ],
+ "reasoning": "A receiver-type-only block extends the type itself; a named receiver declares instance-style members.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/extension",
+ "additionalReadings": [
+  {
+   "title": "Extension members",
+   "url": "https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/classes-and-structs/extension-methods",
+   "section": "Extension members"
+  },
+  {
+   "title": "What's new in C# 14",
+   "url": "https://learn.microsoft.com/en-us/dotnet/csharp/whats-new/csharp-14",
+   "section": "Extension members"
+  }
+ ]
+}

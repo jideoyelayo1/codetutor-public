@@ -1,0 +1,143 @@
+[
+  {
+    "key": "recursion-and-rec",
+    "stage": "03 · Recursion and functions",
+    "title": "Recursion with let rec",
+    "body": [
+      "A function that calls itself must be declared with `let rec`. Without `rec`, the name on the right-hand side refers to an earlier binding, which is usually a compile error. Mutually recursive functions are declared together with `let rec f ... and g ...`.",
+      "Structure the recursion like the data. For a list, handle the empty list as the base case and make the recursive call on the tail, so the argument gets smaller each time. That shape is why recursion over lists, trees and variants is the default style in OCaml.",
+      "When a recursive function does not stop, check that every recursive call moves toward a base case. A stack overflow on a big input is a different problem, addressed by tail recursion in the next lesson."
+    ],
+    "code": "let rec factorial n = if n <= 1 then 1 else n * factorial (n - 1)\n\nlet rec length = function [] -> 0 | _ :: rest -> 1 + length rest\n\nlet rec is_even n = if n = 0 then true else is_odd (n - 1)\nand is_odd n = if n = 0 then false else is_even (n - 1)\n\nlet () =\n  Printf.printf \"%d %d\\n\" (factorial 5) (length [1; 2; 3]);\n  Printf.printf \"%b %b\\n\" (is_even 10) (is_odd 10)\n",
+    "expectedStdout": "120 3\ntrue false\n",
+    "challenge": "Write `power b e` for non-negative e using recursion on e, and print `power 2 10`.",
+    "solution": "let rec power b e = if e = 0 then 1 else b * power b (e - 1)\nlet () = Printf.printf \"%d\\n\" (power 2 10)\n",
+    "solutionStdout": "1024\n",
+    "question": "What does `let rec` do that `let` does not?",
+    "correct": "It brings the function name into scope inside its own body so it can call itself",
+    "wrong": [
+      "It makes the function run faster",
+      "It allows the function to return several values"
+    ],
+    "reasoning": "In a plain let, the right-hand side cannot see the name being defined; rec makes the binding visible there.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/basics/functions.html",
+    "project": null
+  },
+  {
+    "key": "tail-recursion",
+    "stage": "03 · Recursion and functions",
+    "title": "Tail calls and accumulators",
+    "body": [
+      "A call is a tail call when its result is returned directly with nothing left to do. The native compiler turns self tail calls into jumps, so a tail-recursive function uses constant stack space. `1 + length rest` is not a tail call because the addition happens after the call returns.",
+      "To make a function tail recursive, carry the partial answer in an accumulator parameter and return it in the base case. Often this means a small inner helper, `let rec go acc = ...`, with the public function supplying the starting accumulator.",
+      "Check this when the input can be large. OCaml 5 grows the stack dynamically, so deep non-tail recursion rarely overflows now, but it still allocates stack memory in proportion to the depth, and an accumulator version stays flat."
+    ],
+    "code": "let sum_list xs =\n  let rec go acc = function\n    | [] -> acc\n    | x :: rest -> go (acc + x) rest\n  in\n  go 0 xs\n\nlet rev xs =\n  let rec go acc = function [] -> acc | x :: rest -> go (x :: acc) rest in\n  go [] xs\n\nlet () =\n  let big = List.init 1_000_000 (fun i -> i) in\n  Printf.printf \"%d\\n\" (sum_list big);\n  List.iter (Printf.printf \"%d \") (rev [1; 2; 3]);\n  print_newline ()\n",
+    "expectedStdout": "499999500000\n3 2 1 \n",
+    "challenge": "Write a tail-recursive `count_if p xs` that counts the elements satisfying p, and print how many of 1 to 10 are even.",
+    "solution": "let count_if p xs =\n  let rec go acc = function\n    | [] -> acc\n    | x :: rest -> go (if p x then acc + 1 else acc) rest\n  in\n  go 0 xs\n\nlet () = Printf.printf \"%d\\n\" (count_if (fun n -> n mod 2 = 0) (List.init 10 (fun i -> i + 1)))\n",
+    "solutionStdout": "5\n",
+    "question": "Why is `x + sum rest` not a tail call?",
+    "correct": "The addition runs after the recursive call returns, so the frame must stay alive",
+    "wrong": [
+      "Because it uses the + operator",
+      "Because sum is defined with let rec"
+    ],
+    "reasoning": "A tail call is the last action of the function; here the add still has to happen afterwards.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/basics/functions.html",
+    "project": null
+  },
+  {
+    "key": "currying-and-partial-application",
+    "stage": "03 · Recursion and functions",
+    "title": "Currying and partial application",
+    "body": [
+      "Every OCaml function takes exactly one argument. `let add x y = x + y` has type `int -> int -> int`, which means `int -> (int -> int)`: applying it to one argument returns a function that waits for the second. This is currying.",
+      "Because of this, you can apply a function to fewer arguments than it lists and get a new function back. `let add5 = add 5` is a partial application, and `List.map (add 5) xs` reads naturally. Put the argument most likely to be fixed first.",
+      "Contrast this with a tuple parameter, `let add (x, y) = ...`, which takes one value and cannot be partially applied. Prefer the curried form for library-style functions and use tuples when the pair really is one value."
+    ],
+    "code": "let add x y = x + y\nlet add5 = add 5\nlet scale k xs = List.map (fun x -> k * x) xs\nlet double = scale 2\nlet add_pair (x, y) = x + y\n\nlet () =\n  Printf.printf \"%d %d\\n\" (add5 1) (add 2 3);\n  List.iter (Printf.printf \"%d \") (double [1; 2; 3]);\n  print_newline ();\n  Printf.printf \"%d\\n\" (add_pair (4, 5))\n",
+    "expectedStdout": "6 5\n2 4 6 \n9\n",
+    "challenge": "Define `greet greeting name` returning a string, make `hello = greet \"Hello\"` by partial application, and print `hello \"Ada\"`.",
+    "solution": "let greet greeting name = greeting ^ \", \" ^ name\nlet hello = greet \"Hello\"\nlet () = print_endline (hello \"Ada\")\n",
+    "solutionStdout": "Hello, Ada\n",
+    "question": "What is the type of `let add x y = x + y`?",
+    "correct": "int -> int -> int, a function returning a function",
+    "wrong": [
+      "(int * int) -> int",
+      "int -> int"
+    ],
+    "reasoning": "The arrow is right-associative, so the type reads int -> (int -> int): one argument at a time.",
+    "sourceURL": "https://dev.realworldocaml.org/variables-and-functions.html",
+    "project": null,
+    "additionalReadings": [
+      {
+        "title": "4.7. Currying",
+        "url": "https://cs3110.github.io/textbook/chapters/hop/currying.html",
+        "section": "4.7. Currying"
+      }
+    ]
+  },
+  {
+    "key": "higher-order-and-closures",
+    "stage": "03 · Recursion and functions",
+    "title": "Higher-order functions and closures",
+    "body": [
+      "A higher-order function takes or returns functions. `List.map`, `List.filter` and `List.fold_left` abstract common loops, so you write what to do with one element and let the library handle the traversal.",
+      "A closure is a function together with the bindings it refers to. `let make_counter_step n = fun x -> x + n` returns a function that remembers `n`. Because bindings are immutable, a closure over an ordinary value is easy to reason about.",
+      "Choose the specific combinator that matches your intent. `List.iter` is for effects, `List.map` is for building a new list, and `List.exists` or `List.for_all` answer yes or no without building anything."
+    ],
+    "code": "let make_adder n = fun x -> x + n\nlet compose f g = fun x -> f (g x)\n\nlet () =\n  let add10 = make_adder 10 in\n  let evens = List.filter (fun n -> n mod 2 = 0) [1; 2; 3; 4; 5; 6] in\n  List.iter (Printf.printf \"%d \") (List.map add10 evens);\n  print_newline ();\n  let inc_then_double = compose (fun x -> x * 2) (fun x -> x + 1) in\n  Printf.printf \"%d\\n\" (inc_then_double 5);\n  Printf.printf \"%b %b\\n\" (List.exists (fun n -> n > 5) [1; 6]) (List.for_all (fun n -> n > 5) [1; 6])\n",
+    "expectedStdout": "12 14 16 \n12\ntrue false\n",
+    "challenge": "Use List.filter and List.map to square the odd numbers from 1 to 9 and print them on one line.",
+    "solution": "let () =\n  let odds = List.filter (fun n -> n mod 2 = 1) (List.init 9 (fun i -> i + 1)) in\n  List.iter (Printf.printf \"%d \") (List.map (fun n -> n * n) odds);\n  print_newline ()\n",
+    "solutionStdout": "1 9 25 49 81 \n",
+    "question": "What does a closure carry with it?",
+    "correct": "The bindings of the names its body uses, as they were when it was created",
+    "wrong": [
+      "A copy of the whole program state",
+      "Only the argument types"
+    ],
+    "reasoning": "A closure pairs code with the environment of free variables it captured at creation.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/hop/fold.html",
+    "project": null,
+    "additionalReadings": [
+      {
+        "title": "4.1. Higher-Order Functions",
+        "url": "https://cs3110.github.io/textbook/chapters/hop/higher_order.html",
+        "section": "4.1. Higher-Order Functions"
+      }
+    ]
+  },
+  {
+    "key": "folds-pipelines-composition",
+    "stage": "03 · Recursion and functions",
+    "title": "Folds, pipelines and composition",
+    "body": [
+      "`List.fold_left f init xs` combines the elements with `f`, threading an accumulator from left to right. Most list summaries, such as sums, maximums, grouping and even `map`, can be written as one fold.",
+      "The pipe operator `|>` passes a value into a function so that a chain reads in the order it runs: `xs |> List.filter p |> List.map f`. It is plain function application written backwards, not special syntax, which means you can define similar operators yourself.",
+      "Name the accumulator and keep the combining function pure. If you find yourself mutating a ref inside the fold, step back and ask whether another combinator, or a record accumulator, expresses the same thing."
+    ],
+    "code": "let sum = List.fold_left ( + ) 0\nlet max_of = function [] -> None | x :: rest -> Some (List.fold_left max x rest)\n\nlet () =\n  let result =\n    [1; 2; 3; 4; 5; 6]\n    |> List.filter (fun n -> n mod 2 = 0)\n    |> List.map (fun n -> n * n)\n    |> sum\n  in\n  Printf.printf \"%d\\n\" result;\n  (match max_of [3; 9; 4] with Some m -> Printf.printf \"%d\\n\" m | None -> ());\n  let lengths = List.fold_left (fun acc s -> acc + String.length s) 0 [\"ab\"; \"cde\"] in\n  Printf.printf \"%d\\n\" lengths\n",
+    "expectedStdout": "56\n9\n5\n",
+    "challenge": "Use List.fold_left to compute the product of the list [1; 2; 3; 4; 5] and print it.",
+    "solution": "let product = List.fold_left ( * ) 1\nlet () = Printf.printf \"%d\\n\" (product [1; 2; 3; 4; 5])\n",
+    "solutionStdout": "120\n",
+    "question": "What does `x |> f` mean?",
+    "correct": "Apply f to x, so pipelines read left to right",
+    "wrong": [
+      "Run f and x in parallel",
+      "Compose f with itself"
+    ],
+    "reasoning": "|> is defined as a function that takes a value and a function and applies the function to the value.",
+    "sourceURL": "https://cs3110.github.io/textbook/chapters/hop/fold.html",
+    "project": null,
+    "additionalReadings": [
+      {
+        "title": "4.6. Pipelining",
+        "url": "https://cs3110.github.io/textbook/chapters/hop/pipelining.html",
+        "section": "4.6. Pipelining"
+      }
+    ]
+  }
+]

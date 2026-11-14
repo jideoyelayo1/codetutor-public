@@ -1,0 +1,32 @@
+{
+  "key": "async-timers",
+  "stage": "11 · Jane Street stack",
+  "n": 4,
+  "title": "Async: concurrency with deferreds",
+  "minutes": 40,
+  "body": [
+    "Jane Street's Async library runs many tasks on one thread by never blocking. An `'a Deferred.t` is a value that will be available later. `let%bind x = e in body` waits for `e` and then runs `body`, and `let%map x = e in v` transforms the eventual result. The scheduler runs other ready tasks while something waits, so one slow timer does not stop the rest.",
+    "Sequencing and concurrency are different choices. Chaining `let%bind a = f () in let%bind b = g () in ...` runs `g` only after `f` finishes. To run tasks at the same time, start them all first and then wait: `Deferred.all [ f (); g (); h () ]` returns the results in input order, whatever order they complete in.",
+    "Async is cooperative. A long computation without a `bind` blocks every other task, because nothing can preempt it. Use it for IO-bound work such as sockets and timers, and use domains (a later lesson) for CPU-bound parallelism. `Command.async` runs your deferred until it finishes and then exits."
+  ],
+  "challenge": "src/timers.ml runs its three timers one after another. Change `run` so they start together with `Deferred.all` and print in completion order (fast, medium, slow) while the final summary still lists the results in input order.",
+  "projectInstructions": "Build with `dune build --root .` and run `dune exec --root . bin/main.exe`. Compare the order of the printed names. Edit only src/timers.ml.",
+  "question": "What does `Deferred.all [a; b; c]` return its results in?",
+  "correct": "The order of the input list, regardless of which deferred completes first",
+  "wrong": [
+    "The order the deferreds complete",
+    "Reverse input order"
+  ],
+  "reasoning": "Deferred.all waits for every deferred and builds the result list positionally, so concurrency does not reorder it.",
+  "sourceURL": "https://dev.realworldocaml.org/concurrent-programming.html",
+  "projectChecks": [
+    { "name": "starter builds", "command": ["dune", "build", "--root", "."], "exit": 0 },
+    { "name": "starter runs sequentially", "command": ["dune", "exec", "--root", ".", "bin/main.exe"], "exit": 0, "stdout": "slow\nfast\nmedium\nresults: slow,fast,medium\n" },
+    { "name": "solution runs concurrently", "command": ["dune", "exec", "--root", ".", "bin/main.exe"], "exit": 0, "stdout": "fast\nmedium\nslow\nresults: slow,fast,medium\n", "useSolution": true, "retries": 3 },
+    { "name": "slower timer changes completion order", "command": ["dune", "exec", "--root", ".", "bin/main.exe"], "exit": 0, "stdout": "medium\nslow\nfast\nresults: slow,fast,medium\n", "useSolution": true, "retries": 3,
+      "mutations": [{ "path": "src/timers.ml", "find": "delayed \"fast\" 20.", "replace": "delayed \"fast\" 300." }] }
+  ],
+  "additionalReadings": [
+    { "title": "Real World OCaml: Concurrent Programming with Async", "url": "https://dev.realworldocaml.org/concurrent-programming.html", "section": "Async basics" }
+  ]
+}

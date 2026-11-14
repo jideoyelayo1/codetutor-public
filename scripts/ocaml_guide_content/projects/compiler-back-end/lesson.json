@@ -1,0 +1,39 @@
+{
+  "key": "compiler-back-end",
+  "stage": "21 · Tools, libraries and the compiler",
+  "n": 4,
+  "title": "The compiler back end: bytecode, native code and runtime parameters",
+  "minutes": 40,
+  "body": [
+    "After type checking, the compiler lowers the typedtree to *lambda*, a small untyped intermediate language in which pattern matches are already compiled to tests. From lambda, `ocamlc` produces portable *bytecode* that the `ocamlrun` interpreter executes, while `ocamlopt` goes on to produce native machine code (`-S` keeps the assembly). Both read the same source, and for a correct program they give the same output; native code is faster, bytecode is more portable and easier to debug.",
+    "`-dlambda` prints the lambda form, where a call in tail position is marked `tailcall`. Tail calls matter because the compiler turns a self tail call into a jump, so a tail-recursive loop uses constant stack space. The attribute `[@tailcall]` on a call asks the compiler to check this: with `-w +51` the compiler warns, and with `-warn-error +51` refuses to build, if the call is not actually a tail call. That makes the guarantee a compile-time check instead of a hope.",
+    "The runtime is configured without recompiling, through the `OCAMLRUNPARAM` environment variable. The setting `v=0x400` prints garbage-collection statistics when the program exits, `b` turns on backtraces, and `s` sets the minor heap size. Use these to see what the collector is doing before you decide whether any tuning is needed."
+  ],
+  "challenge": "example/loop.ml marks a non-tail call with `[@tailcall]`, so the compiler rejects it under `-w +51 -warn-error +51`. Rewrite `sum` with an accumulator so the recursive call really is a tail call, keeping `Loop.sum 1_000_000 = 500000500000`.",
+  "projectInstructions": "Try `ocamlfind ocamlopt -w +51 -warn-error +51 -c example/loop.ml`. Once it compiles, build both versions with `ocamlfind ocamlc -I example -o prog.byte example/loop.ml example/main.ml` and `ocamlfind ocamlopt -I example -o prog.exe example/loop.ml example/main.ml` (the `-I example` tells the compiler where to find `loop.cmi`), run them, and add `-dlambda` to see the tail call. Edit only example/loop.ml.",
+  "question": "What does `[@tailcall]` with warning 51 enabled guarantee?",
+  "correct": "That the marked call is in tail position, or compilation fails",
+  "wrong": [
+    "That the function will be inlined",
+    "That the function runs on a second thread"
+  ],
+  "reasoning": "The attribute states an expectation and the warning checks it, so a refactoring that breaks tail-recursion is caught at compile time.",
+  "sourceURL": "https://dev.realworldocaml.org/compiler-backend.html",
+  "projectChecks": [
+    { "name": "starter: the false tail call is rejected", "command": ["ocamlfind", "ocamlopt", "-w", "+51", "-warn-error", "+51", "-c", "example/loop.ml"], "exit": 2, "stderrContains": "tail" },
+    { "name": "solution: the real tail call is accepted", "command": ["ocamlfind", "ocamlopt", "-w", "+51", "-warn-error", "+51", "-c", "example/loop.ml"], "exit": 0, "useSolution": true },
+    { "name": "solution: the lambda dump marks the tail call", "command": ["ocamlfind", "ocamlopt", "-dlambda", "-c", "example/loop.ml"], "exit": 0, "stderrContains": "tailcall", "useSolution": true },
+    { "name": "bytecode build", "command": ["ocamlfind", "ocamlc", "-I", "example", "-o", "prog.byte", "example/loop.ml", "example/main.ml"], "exit": 0, "useSolution": true },
+    { "name": "bytecode run", "command": ["ocamlrun", "prog.byte"], "exit": 0, "stdout": "500000500000\n", "useSolution": true },
+    { "name": "native build", "command": ["ocamlfind", "ocamlopt", "-I", "example", "-o", "prog.exe", "example/loop.ml", "example/main.ml"], "exit": 0, "useSolution": true },
+    { "name": "native run", "command": ["./prog.exe"], "exit": 0, "stdout": "500000500000\n", "useSolution": true },
+    { "name": "runtime parameters print GC statistics", "command": ["./prog.exe"], "exit": 0, "stdout": "500000500000\n", "stderrContains": "minor_collections", "environment": { "OCAMLRUNPARAM": "v=0x400" }, "useSolution": true },
+    { "name": "breaking the tail call is caught again", "command": ["ocamlfind", "ocamlopt", "-w", "+51", "-warn-error", "+51", "-c", "example/loop.ml"], "exit": 2, "stderrContains": "tail", "useSolution": true,
+      "mutations": [{ "path": "example/loop.ml", "find": "else (go [@tailcall]) (acc + n) (n - 1)", "replace": "else 1 + (go [@tailcall]) (acc + n) (n - 1)" }] }
+  ],
+  "additionalReadings": [
+    { "title": "OCaml manual: Batch compilation (ocamlc)", "url": "https://ocaml.org/manual/5.5/comp.html", "section": "ocamlc" },
+    { "title": "OCaml manual: Native-code compilation (ocamlopt)", "url": "https://ocaml.org/manual/5.5/native.html", "section": "ocamlopt" },
+    { "title": "OCaml manual: The runtime system (ocamlrun)", "url": "https://ocaml.org/manual/5.5/runtime.html", "section": "OCAMLRUNPARAM" }
+  ]
+}

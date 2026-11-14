@@ -1,0 +1,29 @@
+{
+ "key": "iterators",
+ "title": "Iterators with yield",
+ "body": [
+  "An iterator method returns `IEnumerable<T>` (or `IEnumerator<T>`) and uses `yield return` to produce elements one at a time. The compiler turns the method into a state machine. Nothing in the body runs when you call the method; it runs piece by piece as the caller enumerates, pausing at each `yield return` and resuming on the next `MoveNext`.",
+  "`yield break` ends the sequence. Iterators can be infinite (`while (true) yield return next;`) because the caller decides how many elements to take. `finally` blocks in an iterator run when enumeration completes or when the `foreach` loop exits early and disposes the enumerator.",
+  "Because execution is deferred, argument validation inside an iterator also happens late: `ReadLines(null)` does not throw until the first `MoveNext`. The standard fix is a non-iterator public method that validates and then returns a call to a private (or local) iterator function.",
+  "Iterators cannot have `ref`, `out` or `in` parameters, and cannot `yield` inside a `catch` block. Since C# 13 they may contain `ref struct` locals and `unsafe` blocks as long as they do not cross a `yield`.",
+  "Check whether the caller may stop early (put cleanup in `finally`), whether validation should be eager, and whether enumerating twice re-runs side effects."
+ ],
+ "expectedStdout": "3 2 1 0 \n0,1,1,2,3,5,8,13\ncreated, nothing ran yet\nproducing 1\ngot 1\nproducing 2\ngot 2\niterator cleaned up\nvalidated eagerly\n",
+ "challenge": "Write an iterator Primes() that yields primes forever using trial division, and print the first 10 with Take.",
+ "solutionStdout": "2 3 5 7 11 13 17 19 23 29\n",
+ "question": "When does the body of an iterator method start running?",
+ "correct": "On the first MoveNext call of an enumerator, not when the method is called",
+ "wrong": [
+  "Immediately when the method is called",
+  "Only after the whole sequence has been requested"
+ ],
+ "reasoning": "Iterators are lazy state machines; that is why validation inside them is deferred too.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/iterators",
+ "additionalReadings": [
+  {
+   "title": "yield statement",
+   "url": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/yield",
+   "section": "yield return and yield break"
+  }
+ ]
+}

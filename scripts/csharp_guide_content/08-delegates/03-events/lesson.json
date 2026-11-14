@@ -1,0 +1,35 @@
+{
+ "key": "events",
+ "title": "Events and the event pattern",
+ "body": [
+  "An event is a delegate field wrapped so that outside code can only subscribe (`+=`) and unsubscribe (`-=`); only the declaring class can raise it or reset it. `public event EventHandler<OrderPlaced>? Placed;` declares one. This prevents subscribers from clearing each other's handlers or raising the event themselves.",
+  "The .NET event pattern uses `EventHandler<TEventArgs>`, a delegate taking `(object? sender, TEventArgs e)`. Event data can be any type; a record is a neat choice. Raise with `Placed?.Invoke(this, data);` which copies the delegate reference first, so a concurrent unsubscribe cannot cause a null reference between the check and the call.",
+  "Handlers run synchronously, in subscription order, on the thread that raises the event. If a handler throws, later handlers do not run and the exception propagates to the raiser. Long work in a handler delays the publisher.",
+  "Custom `add`/`remove` accessors let a type control storage, for example to forward subscriptions to an inner object. C# 14 allows `partial` events: one declaration defines the event and another, often generated, implements its accessors.",
+  "Check that every subscription has a matching unsubscription when the subscriber's lifetime is shorter than the publisher's, and that handlers do not assume they run in a particular order unless the publisher documents it."
+ ],
+ "expectedStdout": "log 1 | email 1 for 20 | email 2 for 35\n1\nhandler failed\n",
+ "challenge": "Add a Thermostat class with an event EventHandler<double>? TooHot raised when Set(double celsius) exceeds 30. Subscribe a handler that prints the reading, then set 25 and 31.",
+ "solutionStdout": "too hot: 31\n",
+ "question": "What can code outside the declaring class do with a public event?",
+ "correct": "Only subscribe with += and unsubscribe with -=",
+ "wrong": [
+  "Raise it by invoking it directly",
+  "Assign null to clear every handler"
+ ],
+ "reasoning": "The event keyword restricts outside access to add and remove; raising and resetting stay private.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/standard/events/",
+ "additionalReadings": [
+  {
+   "title": "Event pattern",
+   "url": "https://learn.microsoft.com/en-us/dotnet/csharp/event-pattern",
+   "section": "EventHandler<T>"
+  }
+ ],
+ "rejected": [
+  {
+   "file": "rejected.cs",
+   "diagnostic": "CS0070"
+  }
+ ]
+}

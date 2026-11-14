@@ -1,0 +1,1642 @@
+{
+  "schemaVersion": 1,
+  "checked": "2026-10-16",
+  "statuses": {
+    "taught": "A lesson teaches this page's substance with original material.",
+    "partial": "Cited or partly taught; remaining depth not yet adapted.",
+    "reading": "Front matter, recap or index; nothing to teach.",
+    "gap": "Not yet adapted."
+  },
+  "sources": [
+    {
+      "id": "cs3110",
+      "title": "OCaml Programming: Correct + Efficient + Beautiful",
+      "base": "https://cs3110.github.io/textbook/",
+      "pages": [
+        {
+          "path": "chapters/preface/about.html",
+          "title": "About This Book",
+          "status": "reading",
+          "lessons": [],
+          "note": "Front matter or history; no technique to teach."
+        },
+        {
+          "path": "chapters/preface/install.html",
+          "title": "Installing OCaml",
+          "status": "reading",
+          "lessons": [],
+          "note": "Front matter or history; no technique to teach."
+        },
+        {
+          "path": "chapters/intro/intro.html",
+          "title": "1. Better Programming Through OCaml",
+          "status": "reading",
+          "lessons": [],
+          "note": "Front matter or history; no technique to teach."
+        },
+        {
+          "path": "chapters/intro/past.html",
+          "title": "1.1. The Past of OCaml",
+          "status": "reading",
+          "lessons": [],
+          "note": "Front matter or history; no technique to teach."
+        },
+        {
+          "path": "chapters/intro/present.html",
+          "title": "1.2. The Present of OCaml",
+          "status": "reading",
+          "lessons": [],
+          "note": "Front matter or history; no technique to teach."
+        },
+        {
+          "path": "chapters/intro/future.html",
+          "title": "1.3. Look to Your Future",
+          "status": "reading",
+          "lessons": [],
+          "note": "Front matter or history; no technique to teach."
+        },
+        {
+          "path": "chapters/intro/3110.html",
+          "title": "1.4. A Brief History of CS 3110",
+          "status": "reading",
+          "lessons": [],
+          "note": "Front matter or history; no technique to teach."
+        },
+        {
+          "path": "chapters/intro/summary.html",
+          "title": "1.5. Summary",
+          "status": "reading",
+          "lessons": [],
+          "note": "Front matter or history; no technique to teach."
+        },
+        {
+          "path": "chapters/basics/intro.html",
+          "title": "2. The Basics of OCaml",
+          "status": "reading",
+          "lessons": [],
+          "note": "Chapter overview; its objectives are taught by the chapter lessons."
+        },
+        {
+          "path": "chapters/basics/toplevel.html",
+          "title": "2.1. The OCaml Toplevel",
+          "status": "taught",
+          "lessons": [
+            "dune-first-project",
+            "first-program"
+          ]
+        },
+        {
+          "path": "chapters/basics/compiling.html",
+          "title": "2.2. Compiling OCaml Programs",
+          "status": "taught",
+          "lessons": [
+            "dune-first-project",
+            "first-program"
+          ]
+        },
+        {
+          "path": "chapters/basics/expressions.html",
+          "title": "2.3. Expressions",
+          "status": "taught",
+          "lessons": [
+            "basic-types-and-operators",
+            "conditionals-and-printf",
+            "first-program",
+            "let-bindings-and-shadowing"
+          ]
+        },
+        {
+          "path": "chapters/basics/functions.html",
+          "title": "2.4. Functions",
+          "status": "taught",
+          "lessons": [
+            "currying-and-partial-application",
+            "functions-and-application",
+            "inference-and-annotations",
+            "parametric-polymorphism",
+            "recursion-and-rec",
+            "tail-recursion"
+          ]
+        },
+        {
+          "path": "chapters/basics/documentation.html",
+          "title": "2.5. Documentation",
+          "status": "taught",
+          "lessons": [
+            "format-docs-opam"
+          ]
+        },
+        {
+          "path": "chapters/basics/printing.html",
+          "title": "2.6. Printing",
+          "status": "taught",
+          "lessons": [
+            "conditionals-and-printf",
+            "debugging-printing-assertions",
+            "format-and-sprintf"
+          ]
+        },
+        {
+          "path": "chapters/basics/debugging.html",
+          "title": "2.7. Debugging",
+          "status": "taught",
+          "lessons": [
+            "debugging-printing-assertions"
+          ]
+        },
+        {
+          "path": "chapters/basics/summary.html",
+          "title": "2.8. Summary",
+          "status": "reading",
+          "lessons": [],
+          "note": "Chapter recap only."
+        },
+        {
+          "path": "chapters/basics/exercises.html",
+          "title": "2.9. Exercises",
+          "status": "partial",
+          "lessons": [
+            "practice-basics"
+          ],
+          "note": "Original practice for the chapter's objectives; the book's own exercises are not reproduced."
+        },
+        {
+          "path": "chapters/data/intro.html",
+          "title": "3. Data and Types",
+          "status": "reading",
+          "lessons": [],
+          "note": "Chapter overview; its objectives are taught by the chapter lessons."
+        },
+        {
+          "path": "chapters/data/lists.html",
+          "title": "3.1. Lists",
+          "status": "taught",
+          "lessons": [
+            "list-module-tour",
+            "pattern-matching",
+            "tuples-and-lists"
+          ]
+        },
+        {
+          "path": "chapters/data/variants.html",
+          "title": "3.2. Variants",
+          "status": "taught",
+          "lessons": [
+            "parameterised-and-recursive-types",
+            "recursive-variants-expression-trees",
+            "variants-model-alternatives"
+          ]
+        },
+        {
+          "path": "chapters/data/ounit.html",
+          "title": "3.3. Unit Testing with OUnit",
+          "status": "partial",
+          "lessons": [
+            "alcotest-suite",
+            "expect-tests"
+          ],
+          "note": "Teaches ppx_expect and Alcotest, not the OUnit library this page uses."
+        },
+        {
+          "path": "chapters/data/records_tuples.html",
+          "title": "3.4. Records and Tuples",
+          "status": "taught",
+          "lessons": [
+            "nested-patterns-tuples-records",
+            "records-and-update",
+            "tuples-and-lists"
+          ]
+        },
+        {
+          "path": "chapters/data/pattern_matching_advanced.html",
+          "title": "3.5. Advanced Pattern Matching",
+          "status": "taught",
+          "lessons": [
+            "guards-or-patterns-as",
+            "nested-patterns-tuples-records"
+          ]
+        },
+        {
+          "path": "chapters/data/type_synonym.html",
+          "title": "3.6. Type Synonyms",
+          "status": "taught",
+          "lessons": [
+            "type-synonyms-and-association-lists"
+          ]
+        },
+        {
+          "path": "chapters/data/options.html",
+          "title": "3.7. Options",
+          "status": "taught",
+          "lessons": [
+            "options-for-absence"
+          ]
+        },
+        {
+          "path": "chapters/data/assoc_list.html",
+          "title": "3.8. Association Lists",
+          "status": "taught",
+          "lessons": [
+            "type-synonyms-and-association-lists"
+          ]
+        },
+        {
+          "path": "chapters/data/algebraic_data_types.html",
+          "title": "3.9. Algebraic Data Types",
+          "status": "taught",
+          "lessons": [
+            "parameterised-and-recursive-types",
+            "recursive-variants-expression-trees",
+            "variants-model-alternatives"
+          ]
+        },
+        {
+          "path": "chapters/data/exceptions.html",
+          "title": "3.10. Exceptions",
+          "status": "taught",
+          "lessons": [
+            "exception-design-and-reraise",
+            "exceptions"
+          ]
+        },
+        {
+          "path": "chapters/data/trees.html",
+          "title": "3.11. Example: Trees",
+          "status": "taught",
+          "lessons": [
+            "parameterised-and-recursive-types",
+            "recursive-variants-expression-trees",
+            "writing-map-and-filter"
+          ]
+        },
+        {
+          "path": "chapters/data/nats.html",
+          "title": "3.12. Example: Natural Numbers",
+          "status": "taught",
+          "lessons": [
+            "natural-numbers-as-variants"
+          ]
+        },
+        {
+          "path": "chapters/data/summary.html",
+          "title": "3.13. Summary",
+          "status": "reading",
+          "lessons": [],
+          "note": "Chapter recap only."
+        },
+        {
+          "path": "chapters/data/exercises.html",
+          "title": "3.14. Exercises",
+          "status": "partial",
+          "lessons": [
+            "practice-data"
+          ],
+          "note": "Original practice for the chapter's objectives; the book's own exercises are not reproduced."
+        },
+        {
+          "path": "chapters/hop/intro.html",
+          "title": "4. Higher-Order Programming",
+          "status": "reading",
+          "lessons": [],
+          "note": "Chapter overview; its objectives are taught by the chapter lessons."
+        },
+        {
+          "path": "chapters/hop/higher_order.html",
+          "title": "4.1. Higher-Order Functions",
+          "status": "taught",
+          "lessons": [
+            "higher-order-and-closures"
+          ]
+        },
+        {
+          "path": "chapters/hop/map.html",
+          "title": "4.2. Map",
+          "status": "taught",
+          "lessons": [
+            "writing-map-and-filter"
+          ]
+        },
+        {
+          "path": "chapters/hop/filter.html",
+          "title": "4.3. Filter",
+          "status": "taught",
+          "lessons": [
+            "writing-map-and-filter"
+          ]
+        },
+        {
+          "path": "chapters/hop/fold.html",
+          "title": "4.4. Fold",
+          "status": "taught",
+          "lessons": [
+            "folds-pipelines-composition",
+            "higher-order-and-closures"
+          ]
+        },
+        {
+          "path": "chapters/hop/beyond_lists.html",
+          "title": "4.5. Beyond Lists",
+          "status": "taught",
+          "lessons": [
+            "writing-map-and-filter"
+          ]
+        },
+        {
+          "path": "chapters/hop/pipelining.html",
+          "title": "4.6. Pipelining",
+          "status": "taught",
+          "lessons": [
+            "folds-pipelines-composition"
+          ]
+        },
+        {
+          "path": "chapters/hop/currying.html",
+          "title": "4.7. Currying",
+          "status": "taught",
+          "lessons": [
+            "currying-and-partial-application"
+          ]
+        },
+        {
+          "path": "chapters/hop/laws.html",
+          "title": "4.8. Algebraic Laws for Higher-Order Functions",
+          "status": "taught",
+          "lessons": [
+            "map-and-fold-laws"
+          ]
+        },
+        {
+          "path": "chapters/hop/summary.html",
+          "title": "4.9. Summary",
+          "status": "reading",
+          "lessons": [],
+          "note": "Chapter recap only."
+        },
+        {
+          "path": "chapters/hop/exercises.html",
+          "title": "4.10. Exercises",
+          "status": "partial",
+          "lessons": [
+            "practice-higher-order"
+          ],
+          "note": "Original practice for the chapter's objectives; the book's own exercises are not reproduced."
+        },
+        {
+          "path": "chapters/modules/intro.html",
+          "title": "5. Modular Programming",
+          "status": "reading",
+          "lessons": [],
+          "note": "Chapter overview; its objectives are taught by the chapter lessons."
+        },
+        {
+          "path": "chapters/modules/module_systems.html",
+          "title": "5.1. Module Systems",
+          "status": "partial",
+          "lessons": [
+            "structures-and-signatures"
+          ],
+          "note": "Structures and signatures are taught; the comparison of module systems across languages is not."
+        },
+        {
+          "path": "chapters/modules/modules.html",
+          "title": "5.2. Modules",
+          "status": "taught",
+          "lessons": [
+            "structures-and-signatures"
+          ]
+        },
+        {
+          "path": "chapters/modules/toplevel.html",
+          "title": "5.3. Modules and the Toplevel",
+          "status": "taught",
+          "lessons": [
+            "compilation-units-and-interfaces",
+            "first-program"
+          ]
+        },
+        {
+          "path": "chapters/modules/encapsulation.html",
+          "title": "5.4. Encapsulation",
+          "status": "taught",
+          "lessons": [
+            "abstract-types"
+          ]
+        },
+        {
+          "path": "chapters/modules/compilation_units.html",
+          "title": "5.5. Compilation Units",
+          "status": "taught",
+          "lessons": [
+            "compilation-units-and-interfaces"
+          ]
+        },
+        {
+          "path": "chapters/modules/functional_data_structures.html",
+          "title": "5.6. Functional Data Structures",
+          "status": "taught",
+          "lessons": [
+            "capstone-leftist-heap",
+            "persistent-vs-mutable"
+          ]
+        },
+        {
+          "path": "chapters/modules/module_type_constraints.html",
+          "title": "5.7. Module Type Constraints",
+          "status": "taught",
+          "lessons": [
+            "sharing-constraints"
+          ]
+        },
+        {
+          "path": "chapters/modules/includes.html",
+          "title": "5.8. Includes",
+          "status": "taught",
+          "lessons": [
+            "open-include-local"
+          ]
+        },
+        {
+          "path": "chapters/modules/functors.html",
+          "title": "5.9. Functors",
+          "status": "taught",
+          "lessons": [
+            "functors"
+          ]
+        },
+        {
+          "path": "chapters/modules/summary.html",
+          "title": "5.10. Summary",
+          "status": "reading",
+          "lessons": [],
+          "note": "Chapter recap only."
+        },
+        {
+          "path": "chapters/modules/exercises.html",
+          "title": "5.11. Exercises",
+          "status": "partial",
+          "lessons": [
+            "practice-modules"
+          ],
+          "note": "Original practice for the chapter's objectives; the book's own exercises are not reproduced."
+        },
+        {
+          "path": "chapters/mut/intro.html",
+          "title": "6. Mutability",
+          "status": "reading",
+          "lessons": [],
+          "note": "Chapter overview; its objectives are taught by the chapter lessons."
+        },
+        {
+          "path": "chapters/mut/refs.html",
+          "title": "6.1. Refs",
+          "status": "taught",
+          "lessons": [
+            "persistent-vs-mutable",
+            "refs-and-loops"
+          ]
+        },
+        {
+          "path": "chapters/mut/mutable_fields.html",
+          "title": "6.2. Mutable Fields",
+          "status": "taught",
+          "lessons": [
+            "mutable-fields-and-state"
+          ]
+        },
+        {
+          "path": "chapters/mut/arrays.html",
+          "title": "6.3. Arrays and Loops",
+          "status": "taught",
+          "lessons": [
+            "arrays-and-bytes",
+            "in-place-array-algorithms"
+          ]
+        },
+        {
+          "path": "chapters/mut/summary.html",
+          "title": "6.4. Summary",
+          "status": "reading",
+          "lessons": [],
+          "note": "Chapter recap only."
+        },
+        {
+          "path": "chapters/mut/exercises.html",
+          "title": "6.5. Exercises",
+          "status": "partial",
+          "lessons": [
+            "practice-mutation"
+          ],
+          "note": "Original practice for the chapter's objectives; the book's own exercises are not reproduced."
+        },
+        {
+          "path": "chapters/conc/intro.html",
+          "title": "7. Concurrency",
+          "status": "reading",
+          "lessons": [],
+          "note": "Chapter overview; its objectives are taught by the chapter lessons."
+        },
+        {
+          "path": "chapters/conc/concurrency.html",
+          "title": "7.1. Concurrency",
+          "status": "taught",
+          "lessons": [
+            "callbacks-and-the-event-loop",
+            "promises-from-scratch"
+          ]
+        },
+        {
+          "path": "chapters/conc/promises.html",
+          "title": "7.2. Promises",
+          "status": "taught",
+          "lessons": [
+            "promises-from-scratch"
+          ]
+        },
+        {
+          "path": "chapters/conc/impl_promises.html",
+          "title": "7.3. Implementing Promises",
+          "status": "taught",
+          "lessons": [
+            "promises-from-scratch"
+          ]
+        },
+        {
+          "path": "chapters/conc/io_promises.html",
+          "title": "7.4. Asynchronous Input and Output",
+          "status": "partial",
+          "lessons": [
+            "async-timers",
+            "callbacks-and-the-event-loop"
+          ],
+          "note": "Teaches the mechanism with a simulated event loop and Async, not the Lwt_io library this page uses."
+        },
+        {
+          "path": "chapters/conc/callbacks.html",
+          "title": "7.5. Callbacks",
+          "status": "taught",
+          "lessons": [
+            "callbacks-and-the-event-loop"
+          ]
+        },
+        {
+          "path": "chapters/conc/impl_callbacks.html",
+          "title": "7.6. Implementing Callbacks",
+          "status": "taught",
+          "lessons": [
+            "callbacks-and-the-event-loop"
+          ]
+        },
+        {
+          "path": "chapters/conc/full_promises_impl.html",
+          "title": "7.7. The Full Promises Implementation",
+          "status": "taught",
+          "lessons": [
+            "promises-from-scratch"
+          ]
+        },
+        {
+          "path": "chapters/conc/monads.html",
+          "title": "7.8. Monads",
+          "status": "taught",
+          "lessons": [
+            "binding-operators",
+            "monads-and-their-laws"
+          ]
+        },
+        {
+          "path": "chapters/conc/summary.html",
+          "title": "7.9. Summary",
+          "status": "reading",
+          "lessons": [],
+          "note": "Chapter recap only."
+        },
+        {
+          "path": "chapters/conc/exercises.html",
+          "title": "7.10. Exercises",
+          "status": "partial",
+          "lessons": [
+            "practice-concurrency"
+          ],
+          "note": "Original practice for the chapter's objectives; the book's own exercises are not reproduced."
+        },
+        {
+          "path": "chapters/correctness/intro.html",
+          "title": "8. Correctness",
+          "status": "reading",
+          "lessons": [],
+          "note": "Chapter overview; its objectives are taught by the chapter lessons."
+        },
+        {
+          "path": "chapters/correctness/specifications.html",
+          "title": "8.1. Specifications",
+          "status": "taught",
+          "lessons": [
+            "specifications-and-contracts"
+          ]
+        },
+        {
+          "path": "chapters/correctness/function_docs.html",
+          "title": "8.2. Function Documentation",
+          "status": "taught",
+          "lessons": [
+            "format-docs-opam",
+            "specifications-and-contracts"
+          ]
+        },
+        {
+          "path": "chapters/correctness/module_docs.html",
+          "title": "8.3. Module Documentation",
+          "status": "taught",
+          "lessons": [
+            "compilation-units-and-interfaces",
+            "specifications-and-contracts"
+          ]
+        },
+        {
+          "path": "chapters/correctness/test_debug.html",
+          "title": "8.4. Testing and Debugging",
+          "status": "taught",
+          "lessons": [
+            "black-box-and-glass-box-testing",
+            "debugging-printing-assertions",
+            "expect-tests"
+          ]
+        },
+        {
+          "path": "chapters/correctness/black_glass_box.html",
+          "title": "8.5. Black-box and Glass-box Testing",
+          "status": "taught",
+          "lessons": [
+            "black-box-and-glass-box-testing"
+          ]
+        },
+        {
+          "path": "chapters/correctness/randomized.html",
+          "title": "8.6. Randomized Testing with QCheck",
+          "status": "partial",
+          "lessons": [
+            "map-and-fold-laws",
+            "randomized-testing-with-shrinking"
+          ],
+          "note": "Teaches generators, properties and shrinking with hand-written code, not the QCheck library this page uses."
+        },
+        {
+          "path": "chapters/correctness/proving_correctness.html",
+          "title": "8.7. Proving Correctness",
+          "status": "taught",
+          "lessons": [
+            "proving-list-functions-by-induction"
+          ]
+        },
+        {
+          "path": "chapters/correctness/structural_induction.html",
+          "title": "8.8. Structural Induction",
+          "status": "taught",
+          "lessons": [
+            "induction-on-trees-and-naturals",
+            "proving-list-functions-by-induction"
+          ]
+        },
+        {
+          "path": "chapters/correctness/eq_spec.html",
+          "title": "8.9. Equational Specification",
+          "status": "taught",
+          "lessons": [
+            "induction-on-trees-and-naturals",
+            "proving-list-functions-by-induction"
+          ]
+        },
+        {
+          "path": "chapters/correctness/summary.html",
+          "title": "8.10. Summary",
+          "status": "reading",
+          "lessons": [],
+          "note": "Chapter recap only."
+        },
+        {
+          "path": "chapters/correctness/exercises.html",
+          "title": "8.11. Exercises",
+          "status": "partial",
+          "lessons": [
+            "practice-correctness"
+          ],
+          "note": "Original practice for the chapter's objectives; the book's own exercises are not reproduced."
+        },
+        {
+          "path": "chapters/ds/intro.html",
+          "title": "9. Data Structures",
+          "status": "reading",
+          "lessons": [],
+          "note": "Chapter overview; its objectives are taught by the chapter lessons."
+        },
+        {
+          "path": "chapters/ds/hash_tables.html",
+          "title": "9.1. Hash Tables",
+          "status": "taught",
+          "lessons": [
+            "hash-tables-from-scratch",
+            "hashtbl-mutable-maps"
+          ]
+        },
+        {
+          "path": "chapters/ds/amortized.html",
+          "title": "9.2. Amortized Analysis",
+          "status": "taught",
+          "lessons": [
+            "amortized-analysis-queues"
+          ]
+        },
+        {
+          "path": "chapters/ds/rb.html",
+          "title": "9.3. Red-Black Trees",
+          "status": "taught",
+          "lessons": [
+            "red-black-trees"
+          ]
+        },
+        {
+          "path": "chapters/ds/sequence.html",
+          "title": "9.4. Sequences",
+          "status": "taught",
+          "lessons": [
+            "lazy-streams-and-sequences",
+            "seq-lazy-sequences"
+          ]
+        },
+        {
+          "path": "chapters/ds/memoization.html",
+          "title": "9.5. Memoization",
+          "status": "taught",
+          "lessons": [
+            "memoization-and-dynamic-programming"
+          ]
+        },
+        {
+          "path": "chapters/ds/parrays.html",
+          "title": "9.6. Persistent Arrays",
+          "status": "taught",
+          "lessons": [
+            "persistent-arrays"
+          ]
+        },
+        {
+          "path": "chapters/ds/twothree.html",
+          "title": "9.7. Two-Three Trees",
+          "status": "taught",
+          "lessons": [
+            "two-three-trees"
+          ]
+        },
+        {
+          "path": "chapters/ds/summary.html",
+          "title": "9.8. Summary",
+          "status": "reading",
+          "lessons": [],
+          "note": "Chapter recap only."
+        },
+        {
+          "path": "chapters/ds/exercises.html",
+          "title": "9.9. Exercises",
+          "status": "partial",
+          "lessons": [
+            "practice-data-structures"
+          ],
+          "note": "Original practice for the chapter's objectives; the book's own exercises are not reproduced."
+        },
+        {
+          "path": "chapters/interp/intro.html",
+          "title": "10. Interpreters",
+          "status": "reading",
+          "lessons": [
+            "capstone-interpreter"
+          ],
+          "note": "Chapter overview; its objectives are taught by the chapter lessons."
+        },
+        {
+          "path": "chapters/interp/calculator.html",
+          "title": "10.1. Example: Calculator",
+          "status": "taught",
+          "lessons": [
+            "capstone-interpreter"
+          ]
+        },
+        {
+          "path": "chapters/interp/parsing.html",
+          "title": "10.2. Parsing",
+          "status": "taught",
+          "lessons": [
+            "capstone-interpreter"
+          ]
+        },
+        {
+          "path": "chapters/interp/substitution.html",
+          "title": "10.3. Substitution Model",
+          "status": "taught",
+          "lessons": [
+            "substitution-model-interpreter"
+          ]
+        },
+        {
+          "path": "chapters/interp/environment.html",
+          "title": "10.4. Environment Model",
+          "status": "taught",
+          "lessons": [
+            "environment-model-and-closures"
+          ]
+        },
+        {
+          "path": "chapters/interp/typecheck.html",
+          "title": "10.5. Type Checking",
+          "status": "taught",
+          "lessons": [
+            "static-type-checking"
+          ]
+        },
+        {
+          "path": "chapters/interp/inference.html",
+          "title": "10.6. Type Inference",
+          "status": "taught",
+          "lessons": [
+            "type-inference-by-unification"
+          ]
+        },
+        {
+          "path": "chapters/interp/summary.html",
+          "title": "10.7. Summary",
+          "status": "reading",
+          "lessons": [],
+          "note": "Chapter recap only."
+        },
+        {
+          "path": "chapters/interp/exercises.html",
+          "title": "10.8. Exercises",
+          "status": "partial",
+          "lessons": [
+            "practice-interpreters"
+          ],
+          "note": "Original practice for the chapter's objectives; the book's own exercises are not reproduced."
+        },
+        {
+          "path": "chapters/adv/curry-howard.html",
+          "title": "The Curry-Howard Correspondence",
+          "status": "taught",
+          "lessons": [
+            "curry-howard-correspondence"
+          ]
+        },
+        {
+          "path": "chapters/appendix/bigoh.html",
+          "title": "Big-Oh Notation",
+          "status": "taught",
+          "lessons": [
+            "big-o-by-counting"
+          ]
+        },
+        {
+          "path": "chapters/appendix/vm.html",
+          "title": "Virtual Machine",
+          "status": "reading",
+          "lessons": [],
+          "note": "Setup of the course's virtual machine; not language material."
+        }
+      ]
+    },
+    {
+      "id": "rwo",
+      "title": "Real World OCaml, 2nd edition",
+      "base": "https://dev.realworldocaml.org/",
+      "pages": [
+        {
+          "path": "toc.html",
+          "title": "Table of Contents",
+          "status": "reading",
+          "lessons": [],
+          "note": "Front matter or setup."
+        },
+        {
+          "path": "faqs.html",
+          "title": "FAQs",
+          "status": "reading",
+          "lessons": [],
+          "note": "Front matter or setup."
+        },
+        {
+          "path": "install.html",
+          "title": "Install",
+          "status": "reading",
+          "lessons": [],
+          "note": "Front matter or setup."
+        },
+        {
+          "path": "prologue.html",
+          "title": "Prologue",
+          "status": "reading",
+          "lessons": [],
+          "note": "Front matter or setup."
+        },
+        {
+          "path": "guided-tour.html",
+          "title": "A Guided Tour",
+          "status": "taught",
+          "lessons": [
+            "basic-types-and-operators",
+            "first-program",
+            "functions-and-application",
+            "pattern-matching",
+            "records-and-update",
+            "refs-and-loops",
+            "tuples-and-lists",
+            "variants-model-alternatives"
+          ]
+        },
+        {
+          "path": "variables-and-functions.html",
+          "title": "Variables and Functions",
+          "status": "taught",
+          "lessons": [
+            "currying-and-partial-application",
+            "functions-and-application",
+            "labelled-and-optional-arguments",
+            "let-bindings-and-shadowing"
+          ]
+        },
+        {
+          "path": "lists-and-patterns.html",
+          "title": "Lists and Patterns",
+          "status": "taught",
+          "lessons": [
+            "guards-or-patterns-as",
+            "list-module-tour",
+            "pattern-matching",
+            "tuples-and-lists"
+          ]
+        },
+        {
+          "path": "files-modules-and-programs.html",
+          "title": "Files, Modules, and Programs",
+          "status": "taught",
+          "lessons": [
+            "abstract-types",
+            "compilation-units-and-interfaces",
+            "dune-first-project",
+            "open-include-local",
+            "structures-and-signatures"
+          ]
+        },
+        {
+          "path": "records.html",
+          "title": "Records",
+          "status": "taught",
+          "lessons": [
+            "mutable-fields-and-state",
+            "records-and-update"
+          ]
+        },
+        {
+          "path": "variants.html",
+          "title": "Variants",
+          "status": "taught",
+          "lessons": [
+            "polymorphic-variants",
+            "variants-model-alternatives"
+          ]
+        },
+        {
+          "path": "error-handling.html",
+          "title": "Error Handling",
+          "status": "taught",
+          "lessons": [
+            "binding-operators",
+            "collecting-results",
+            "core-or-error",
+            "exception-design-and-reraise",
+            "exceptions",
+            "result-for-recoverable-errors"
+          ]
+        },
+        {
+          "path": "imperative-programming.html",
+          "title": "Imperative Programming",
+          "status": "taught",
+          "lessons": [
+            "evaluation-order",
+            "in-place-array-algorithms",
+            "lazy-values",
+            "mutable-fields-and-state",
+            "refs-and-loops",
+            "standard-library-tour",
+            "value-restriction"
+          ]
+        },
+        {
+          "path": "gadts.html",
+          "title": "GADTs",
+          "status": "taught",
+          "lessons": [
+            "capstone-typed-format",
+            "existential-types",
+            "gadts",
+            "phantom-types"
+          ]
+        },
+        {
+          "path": "functors.html",
+          "title": "Functors",
+          "status": "taught",
+          "lessons": [
+            "functors",
+            "module-system-in-depth",
+            "open-include-local",
+            "sharing-constraints"
+          ]
+        },
+        {
+          "path": "first-class-modules.html",
+          "title": "First-Class Modules",
+          "status": "taught",
+          "lessons": [
+            "first-class-modules",
+            "module-system-in-depth"
+          ]
+        },
+        {
+          "path": "objects.html",
+          "title": "Objects",
+          "status": "partial",
+          "lessons": [
+            "classes-inheritance-and-virtual-methods",
+            "objects-and-classes"
+          ],
+          "note": "Immediate objects and object types are taught; subtyping with coercions and binary methods are only touched."
+        },
+        {
+          "path": "classes.html",
+          "title": "Classes",
+          "status": "taught",
+          "lessons": [
+            "classes-inheritance-and-virtual-methods",
+            "objects-and-classes"
+          ]
+        },
+        {
+          "path": "maps-and-hashtables.html",
+          "title": "Maps and Hash Tables",
+          "status": "partial",
+          "lessons": [
+            "core-or-error",
+            "equality-and-compare",
+            "hashtbl-mutable-maps",
+            "map-and-set-functors"
+          ],
+          "note": "Stdlib Map, Set and Hashtbl are taught and Core's Map is used; Core's comparator machinery, sets and hash tables are not taught in depth."
+        },
+        {
+          "path": "command-line-parsing.html",
+          "title": "Command-Line Parsing",
+          "status": "partial",
+          "lessons": [
+            "core-command-cli"
+          ],
+          "note": "Core.Command flags and anonymous arguments are taught; sub-commands, choice parameters and interactive prompting are not."
+        },
+        {
+          "path": "concurrent-programming.html",
+          "title": "Concurrent Programming with Async",
+          "status": "partial",
+          "lessons": [
+            "async-timers",
+            "promises-from-scratch"
+          ],
+          "note": "Deferred, bind and Deferred.all are taught; pipes, readers and writers, ivars and TCP servers are not."
+        },
+        {
+          "path": "testing.html",
+          "title": "Testing",
+          "status": "partial",
+          "lessons": [
+            "alcotest-suite",
+            "expect-tests",
+            "randomized-testing-with-shrinking"
+          ],
+          "note": "Expect tests and Alcotest are taught and property testing is built by hand; QuickCheck-style libraries and inline test frameworks are not used."
+        },
+        {
+          "path": "json.html",
+          "title": "Handling JSON Data",
+          "status": "taught",
+          "lessons": [
+            "json-with-yojson"
+          ]
+        },
+        {
+          "path": "parsing-with-ocamllex-and-menhir.html",
+          "title": "Parsing with OCamllex and Menhir",
+          "status": "taught",
+          "lessons": [
+            "lexer-and-parser-generators"
+          ]
+        },
+        {
+          "path": "data-serialization.html",
+          "title": "Data Serialization with S-Expressions",
+          "status": "partial",
+          "lessons": [
+            "json-with-yojson",
+            "ppx-jane-derivers"
+          ],
+          "note": "S-expressions and JSON are taught; XML and binary formats are not."
+        },
+        {
+          "path": "platform.html",
+          "title": "The OCaml Platform",
+          "status": "partial",
+          "lessons": [
+            "alcotest-suite",
+            "dune-first-project",
+            "expect-tests",
+            "format-docs-opam",
+            "merlin-editor-support",
+            "toplevel-depend-and-doc-tools"
+          ],
+          "note": "Dune, opam, ocamlformat, odoc, Merlin and the toplevel are checked; utop and editor integrations are not machine-checked."
+        },
+        {
+          "path": "foreign-function-interface.html",
+          "title": "Foreign Function Interface",
+          "status": "partial",
+          "lessons": [
+            "c-stubs-ffi"
+          ],
+          "note": "C stubs are taught; the ctypes library, which this chapter focuses on, is not."
+        },
+        {
+          "path": "runtime-memory-layout.html",
+          "title": "Memory Representation of Values",
+          "status": "taught",
+          "lessons": [
+            "runtime-value-representation"
+          ]
+        },
+        {
+          "path": "garbage-collector.html",
+          "title": "Understanding the Garbage Collector",
+          "status": "taught",
+          "lessons": [
+            "gc-and-allocation",
+            "measure-before-optimising"
+          ]
+        },
+        {
+          "path": "compiler-frontend.html",
+          "title": "The Compiler Frontend: Parsing and Type Checking",
+          "status": "taught",
+          "lessons": [
+            "compiler-front-end"
+          ]
+        },
+        {
+          "path": "compiler-backend.html",
+          "title": "The Compiler Backend: Bytecode and Native code",
+          "status": "taught",
+          "lessons": [
+            "compiler-back-end"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "manual",
+      "title": "The OCaml manual 5.5",
+      "base": "https://ocaml.org/manual/5.5/",
+      "pages": [
+        {
+          "path": "manual001.html",
+          "title": "Contents",
+          "status": "reading",
+          "lessons": [],
+          "note": "Index or generated API listing."
+        },
+        {
+          "path": "foreword.html",
+          "title": "Foreword",
+          "status": "reading",
+          "lessons": [],
+          "note": "Index or generated API listing."
+        },
+        {
+          "path": "manual079.html",
+          "title": "Index of keywords",
+          "status": "reading",
+          "lessons": [],
+          "note": "Index or generated API listing."
+        },
+        {
+          "path": "api/index.html",
+          "title": "OCaml API",
+          "status": "reading",
+          "lessons": [],
+          "note": "Index or generated API listing."
+        },
+        {
+          "path": "api/compilerlibref/index.html",
+          "title": "OCaml Compiler API",
+          "status": "reading",
+          "lessons": [],
+          "note": "Index or generated API listing."
+        },
+        {
+          "path": "coreexamples.html",
+          "title": "1. The core language",
+          "status": "taught",
+          "lessons": [
+            "exceptions",
+            "first-program",
+            "let-bindings-and-shadowing",
+            "pattern-matching",
+            "records-and-update",
+            "refs-and-loops",
+            "variants-model-alternatives"
+          ]
+        },
+        {
+          "path": "moduleexamples.html",
+          "title": "2. The module system",
+          "status": "taught",
+          "lessons": [
+            "abstract-types",
+            "functors",
+            "module-system-in-depth",
+            "open-include-local",
+            "sharing-constraints",
+            "structures-and-signatures"
+          ]
+        },
+        {
+          "path": "objectexamples.html",
+          "title": "3. Objects in OCaml",
+          "status": "taught",
+          "lessons": [
+            "classes-inheritance-and-virtual-methods",
+            "objects-and-classes"
+          ]
+        },
+        {
+          "path": "lablexamples.html",
+          "title": "4. Labeled arguments",
+          "status": "taught",
+          "lessons": [
+            "labelled-and-optional-arguments"
+          ]
+        },
+        {
+          "path": "polyvariant.html",
+          "title": "5. Polymorphic variants",
+          "status": "taught",
+          "lessons": [
+            "polymorphic-variants"
+          ]
+        },
+        {
+          "path": "polymorphism.html",
+          "title": "6. Polymorphism and its limitations",
+          "status": "taught",
+          "lessons": [
+            "parametric-polymorphism",
+            "polymorphism-and-its-limitations",
+            "value-restriction"
+          ]
+        },
+        {
+          "path": "gadts-tutorial.html",
+          "title": "7. Generalized algebraic datatypes",
+          "status": "taught",
+          "lessons": [
+            "capstone-typed-format",
+            "existential-types",
+            "gadts"
+          ]
+        },
+        {
+          "path": "advexamples.html",
+          "title": "8. Advanced examples with classes and modules",
+          "status": "partial",
+          "lessons": [
+            "classes-inheritance-and-virtual-methods",
+            "module-system-in-depth"
+          ],
+          "note": "Covers classes with modules in outline; the chapter's long worked examples are not reproduced."
+        },
+        {
+          "path": "parallelism.html",
+          "title": "9. Parallel programming",
+          "status": "partial",
+          "lessons": [
+            "atomic-counter",
+            "capstone-parallel-wordcount",
+            "domains-parallel-sum",
+            "threads-library"
+          ],
+          "note": "Domains, atomics, Mutex and Condition are taught; Semaphore, deadlock analysis and the interaction with the garbage collector are not."
+        },
+        {
+          "path": "memorymodel.html",
+          "title": "10. Memory model: The hard bits",
+          "status": "partial",
+          "lessons": [
+            "atomic-counter",
+            "domains-parallel-sum"
+          ],
+          "note": "Data races and atomics are taught; the formal memory model (happens-before, litmus tests) is not."
+        },
+        {
+          "path": "language.html",
+          "title": "11. The OCaml language",
+          "status": "partial",
+          "lessons": [
+            "classes-inheritance-and-virtual-methods",
+            "compilation-units-and-interfaces",
+            "lexical-conventions-and-precedence",
+            "module-system-in-depth",
+            "names-namespaces-and-scope",
+            "pattern-matching",
+            "variants-model-alternatives"
+          ],
+          "note": "The reference has many sections; lexical conventions, names, patterns, type definitions, classes, modules and compilation units are taught, but not every syntactic form."
+        },
+        {
+          "path": "extn.html",
+          "title": "12. Language extensions",
+          "status": "partial",
+          "lessons": [
+            "attributes-and-extension-points",
+            "binding-operators",
+            "first-class-modules",
+            "gadts",
+            "module-system-in-depth",
+            "polymorphic-variants",
+            "polymorphism-and-its-limitations",
+            "private-extensible-and-inline-records",
+            "recursive-values-and-modules"
+          ],
+          "note": "Does not yet cover lazy patterns, extended indexing operators, generalized open statements or every alert and syntax extension."
+        },
+        {
+          "path": "comp.html",
+          "title": "13. Batch compilation (ocamlc)",
+          "status": "taught",
+          "lessons": [
+            "compiler-back-end",
+            "compiler-front-end"
+          ]
+        },
+        {
+          "path": "toplevel.html",
+          "title": "14. The toplevel system or REPL (ocaml)",
+          "status": "taught",
+          "lessons": [
+            "first-program",
+            "toplevel-depend-and-doc-tools"
+          ]
+        },
+        {
+          "path": "runtime.html",
+          "title": "15. The runtime system (ocamlrun)",
+          "status": "partial",
+          "lessons": [
+            "compiler-back-end",
+            "gc-and-allocation"
+          ],
+          "note": "OCAMLRUNPARAM and ocamlrun are exercised; the full parameter list and ocamlrun options are not."
+        },
+        {
+          "path": "native.html",
+          "title": "16. Native-code compilation (ocamlopt)",
+          "status": "taught",
+          "lessons": [
+            "c-stubs-ffi",
+            "compiler-back-end"
+          ]
+        },
+        {
+          "path": "lexyacc.html",
+          "title": "17. Lexer and parser generators (ocamllex, ocamlyacc)",
+          "status": "partial",
+          "lessons": [
+            "lexer-and-parser-generators"
+          ],
+          "note": "ocamllex and Menhir are taught; ocamlyacc is not."
+        },
+        {
+          "path": "depend.html",
+          "title": "18. Dependency generator (ocamldep)",
+          "status": "taught",
+          "lessons": [
+            "toplevel-depend-and-doc-tools"
+          ]
+        },
+        {
+          "path": "ocamldoc.html",
+          "title": "19. The documentation generator (ocamldoc)",
+          "status": "taught",
+          "lessons": [
+            "format-docs-opam",
+            "toplevel-depend-and-doc-tools"
+          ]
+        },
+        {
+          "path": "debugger.html",
+          "title": "20. The debugger (ocamldebug)",
+          "status": "partial",
+          "lessons": [
+            "debugging-and-profiling"
+          ],
+          "note": "Backtraces are machine-checked; interactive ocamldebug sessions (breakpoints, stepping backwards) are described but not machine-checked."
+        },
+        {
+          "path": "native-debugger.html",
+          "title": "21. Native debugging (gdb, lldb)",
+          "status": "partial",
+          "lessons": [
+            "debugging-and-profiling"
+          ],
+          "note": "Backtraces are machine-checked; interactive gdb or lldb sessions are not."
+        },
+        {
+          "path": "profil.html",
+          "title": "22. Profiling (ocamlprof, perf)",
+          "status": "partial",
+          "lessons": [
+            "debugging-and-profiling",
+            "measure-before-optimising"
+          ],
+          "note": "ocamlcp and ocamlprof are checked; perf is Linux-only and was not run on this platform."
+        },
+        {
+          "path": "intfc.html",
+          "title": "23. Interfacing C with OCaml",
+          "status": "taught",
+          "lessons": [
+            "c-stubs-ffi"
+          ]
+        },
+        {
+          "path": "flambda.html",
+          "title": "24. Optimisation with Flambda",
+          "status": "partial",
+          "lessons": [
+            "compiler-build-variants"
+          ],
+          "note": "The validated switch reports flambda false, so only detection and the attributes accepted by every build are machine-checked."
+        },
+        {
+          "path": "afl-fuzz.html",
+          "title": "25. Fuzzing with afl-fuzz",
+          "status": "partial",
+          "lessons": [
+            "compiler-build-variants"
+          ],
+          "note": "The validated switch has no AFL support and no afl-fuzz binary; the workflow is described, not machine-checked."
+        },
+        {
+          "path": "runtime-tracing.html",
+          "title": "26. Runtime tracing with runtime events",
+          "status": "taught",
+          "lessons": [
+            "runtime-events-tracing"
+          ]
+        },
+        {
+          "path": "tail_mod_cons.html",
+          "title": "27. The “Tail Modulo Constructor” program transformation",
+          "status": "taught",
+          "lessons": [
+            "tail-modulo-cons"
+          ]
+        },
+        {
+          "path": "tsan.html",
+          "title": "28. Runtime detection of data races with ThreadSanitizer",
+          "status": "partial",
+          "lessons": [
+            "compiler-build-variants"
+          ],
+          "note": "The validated switch was not built with ThreadSanitizer; the workflow is described, not machine-checked."
+        },
+        {
+          "path": "core.html",
+          "title": "29. The core library",
+          "status": "partial",
+          "lessons": [
+            "exceptions",
+            "standard-library-tour"
+          ],
+          "note": "Predefined exceptions are taught individually; the predefined types and the full list are not enumerated."
+        },
+        {
+          "path": "stdlib.html",
+          "title": "30. The standard library",
+          "status": "partial",
+          "lessons": [
+            "arrays-and-bytes",
+            "hashtbl-mutable-maps",
+            "list-module-tour",
+            "map-and-set-functors",
+            "seq-lazy-sequences",
+            "standard-library-tour"
+          ],
+          "note": "Roughly twenty of the standard modules are exercised; the rest are not."
+        },
+        {
+          "path": "parsing.html",
+          "title": "31. The compiler front-end",
+          "status": "taught",
+          "lessons": [
+            "compiler-front-end"
+          ]
+        },
+        {
+          "path": "libunix.html",
+          "title": "32. The unix library: Unix system calls",
+          "status": "taught",
+          "lessons": [
+            "unix-library"
+          ]
+        },
+        {
+          "path": "libstr.html",
+          "title": "33. The str library: regular expressions and string processing",
+          "status": "taught",
+          "lessons": [
+            "str-library"
+          ]
+        },
+        {
+          "path": "runtime_events.html",
+          "title": "34. The runtime_events library",
+          "status": "taught",
+          "lessons": [
+            "runtime-events-tracing"
+          ]
+        },
+        {
+          "path": "libthreads.html",
+          "title": "35. The threads library",
+          "status": "taught",
+          "lessons": [
+            "threads-library"
+          ]
+        },
+        {
+          "path": "libdynlink.html",
+          "title": "36. The dynlink library: dynamic loading and linking of object files",
+          "status": "taught",
+          "lessons": [
+            "dynlink-plugins"
+          ]
+        },
+        {
+          "path": "old.html",
+          "title": "37. Recently removed or moved libraries (Graphics, Bigarray, Num, LablTk)",
+          "status": "reading",
+          "lessons": [],
+          "note": "Lists libraries removed from or moved out of the distribution (Graphics, Num, Labltk); nothing to teach."
+        },
+        {
+          "path": "api/index_modules.html",
+          "title": "Index of modules",
+          "status": "reading",
+          "lessons": [],
+          "note": "Index or generated API listing."
+        },
+        {
+          "path": "api/index_module_types.html",
+          "title": "Index of module types",
+          "status": "reading",
+          "lessons": [],
+          "note": "Index or generated API listing."
+        },
+        {
+          "path": "api/index_types.html",
+          "title": "Index of types",
+          "status": "reading",
+          "lessons": [],
+          "note": "Index or generated API listing."
+        },
+        {
+          "path": "api/index_exceptions.html",
+          "title": "Index of exceptions",
+          "status": "reading",
+          "lessons": [],
+          "note": "Index or generated API listing."
+        },
+        {
+          "path": "api/index_values.html",
+          "title": "Index of values",
+          "status": "reading",
+          "lessons": [],
+          "note": "Index or generated API listing."
+        }
+      ]
+    }
+  ]
+}

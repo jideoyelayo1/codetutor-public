@@ -1,0 +1,39 @@
+{
+  "key": "debugging-and-profiling",
+  "stage": "21 · Tools, libraries and the compiler",
+  "n": 11,
+  "title": "Debugging and profiling: backtraces, ocamldebug and ocamlprof",
+  "minutes": 40,
+  "body": [
+    "When an exception escapes, the most useful fact is where it was raised. OCaml can record a *backtrace*, the chain of calls that led to the raise, but only while recording is on: set the environment variable `OCAMLRUNPARAM=b` or call `Printexc.record_backtrace true` early in the program. Then `Printexc.get_backtrace ()` returns the trace as a string with a file and line for each frame. If recording is off, the trace is simply empty, which is the bug in the starter.",
+    "Source locations also depend on how the code was compiled. For *bytecode*, `ocamlc` must be given `-g`: without it every frame reads `Called from unknown location`, which this project checks. The compiler's help lists `-g` as the way to record debugging information, and you should pass it in any build you intend to debug. On the 5.5.1 native compiler used for this guide, the same example printed locations even without `-g`, so treat `-g` as required for bytecode and as the safe spelling for native code rather than relying on that behaviour.",
+    "Two classic tools complement backtraces. `ocamldebug` is a time-travel debugger for bytecode: you set breakpoints, step, inspect values and go backwards, which works because bytecode execution can be replayed from checkpoints. For native programs you use the system debugger, `gdb` on Linux or `lldb` on macOS. Both are interactive, so they are learnt by using them; this project checks the non-interactive part. `ocamlcp` builds bytecode that counts how often each part of the code runs, and after one run `ocamlprof` prints the source annotated with the counts."
+  ],
+  "challenge": "example/trace.ml catches an exception and prints the backtrace, but prints nothing because recording is off. Turn on backtrace recording at the start of the program so the output includes the file and line of the `failwith` and of each call.",
+  "projectInstructions": "Build with `ocamlfind ocamlopt -g -o trace.exe example/trace.ml` and run `./trace.exe`. Then compare bytecode with and without `-g` (`ocamlfind ocamlc -g -o debug.byte example/trace.ml`, `ocamlrun debug.byte`), and try `ocamlfind ocamlcp -o prof.byte example/trace.ml`, `ocamlrun prof.byte` and `ocamlprof example/trace.ml`. Edit only example/trace.ml.",
+  "question": "Why can a bytecode backtrace read 'Called from unknown location'?",
+  "correct": "The bytecode was compiled without -g, so it carries no source locations",
+  "wrong": [
+    "Exceptions in bytecode have no call stack",
+    "Backtraces only work in native code"
+  ],
+  "reasoning": "Locations come from debugging information that bytecode only contains when it is compiled with -g.",
+  "sourceURL": "https://ocaml.org/manual/5.5/debugger.html",
+  "projectChecks": [
+    { "name": "build with debug information", "command": ["ocamlfind", "ocamlopt", "-g", "-o", "trace.exe", "example/trace.ml"], "exit": 0 },
+    { "name": "starter: recording is off, so the backtrace is empty", "command": ["./trace.exe"], "exit": 0, "stdout": "caught bottom\n" },
+    { "name": "solution: rebuild with -g", "command": ["ocamlfind", "ocamlopt", "-g", "-o", "trace.exe", "example/trace.ml"], "exit": 0, "useSolution": true },
+    { "name": "solution: the backtrace names the file", "command": ["./trace.exe"], "exit": 0, "stdoutContains": ["caught bottom", "Raised at", "trace.ml"], "useSolution": true },
+    { "name": "bytecode without -g", "command": ["ocamlfind", "ocamlc", "-o", "nodebug.byte", "example/trace.ml"], "exit": 0, "useSolution": true },
+    { "name": "bytecode without -g has unknown locations", "command": ["ocamlrun", "nodebug.byte"], "exit": 0, "stdoutContains": ["unknown location"], "useSolution": true },
+    { "name": "bytecode with -g", "command": ["ocamlfind", "ocamlc", "-g", "-o", "debug.byte", "example/trace.ml"], "exit": 0, "useSolution": true },
+    { "name": "bytecode with -g names the file", "command": ["ocamlrun", "debug.byte"], "exit": 0, "stdoutContains": ["trace.ml"], "useSolution": true },
+    { "name": "profile build with ocamlcp", "command": ["ocamlfind", "ocamlcp", "-o", "prof.byte", "example/trace.ml"], "exit": 0, "useSolution": true },
+    { "name": "profile run writes the counters", "command": ["ocamlrun", "prof.byte"], "exit": 0, "stdoutContains": ["caught bottom"], "useSolution": true },
+    { "name": "ocamlprof annotates the source with counts", "command": ["ocamlprof", "example/trace.ml"], "exit": 0, "stdoutContains": ["(* "], "useSolution": true }
+  ],
+  "additionalReadings": [
+    { "title": "OCaml manual: Profiling (ocamlprof, perf)", "url": "https://ocaml.org/manual/5.5/profil.html", "section": "ocamlprof" },
+    { "title": "OCaml manual: Native debugging (gdb, lldb)", "url": "https://ocaml.org/manual/5.5/native-debugger.html", "section": "Native debugging" }
+  ]
+}

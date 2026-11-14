@@ -1,0 +1,35 @@
+{
+ "key": "lambdas-and-closures",
+ "title": "Lambdas, closures and captured variables",
+ "body": [
+  "A lambda can use variables from its enclosing scope; the lambda plus those variables is a closure. C# captures variables, not values: the compiler moves captured locals into a hidden class instance shared by the method and the lambda. A later change to the variable is visible to the lambda, and the lambda can change it too.",
+  "`foreach` gives each iteration a fresh loop variable, so lambdas created in a `foreach` capture different variables. A `for` loop has one counter variable for the whole loop: every lambda captures the same `i` and sees its final value. Copy it into a local inside the body (`int copy = i;`) to capture per-iteration values.",
+  "Capturing allocates the closure object and keeps captured variables (and anything they reference) alive as long as the delegate lives. A `static` lambda (`static x => x * 2`) cannot capture, which the compiler enforces (CS8820); use it on hot paths to guarantee no hidden allocation and pass state explicitly instead.",
+  "Lambdas can declare parameter types, attributes and a return type (`int (string s) => s.Length`), use discards (`(_, _) => 0`), and have default parameter values (C# 12). C# 14 allows modifiers like `out`, `ref`, `in` and `scoped` on implicitly typed lambda parameters: `TryParse<int> p = (text, out result) => int.TryParse(text, out result);`.",
+  "Check what each lambda captures, whether it captures a shared loop counter, and whether storing the delegate extends the lifetime of large objects."
+ ],
+ "expectedStdout": "12\n3,3,3\n0,1,2\n0,1,2\n3\n42\n12\n30\n",
+ "challenge": "Write MakeAccumulator(int start) returning a Func<int,int> that adds its argument to a running total captured in a closure. Show that two accumulators keep independent totals.",
+ "solutionStdout": "15 1\n",
+ "question": "Three lambdas created in `for (int i = 0; i < 3; i++)` each return i. What do they return when called after the loop?",
+ "correct": "3, 3 and 3",
+ "wrong": [
+  "0, 1 and 2",
+  "A compile error because i is out of scope"
+ ],
+ "reasoning": "A for loop has one i shared by every closure; foreach creates a fresh variable per iteration.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/lambda-expressions",
+ "additionalReadings": [
+  {
+   "title": "Capture of outer variables",
+   "url": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/lambda-expressions#capture-of-outer-variables-and-variable-scope-in-lambda-expressions",
+   "section": "Capture"
+  }
+ ],
+ "rejected": [
+  {
+   "file": "rejected.cs",
+   "diagnostic": "CS8820"
+  }
+ ]
+}

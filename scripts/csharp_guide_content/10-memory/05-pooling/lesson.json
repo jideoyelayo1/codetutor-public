@@ -1,0 +1,34 @@
+{
+ "key": "pooling-and-allocation",
+ "title": "Pooling and reducing allocations",
+ "body": [
+  "In hot paths, allocation pressure becomes GC time. The first fixes are simple: reuse a `StringBuilder`, presize lists and dictionaries, avoid LINQ in tight loops, avoid boxing (generic APIs instead of `object`), and use spans to slice instead of `Substring`/`ToArray`.",
+  "`ArrayPool<T>.Shared.Rent(minimumLength)` lends an array that may be longer than requested; `Return(array)` gives it back for reuse. Always track the length you actually use, never use an array after returning it, and return it in a `finally` so exceptions do not leak pool arrays. Pass `clearArray: true` when the buffer held sensitive data.",
+  "`ObjectPool<T>` (Microsoft.Extensions.ObjectPool) pools larger reusable objects; `string.Create(length, state, (span, state) => ...)` builds a string by writing into its final buffer once. `stackalloc` with a size threshold and a pool fallback is a common pattern: small buffers on the stack, large ones rented.",
+  "Measure before and after. `GC.GetAllocatedBytesForCurrentThread()` in a test, BenchmarkDotNet's `[MemoryDiagnoser]` for micro-benchmarks, and `dotnet-counters` in production show whether a change actually reduced allocation. Readability costs are real; optimize the paths the measurements point at.",
+  "Pools turn memory bugs into data bugs: a returned array still in use gets overwritten by the next renter. Check every Rent has exactly one Return on every path and that nothing keeps the array afterwards."
+ ],
+ "expectedStdout": "58052\n-----\n7:42\nasked 10, got at least 10: True\npooled checksum loop allocated nothing: True\n",
+ "challenge": "Write ReverseWords(string text) that rents a char[] from ArrayPool, writes the words in reverse order separated by single spaces, builds the result with new string(buffer, 0, length) and returns the array in a finally block. Test with \"one two three\".",
+ "solutionStdout": "three two one\n",
+ "question": "What must you track when renting from ArrayPool<T>.Shared?",
+ "correct": "The length you actually use, since the rented array may be longer",
+ "wrong": [
+  "Nothing; Rent returns exactly the requested length",
+  "The pool index, to pass back to Return"
+ ],
+ "reasoning": "Rent returns at least the requested size. Use your own length, return the array exactly once and never touch it afterwards.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/api/system.buffers.arraypool-1",
+ "additionalReadings": [
+  {
+   "title": "string.Create",
+   "url": "https://learn.microsoft.com/en-us/dotnet/api/system.string.create",
+   "section": "Create"
+  },
+  {
+   "title": "Memory diagnostics with BenchmarkDotNet",
+   "url": "https://benchmarkdotnet.org/articles/configs/diagnosers.html",
+   "section": "MemoryDiagnoser"
+  }
+ ]
+}

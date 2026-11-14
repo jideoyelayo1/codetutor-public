@@ -1,0 +1,40 @@
+{
+ "key": "locks",
+ "title": "Locks, System.Threading.Lock and deadlocks",
+ "body": [
+  "A lock lets only one thread at a time run a critical section. `lock (gate) { ... }` acquires the lock, runs the block and releases it even if an exception is thrown. Every access to the protected state, reads included, must hold the same lock, or the protection is incomplete.",
+  "C# 13/.NET 9 introduced `System.Threading.Lock`, a dedicated lock type. When the `lock` statement's expression is a `Lock`, the compiler uses its faster `EnterScope()` API instead of `Monitor`. Use a `private readonly Lock gate = new();` field; never lock on `this`, a `Type` or a string, which outside code could also lock.",
+  "Keep critical sections short and never `await` inside a `lock` (the compiler forbids it, CS1996) because the continuation may resume on another thread. For async code use `SemaphoreSlim(1, 1)` with `await WaitAsync()` and release in `finally`.",
+  "A deadlock happens when two threads each hold a lock the other needs. The standard prevention is a global lock order: always acquire locks in the same order (for example by account id). `Monitor.TryEnter` and `SemaphoreSlim.WaitAsync(timeout)` let you give up instead of waiting forever.",
+  "`ReaderWriterLockSlim` allows many readers or one writer, worthwhile only for read-heavy, long critical sections. Check that each piece of shared state has exactly one guarding lock, that the lock is private, and that nested acquisitions follow one order."
+ ],
+ "expectedStdout": "1000\nno deadlock: True, total preserved: 200\n50\n",
+ "challenge": "Write a thread-safe BoundedLog class using a Lock that keeps only the last 3 messages added. Add 10 messages from parallel loop iterations, then print how many are kept.",
+ "solutionStdout": "3\n",
+ "question": "What is the standard way to prevent deadlocks when a method must take two locks?",
+ "correct": "Always acquire the locks in one global order",
+ "wrong": [
+  "Lock on this instead of a private field",
+  "Use await inside the lock"
+ ],
+ "reasoning": "If every thread acquires locks in the same order, no cycle of waiting can form.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/lock",
+ "additionalReadings": [
+  {
+   "title": "System.Threading.Lock",
+   "url": "https://learn.microsoft.com/en-us/dotnet/api/system.threading.lock",
+   "section": "Lock"
+  },
+  {
+   "title": "SemaphoreSlim",
+   "url": "https://learn.microsoft.com/en-us/dotnet/api/system.threading.semaphoreslim",
+   "section": "WaitAsync"
+  }
+ ],
+ "rejected": [
+  {
+   "file": "rejected.cs",
+   "diagnostic": "CS1996"
+  }
+ ]
+}

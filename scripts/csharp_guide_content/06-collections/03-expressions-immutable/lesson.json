@@ -1,0 +1,34 @@
+{
+ "key": "collection-expressions-immutable",
+ "title": "Collection expressions, immutable and frozen collections",
+ "body": [
+  "Collection expressions (C# 12) create collections with one syntax for many target types: `int[] a = [1, 2];`, `List<int> l = [1, 2];`, `Span<int> s = [1, 2];`, `ImmutableArray<int> im = [1, 2];`. The spread element `..other` inlines another sequence: `[0, ..a, 9]`. The target type decides what is built, so the same expression can produce an array or a list.",
+  "Immutable collections (`System.Collections.Immutable`) never change after creation; operations such as `Add` return a new collection that shares structure with the old one. They are safe to share between threads and to hand out from APIs without defensive copies. Use builders (`ImmutableList.CreateBuilder<T>()`) when producing many items.",
+  "Frozen collections (`FrozenDictionary`, `FrozenSet`, .NET 8+) are read-only and optimized for lookup speed at the cost of slower creation. Create them once with `ToFrozenDictionary()` for configuration or lookup tables read many times.",
+  "Read-only interfaces (`IReadOnlyList<T>`, `IReadOnlyDictionary<K,V>`) describe what a caller may do, not whether the data can change; the producer may still mutate the underlying list. Immutable and frozen types guarantee the data cannot change.",
+  "Choose by the guarantee you need: a read-only view for encapsulation, an immutable collection for safe sharing with occasional updates, a frozen collection for build-once/read-many lookup. Check that 'immutable' items do not themselves contain mutable objects."
+ ],
+ "expectedStdout": "1,2,3,4 0\n2 3\n0,1,4\n443\nTrue\n2\n",
+ "challenge": "Build an ImmutableDictionary<string,int> of three stock levels, then produce a second version with one level changed using SetItem, and print the item from both versions to show the original is unchanged.",
+ "solutionStdout": "0 12\n",
+ "question": "What does ImmutableList<T>.Add return?",
+ "correct": "A new list containing the extra element; the original is unchanged",
+ "wrong": [
+  "void, after mutating the list",
+  "The same list instance with the element appended"
+ ],
+ "reasoning": "Immutable collections return new versions that share structure with the old one.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/collection-expressions",
+ "additionalReadings": [
+  {
+   "title": "Immutable collections",
+   "url": "https://learn.microsoft.com/en-us/dotnet/api/system.collections.immutable",
+   "section": "System.Collections.Immutable"
+  },
+  {
+   "title": "Frozen collections",
+   "url": "https://learn.microsoft.com/en-us/dotnet/api/system.collections.frozen",
+   "section": "System.Collections.Frozen"
+  }
+ ]
+}

@@ -1,0 +1,82 @@
+{
+  "key": "capstone-parallel-wordcount",
+  "stage": "14 · Metaprogramming and capstones",
+  "n": 5,
+  "title": "Capstone 4: a parallel pipeline that survives failure",
+  "minutes": 60,
+  "body": [
+    "This capstone combines domains, ownership and error handling. The pipeline splits the input lines into contiguous chunks, gives each chunk to its own domain, lets each domain count words into a *private* hash table, and merges the tables on the main domain. Nothing mutable is shared while the workers run, so there is no lock and no race.",
+    "Failure is the hard part. If one worker raises, `Domain.join` re-raises that exception in the caller. If you join the domains one at a time and let the first exception escape, the remaining domains are never joined: they keep running in the background and their resources leak. The correct shape is to join *every* domain, capture each outcome as a `result`, and only then re-raise the first error.",
+    "Make cleanup observable. Each worker increments an `Atomic` counter in a `Fun.protect ~finally`, so a test can assert that all workers finished even though one failed. The same discipline applies to Async and effect-based code: every spawned unit of work is either awaited or cancelled, and the error path is tested as carefully as the success path."
+  ],
+  "challenge": "src/pipeline.ml defines `default_process` and the `finished` counter, but `count` returns an empty list. Implement `count ~workers ?process lines`: chunk the lines, run one domain per chunk, count words into a private Hashtbl (incrementing `finished` in a `Fun.protect ~finally`), join every domain capturing `Ok`/`Error`, re-raise the first error after all are joined, and otherwise merge the tables into a list of (word, count) sorted by word. Reject `workers < 1` with `Invalid_argument`, and if spawning fails part-way, join the domains that already started before re-raising.",
+  "projectInstructions": "Run `dune test --root .`. Edit only src/pipeline.ml. The test checks several worker counts, an empty input, and a worker that raises `Failure \"boom\"` while the other workers must still finish.",
+  "question": "Why join every domain before re-raising a worker's exception?",
+  "correct": "Otherwise the remaining domains are left running and unjoined, leaking work and resources on the error path",
+  "wrong": [
+    "Domain.join never raises, so there is nothing to handle",
+    "Joining twice makes the result faster"
+  ],
+  "reasoning": "Structured concurrency means every spawned task is awaited; capturing outcomes first lets the caller clean up everything before reporting the failure.",
+  "sourceURL": "https://ocaml.org/manual/5.5/parallelism.html",
+  "projectChecks": [
+    {
+      "name": "starter compiles",
+      "command": [
+        "dune",
+        "build",
+        "--root",
+        "."
+      ],
+      "exit": 0
+    },
+    {
+      "name": "starter test fails",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "test_pipeline.ml"
+    },
+    {
+      "name": "solution test passes",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 0,
+      "useSolution": true
+    },
+    {
+      "name": "lost cleanup is caught",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "test_pipeline.ml",
+      "useSolution": true,
+      "mutations": [
+        {
+          "path": "src/pipeline.ml",
+          "find": "Atomic.incr finished",
+          "replace": "ignore finished"
+        }
+      ]
+    }
+  ],
+  "additionalReadings": [
+    {
+      "title": "OCaml manual: Parallel programming",
+      "url": "https://ocaml.org/manual/5.5/parallelism.html",
+      "section": "Domains"
+    }
+  ]
+}

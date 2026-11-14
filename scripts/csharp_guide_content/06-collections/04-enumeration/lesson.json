@@ -1,0 +1,29 @@
+{
+ "key": "enumeration-and-invalidation",
+ "title": "IEnumerable, enumerators and modification during iteration",
+ "body": [
+  "`foreach` works with anything that has a `GetEnumerator()` method; normally that means implementing `IEnumerable<T>`. The enumerator exposes `Current` and `MoveNext()`. `foreach` calls `MoveNext` until it returns false, and disposes the enumerator at the end.",
+  "`IEnumerable<T>` is the most general sequence contract: it promises only forward iteration. `ICollection<T>` adds `Count`, `Add` and `Remove`; `IList<T>` adds indexing. Accept the most general interface your method needs (often `IEnumerable<T>` or `IReadOnlyList<T>`) and return the most specific useful type.",
+  "Changing a `List<T>` or `Dictionary` while enumerating it invalidates the enumerator: the next `MoveNext` throws `InvalidOperationException` ('Collection was modified'). To remove items, iterate over a copy, iterate backwards with an index, or use `RemoveAll(predicate)`. `Dictionary` does allow `Remove` during enumeration since .NET Core 3.0, but not additions.",
+  "Some enumerables are single-use or lazy (a LINQ query, a file reader); enumerating twice may repeat expensive work or produce different results. Stage 9 covers this in depth.",
+  "Before mutating inside a loop, check whether you are enumerating the same collection. Prefer `RemoveAll`, building a new collection, or an index-based loop that accounts for shifting indices."
+ ],
+ "expectedStdout": "Collection was modified; enumeration operation may not execute.\n3 removed: 1,3,5\n1,2,4,5\n[1][2][4][5]\n33\n",
+ "challenge": "Remove every key whose value is 0 from a Dictionary<string,int> { a=1, b=0, c=0, d=2 } without an exception, then print the remaining keys in order.",
+ "solutionStdout": "a,d\n",
+ "question": "What happens if you Add to a List<T> while a foreach over the same list is running?",
+ "correct": "The next MoveNext throws InvalidOperationException",
+ "wrong": [
+  "The new item is silently skipped",
+  "The loop restarts from the beginning"
+ ],
+ "reasoning": "List enumerators check a version counter; any structural change invalidates them.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1",
+ "additionalReadings": [
+  {
+   "title": "List<T>.RemoveAll",
+   "url": "https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1.removeall",
+   "section": "RemoveAll"
+  }
+ ]
+}

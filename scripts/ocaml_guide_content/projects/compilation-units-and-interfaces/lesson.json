@@ -1,0 +1,33 @@
+{
+  "key": "compilation-units-and-interfaces",
+  "stage": "15 · Foundations in depth",
+  "n": 9,
+  "title": "Compilation units and interfaces: hiding a representation with an .mli",
+  "minutes": 30,
+  "body": [
+    "Every `.ml` file is a *compilation unit*: a module named after the file, compiled separately and linked with the others. A file `bounded_stack.ml` defines the module `Bounded_stack`, and another file reaches it as `Bounded_stack.push`. Dune works out the order in which the units must be compiled, so you never write that order down.",
+    "A unit may have an interface file, `bounded_stack.mli`, which is the signature of the module. Without it, everything in the `.ml` is public, including the layout of its types. With it, only what the `.mli` lists is visible, and a type declared there as plain `type t` is abstract: other units can pass values of type `t` around but cannot look inside, build one by hand, or depend on how it is stored. That is the compile-time enforcement of a representation invariant.",
+    "In the toplevel the same ideas apply: `#use \"file.ml\"` loads a file as if typed in, while `#load` and `#require` bring in compiled units and libraries, and modules defined in the toplevel have no `.mli`, so nothing is hidden there. Keep the `.mli` small and documented, because it is the contract other code is allowed to depend on."
+  ],
+  "challenge": "The starter's src/bounded_stack.mli exposes the record type, so leak/leak.ml compiles by reading `items` directly. Rewrite the .mli so `t` is abstract and each function carries a documentation comment. The leak must stop compiling while the app keeps building.",
+  "projectInstructions": "Try `dune build --root . ./leak/leak.exe` (it compiles now) and `dune exec --root . app/main.exe`. Edit only src/bounded_stack.mli. After your change the first command must fail with an unbound record field and the second must still work.",
+  "question": "What does declaring `type t` without a definition in an .mli do?",
+  "correct": "It makes t abstract: other units can use values of type t but cannot see or construct its representation",
+  "wrong": [
+    "It deletes the type from the compiled library",
+    "It makes the type mutable"
+  ],
+  "reasoning": "The signature hides the definition, so the only way to build or inspect a t is through the functions the interface exports.",
+  "sourceURL": "https://cs3110.github.io/textbook/chapters/modules/compilation_units.html",
+  "projectChecks": [
+    { "name": "starter: the representation leaks", "command": ["dune", "build", "--root", ".", "./leak/leak.exe"], "exit": 0 },
+    { "name": "starter: the app runs", "command": ["dune", "exec", "--root", ".", "app/main.exe"], "exit": 0, "stdout": "2 false\n" },
+    { "name": "solution: the leak no longer compiles", "command": ["dune", "build", "--root", ".", "./leak/leak.exe"], "exit": 1, "stderrContains": "items", "useSolution": true },
+    { "name": "solution: the app still runs", "command": ["dune", "exec", "--root", ".", "app/main.exe"], "exit": 0, "stdout": "2 false\n", "useSolution": true },
+    { "name": "a missing export breaks the app", "command": ["dune", "build", "--root", ".", "./app/main.exe"], "exit": 1, "stderrContains": "size", "useSolution": true,
+      "mutations": [{ "path": "src/bounded_stack.mli", "find": "val size : t -> int", "replace": "" }] }
+  ],
+  "additionalReadings": [
+    { "title": "CS 3110: Modules and the toplevel", "url": "https://cs3110.github.io/textbook/chapters/modules/toplevel.html", "section": "Modules and the toplevel" }
+  ]
+}

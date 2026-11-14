@@ -1,0 +1,82 @@
+{
+  "key": "capstone-leftist-heap",
+  "stage": "14 · Metaprogramming and capstones",
+  "n": 3,
+  "title": "Capstone 2: a persistent priority queue",
+  "minutes": 55,
+  "body": [
+    "A leftist heap is a persistent priority queue. It is a binary tree where every node is no larger than its children (the heap property) and the *rank*, the length of the right spine, of the left child is at least that of the right child. That second rule keeps the right spine short, which is what makes `merge` logarithmic.",
+    "Everything is built on `merge`. To merge two heaps, compare their roots, keep the smaller root, and recursively merge the *right* subtree of that heap with the other heap; then swap children if needed so the rank rule holds. `insert` merges a one-node heap in, and `delete_min` merges the root's two children. One recursive function gives the whole API.",
+    "Because nodes are immutable and shared, an old heap remains valid after any operation, which is persistence. The `Make` functor takes the element ordering as a module argument, the same shape as `Map.Make`, so the heap works for ints, strings or your own record type without polymorphic comparison."
+  ],
+  "challenge": "In src/leftist.ml, `merge` returns its first argument, so inserting loses elements. Implement it: if either heap is empty return the other; otherwise keep the smaller root `x`, merge the right subtree with the other heap, and rebuild the node with `make` (which restores the rank rule).",
+  "projectInstructions": "Run `dune test --root .`. Edit only `merge` in src/leftist.ml. The test compares against List.sort on random inputs and checks that old heaps are unchanged.",
+  "question": "Why is an old leftist heap still valid after `delete_min`?",
+  "correct": "Operations build new nodes and share the unchanged subtrees, so the original structure is never mutated",
+  "wrong": [
+    "delete_min copies the whole heap first",
+    "The old heap is deleted but its elements remain in a hidden array"
+  ],
+  "reasoning": "Persistent structures never overwrite nodes; updates allocate new nodes along the changed path and reuse everything else.",
+  "sourceURL": "https://cs3110.github.io/textbook/chapters/modules/functional_data_structures.html",
+  "projectChecks": [
+    {
+      "name": "starter compiles",
+      "command": [
+        "dune",
+        "build",
+        "--root",
+        "."
+      ],
+      "exit": 0
+    },
+    {
+      "name": "starter tests fail",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "test_leftist.ml"
+    },
+    {
+      "name": "solution tests pass",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 0,
+      "useSolution": true
+    },
+    {
+      "name": "reversed ordering is caught",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "test_leftist.ml",
+      "useSolution": true,
+      "mutations": [
+        {
+          "path": "src/leftist.ml",
+          "find": "O.compare x y <= 0",
+          "replace": "O.compare x y >= 0"
+        }
+      ]
+    }
+  ],
+  "additionalReadings": [
+    {
+      "title": "Okasaki: Purely Functional Data Structures (thesis)",
+      "url": "https://www.cs.cmu.edu/~rwh/students/okasaki.pdf",
+      "section": "Chapter 3"
+    }
+  ]
+}

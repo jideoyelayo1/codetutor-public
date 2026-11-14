@@ -1,0 +1,94 @@
+{
+  "key": "unix-library",
+  "stage": "21 · Tools, libraries and the compiler",
+  "n": 5,
+  "title": "The unix library: files, directories and descriptor safety",
+  "minutes": 40,
+  "body": [
+    "The `unix` library exposes operating-system calls: `Unix.stat` returns a file's size and kind, `Unix.opendir` and `Unix.readdir` list a directory, and `Unix.openfile`, `Unix.read` and `Unix.write` work on raw file descriptors. Failures raise `Unix.Unix_error (code, function, argument)`, where the code is a constructor such as `ENOENT` for a missing file, so a caller can match on the reason instead of parsing a message.",
+    "A file descriptor is a scarce resource. Each process has a limit, often only a few hundred on a desktop system, and a descriptor that is opened and never closed stays open until the program ends. A function that forgets to close on an error path may pass every normal test and then fail in production with `Too many open files`. The fix is the pattern from the exceptions lesson: acquire, then `Fun.protect ~finally:(fun () -> Unix.close fd)`.",
+    "`Unix.read` may return fewer bytes than requested and `Unix.write` may write fewer than given, so copy loops must handle partial transfers, and end-of-file is a zero-byte read. Test for leaks directly by counting the open descriptors (`/dev/fd` on macOS and Linux) before and after many calls, both on success and on failure: a leak then fails the test immediately, without waiting to hit the system limit."
+  ],
+  "challenge": "Implement `file_size`, `list_dir` (sorted, without `.` and `..`) and `copy_file` in src/fileops.ml with the `Unix` module. `copy_file` must close both descriptors even when copying fails, and must handle partial reads and writes. The test counts the open descriptors in /dev/fd before and after hundreds of failing and successful calls, so any leak is detected whatever the system limit is.",
+  "projectInstructions": "Run `dune test --root .`. Edit only src/fileops.ml. A missing file must raise `Unix.Unix_error (Unix.ENOENT, _, _)`.",
+  "question": "Why is `Fun.protect ~finally` used around opening and copying a file?",
+  "correct": "It closes the descriptor on every path, including errors, so repeated failures cannot exhaust the process's descriptor limit",
+  "wrong": [
+    "It makes reads faster",
+    "It converts Unix_error into Failure"
+  ],
+  "reasoning": "The finalizer runs whether the body returns or raises, so cleanup does not depend on the happy path.",
+  "sourceURL": "https://ocaml.org/manual/5.5/libunix.html",
+  "projectChecks": [
+    {
+      "name": "starter compiles",
+      "command": [
+        "dune",
+        "build",
+        "--root",
+        "."
+      ],
+      "exit": 0
+    },
+    {
+      "name": "starter tests fail",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "todo"
+    },
+    {
+      "name": "solution tests pass",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 0,
+      "useSolution": true
+    },
+    {
+      "name": "a leaked descriptor is caught",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "test_fileops.ml",
+      "useSolution": true,
+      "mutations": [
+        {
+          "path": "src/fileops.ml",
+          "find": "Unix.close ofd",
+          "replace": "ignore ofd"
+        }
+      ]
+    },
+    {
+      "name": "a leaked source descriptor is caught on the error path",
+      "command": [
+        "dune",
+        "test",
+        "--root",
+        "."
+      ],
+      "exit": 1,
+      "stderrContains": "test_fileops.ml",
+      "useSolution": true,
+      "mutations": [
+        {
+          "path": "src/fileops.ml",
+          "find": "Unix.close ifd",
+          "replace": "ignore ifd"
+        }
+      ]
+    }
+  ]
+}

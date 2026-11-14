@@ -1,0 +1,29 @@
+{
+ "key": "dispose-and-using",
+ "title": "IDisposable and using",
+ "body": [
+  "The GC manages memory, not other resources. File handles, sockets, database connections, locks and native memory must be released deterministically, as soon as you are done, rather than whenever a collection happens. Types owning such resources implement `IDisposable` with a single `Dispose()` method.",
+  "`using (var file = File.OpenRead(path)) { ... }` calls `Dispose` when the block exits, normally or by exception; it is a `try/finally`. The using declaration `using var file = File.OpenRead(path);` disposes at the end of the enclosing scope. Multiple using declarations dispose in reverse order of declaration, so later resources (which may depend on earlier ones) are released first.",
+  "Ownership decides who disposes. The code that creates a disposable usually owns it; when you pass it to another object, document whether ownership transfers (for example `new StreamReader(stream, leaveOpen: true)` leaves the stream for the caller). A class that owns disposable fields should itself implement `IDisposable` and dispose them.",
+  "`Dispose` should be idempotent (safe to call twice) and, after disposal, other members should throw `ObjectDisposedException` (`ObjectDisposedException.ThrowIf(disposed, this)`). Asynchronous cleanup uses `IAsyncDisposable` and `await using`, covered in stage 11.",
+  "Check every `new` of a disposable type: who owns it, where it is disposed, and what happens if an exception occurs between creation and the using. Analyzer CA2000 flags objects not disposed on all paths."
+ ],
+ "expectedStdout": "using block\ndisposed block\nend of Run body\ndisposed b\ndisposed a\ndisposed owned\nOwner used after dispose\ndisposed exception path\ncaught after dispose ran\n",
+ "challenge": "Write a TempFile class implementing IDisposable that creates a temporary file in its constructor and deletes it in Dispose. Write text to it inside a using block and print whether the file exists inside and after the block.",
+ "solutionStdout": "True hello\nFalse\n",
+ "question": "In what order are `using var a` and then `using var b` disposed at the end of a method?",
+ "correct": "b first, then a",
+ "wrong": [
+  "a first, then b",
+  "In whatever order the GC finalizes them"
+ ],
+ "reasoning": "using declarations unwind in reverse order, like nested using blocks, so dependents are released before what they depend on.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/using",
+ "additionalReadings": [
+  {
+   "title": "Implement a Dispose method",
+   "url": "https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/implementing-dispose",
+   "section": "Dispose pattern"
+  }
+ ]
+}

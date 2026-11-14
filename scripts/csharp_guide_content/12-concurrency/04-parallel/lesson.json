@@ -1,0 +1,29 @@
+{
+ "key": "parallel-and-plinq",
+ "title": "Data parallelism with Parallel and PLINQ",
+ "body": [
+  "`Parallel.For` and `Parallel.ForEach` split CPU-bound loops across thread-pool threads; `Parallel.ForEachAsync` does the same for async bodies. They block until all iterations finish and aggregate exceptions into an `AggregateException`. `ParallelOptions` sets `MaxDegreeOfParallelism` and a cancellation token.",
+  "PLINQ adds `.AsParallel()` to a LINQ query to run operators on several threads. Results are unordered by default; `.AsOrdered()` preserves source order at some cost. `WithDegreeOfParallelism` and `WithCancellation` control execution. Side effects inside PLINQ lambdas are races unless protected.",
+  "Parallelism helps only when each item does enough CPU work to outweigh scheduling overhead and when the work is independent. Small loops, I/O-bound work and loops dominated by a shared lock often get slower. Measure with realistic data.",
+  "Use the thread-local overloads (`Parallel.For(from, to, localInit, body, localFinally)`) to accumulate per-thread results and combine them once, avoiding contention on a shared total. For floating-point sums, the combination order changes, so parallel results may differ in the last digits from a sequential sum.",
+  "Check iterations are independent, that shared results are combined safely, and that ordering requirements are explicit (`AsOrdered`, or sort afterwards)."
+ ],
+ "expectedStdout": "2999998 True\n1,4,9,16,25,36,49,64,81,100\n5133\nfailures collected: True\nparallel loop cancelled\n",
+ "challenge": "Use PLINQ to find the five largest numbers below 100000 whose digit sum is 30, printing them in descending order.",
+ "solutionStdout": "99930,99921,99912,99903,99840\n",
+ "question": "By default, in what order does a PLINQ query produce results?",
+ "correct": "Unspecified; use AsOrdered or sort to impose an order",
+ "wrong": [
+  "Always the source order",
+  "Always ascending by value"
+ ],
+ "reasoning": "PLINQ partitions the input across threads; ordering costs extra and must be requested.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/standard/parallel-programming/data-parallelism-task-parallel-library",
+ "additionalReadings": [
+  {
+   "title": "Introduction to PLINQ",
+   "url": "https://learn.microsoft.com/en-us/dotnet/standard/parallel-programming/introduction-to-plinq",
+   "section": "Ordering"
+  }
+ ]
+}

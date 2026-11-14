@@ -1,0 +1,44 @@
+{
+ "key": "projects-and-tooling",
+ "title": "Projects, solutions, packages and analyzers",
+ "body": [
+  "A `.csproj` file is an MSBuild project. SDK-style projects (`<Project Sdk=\"Microsoft.NET.Sdk\">`) include every `.cs` file under their folder automatically, so the file mostly holds properties: `TargetFramework` (for example `net10.0`), `OutputType` (`Exe` or a library by default), `Nullable`, `ImplicitUsings`, `LangVersion` and `TreatWarningsAsErrors`. `Directory.Build.props` in a parent folder applies shared properties to every project beneath it.",
+  "A solution groups projects. The .NET 10 SDK creates the XML-based `.slnx` format by default (`dotnet new sln`), which is far easier to read and merge than the old `.sln`. `dotnet sln add`, `dotnet add reference` and `dotnet add package` edit these files for you. `global.json` pins the SDK version for a repository and, in .NET 10, selects the test runner.",
+  "NuGet packages are referenced with `<PackageReference Include=\"Name\" />`. Central Package Management puts every version in one `Directory.Packages.props` (`ManagePackageVersionsCentrally`), so all projects agree. Commit a lock file (`RestorePackagesWithLockFile`) or at least pin exact versions, and audit dependencies with `dotnet list package --vulnerable`; NuGet audit warnings are on by default.",
+  "Analyzers run during compilation. The .NET SDK includes code-quality rules (CA*) and style rules (IDE*); `AnalysisLevel` such as `latest-recommended` chooses how many are enabled, and `.editorconfig` adjusts individual rule severities. Treating warnings as errors in CI keeps nullable and analyzer findings from accumulating.",
+  "`dotnet publish -c Release` produces a deployable app. Options include framework-dependent versus self-contained output, a single-file bundle, trimming (`PublishTrimmed`) and Native AOT (`PublishAot`), which compiles ahead of time for fast startup and small memory use but forbids unconstrained reflection and runtime code generation. Check those constraints before choosing AOT."
+ ],
+ "expectedStdout": "runtime major version: 10\nTrue\nprogram\n.NETCoreApp,Version=v10.0\nDebug configuration\nJIT available (not Native AOT)\n",
+ "challenge": "Write the contents of a Directory.Packages.props that centrally pins Serilog 4.3.0 and a test project .csproj line that references it without a version, then explain in one sentence why the reference has no Version attribute.",
+ "solutionStdout": "With central package management the version lives only in Directory.Packages.props, so every project uses the same one.\n",
+ "question": "What does Central Package Management change about PackageReference items?",
+ "correct": "Versions move to Directory.Packages.props and references omit them",
+ "wrong": [
+  "Packages are downloaded once per machine instead of per project",
+  "Analyzers become disabled"
+ ],
+ "reasoning": "One file owns every version, preventing projects in a repository from drifting apart.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/core/project-sdk/overview",
+ "additionalReadings": [
+  {
+   "title": "Central Package Management",
+   "url": "https://learn.microsoft.com/en-us/nuget/consume-packages/central-package-management",
+   "section": "Directory.Packages.props"
+  },
+  {
+   "title": "Code analysis overview",
+   "url": "https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/overview",
+   "section": "AnalysisLevel"
+  },
+  {
+   "title": "Native AOT deployment",
+   "url": "https://learn.microsoft.com/en-us/dotnet/core/deploying/native-aot/",
+   "section": "Limitations"
+  },
+  {
+   "title": "Testing with dotnet test",
+   "url": "https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-with-dotnet-test",
+   "section": "Microsoft.Testing.Platform"
+  }
+ ]
+}

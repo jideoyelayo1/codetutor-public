@@ -1,0 +1,29 @@
+{
+ "key": "deferred-execution",
+ "title": "LINQ and deferred execution",
+ "body": [
+  "LINQ (Language Integrated Query) is a set of extension methods on `IEnumerable<T>` in `System.Linq`: `Where`, `Select`, `OrderBy`, `GroupBy` and many more. Most return a new lazy sequence that remembers the source and the operation. No elements are processed until something enumerates the query: a `foreach`, `ToList()`, `Count()`, `First()` and so on.",
+  "Deferred execution means the query sees the source as it is at enumeration time, not at definition time. Add an item to the list after building the query and the query includes it. Captured variables are also read at enumeration time.",
+  "Each enumeration re-runs the whole pipeline. Enumerating a query twice (for example `Count()` then `foreach`) does the work twice and repeats side effects in lambdas; with a source that reads a file or a network stream it may even return different data. Materialize once with `ToList()` or `ToArray()` when you need several passes or a stable snapshot.",
+  "Operators differ: streaming operators (`Where`, `Select`, `Take`) process one element at a time; buffering operators (`OrderBy`, `GroupBy`, `Reverse`) must read the whole input before producing the first result; immediate operators (`Count`, `Sum`, `ToList`, `First`) run the query at once.",
+  "Analyzers warn about possible multiple enumeration of an `IEnumerable<T>` parameter. Check where each query is enumerated and how many times, and decide deliberately between a lazy view and a materialized snapshot."
+ ],
+ "expectedStdout": "after defining: calls=0\n4,16\nafter first enumeration: calls=4\n2\nafter Count: calls=8\nsnapshot 2, live 3\n6\n20 after s1 s2\n",
+ "challenge": "Build a query over a List<string> of names that keeps names longer than 3 characters and upper-cases them. Print it, add a new long name to the list, print again, then take a ToArray snapshot and show it does not change after another add.",
+ "solutionStdout": "GRACE,ALAN\nGRACE,ALAN,BARBARA\n3 4\n",
+ "question": "A LINQ query is enumerated by Count() and then by foreach. How many times does its Where predicate run per element?",
+ "correct": "Twice: each enumeration re-runs the pipeline",
+ "wrong": [
+  "Once, because LINQ caches results",
+  "Never; Count reads a stored length"
+ ],
+ "reasoning": "Queries are recipes, not results. Materialize with ToList when you need several passes.",
+ "sourceURL": "https://learn.microsoft.com/en-us/dotnet/csharp/linq/get-started/introduction-to-linq-queries",
+ "additionalReadings": [
+  {
+   "title": "Deferred execution and lazy evaluation",
+   "url": "https://learn.microsoft.com/en-us/dotnet/standard/linq/deferred-execution-lazy-evaluation",
+   "section": "Deferred execution"
+  }
+ ]
+}
