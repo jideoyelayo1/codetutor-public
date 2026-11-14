@@ -83,7 +83,11 @@ Six app tests need the offline Rust manuals and fail without them; see [configur
 
 ## Licence
 
-No licence has been chosen yet, so all rights are reserved. Third-party components and their licences are listed in [docs/OPEN_SOURCE.md](docs/OPEN_SOURCE.md).
+Licensed under the [Apache License 2.0](LICENSE); third-party notices are in [CodingTeacher/ThirdPartyNotices.txt](CodingTeacher/ThirdPartyNotices.txt) and [docs/OPEN_SOURCE.md](docs/OPEN_SOURCE.md).
+
+## AI disclosure
+
+The lesson content, recall cards and problems were written by AI coding agents under the author's direction and review; the validators in `scripts/` compile and run the executable examples with the real toolchains. The app and track icons were made with an image-generation model. No LLM or other AI model runs in the app or the gateway.
 
 ## Privacy
 
